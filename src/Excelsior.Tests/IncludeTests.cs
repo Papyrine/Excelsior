@@ -5,7 +5,7 @@ public class IncludeTests
     record Target(string Name, int Age, string Email);
 
     // ReSharper disable once NotAccessedPositionalProperty.Local
-    record AttributeIncludeFalseTarget(string Name, [property: Column(Include = false)] int Age, string Email);
+    record AttributeIncludeFalseTarget(string Name, [Column(Include = false)] int Age, string Email);
 
     static List<Target> Data() =>
     [

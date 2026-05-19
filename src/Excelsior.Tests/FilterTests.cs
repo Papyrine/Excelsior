@@ -5,10 +5,10 @@ public class FilterTests
     record Target(string Name, int Age, string Email);
 
     // ReSharper disable once NotAccessedPositionalProperty.Local
-    record AttributeFilterFalseTarget(string Name, [property: Column(Filter = false)] int Age, string Email);
+    record AttributeFilterFalseTarget(string Name, [Column(Filter = false)] int Age, string Email);
 
     // ReSharper disable once NotAccessedPositionalProperty.Local
-    record AttributeFilterTrueTarget(string Name, [property: Column(Filter = true)] int Age, string Email);
+    record AttributeFilterTrueTarget(string Name, [Column(Filter = true)] int Age, string Email);
 
     static List<Target> Data() =>
     [
