@@ -10,6 +10,7 @@ static class WordTableRenderer<TModel>
         IEnumerable<TModel> data,
         List<ColumnConfig<TModel>> columns,
         Action<CellStyle>? tableHeadingStyle,
+        Action<CellStyle>? tableBodyStyle,
         MainDocumentPart? mainPart)
     {
         var table = new W.Table();
@@ -19,7 +20,7 @@ static class WordTableRenderer<TModel>
 
         foreach (var item in data)
         {
-            table.Append(BuildDataRow(columns, item, mainPart));
+            table.Append(BuildDataRow(columns, item, tableBodyStyle, mainPart));
         }
 
         return table;
@@ -167,13 +168,13 @@ static class WordTableRenderer<TModel>
     {
         var style = ResolveHeadingStyle(column, tableHeadingStyle);
 
-        var run = new W.Run(BuildHeaderRunProperties(style));
+        var run = new W.Run(BuildRunProperties(style));
         AppendTextWithLineBreaks(run, column.Heading);
 
-        var paragraph = new W.Paragraph(BuildHeaderParagraphProperties(style), run);
+        var paragraph = new W.Paragraph(BuildAlignmentParagraphProperties(style), run);
         var cell = new W.TableCell(paragraph);
 
-        var cellProperties = BuildHeaderCellProperties(style);
+        var cellProperties = BuildCellProperties(style);
         if (cellProperties != null)
         {
             cell.PrependChild(cellProperties);
@@ -204,7 +205,7 @@ static class WordTableRenderer<TModel>
         return style;
     }
 
-    static W.RunProperties BuildHeaderRunProperties(CellStyle style)
+    static W.RunProperties BuildRunProperties(CellStyle style)
     {
         var properties = new W.RunProperties();
         if (style.Font.Bold)
@@ -259,7 +260,7 @@ static class WordTableRenderer<TModel>
         return properties;
     }
 
-    static W.ParagraphProperties BuildHeaderParagraphProperties(CellStyle style)
+    static W.ParagraphProperties BuildAlignmentParagraphProperties(CellStyle style)
     {
         var horizontal = style.Alignment.Horizontal;
         W.JustificationValues justification;
@@ -288,7 +289,7 @@ static class WordTableRenderer<TModel>
             });
     }
 
-    static W.TableCellProperties? BuildHeaderCellProperties(CellStyle style)
+    static W.TableCellProperties? BuildCellProperties(CellStyle style)
     {
         var properties = new W.TableCellProperties();
         var hasAny = false;
@@ -335,14 +336,24 @@ static class WordTableRenderer<TModel>
     static string NormaliseColor(string color) =>
         color.StartsWith('#') ? color[1..] : color;
 
-    static W.TableRow BuildDataRow(List<ColumnConfig<TModel>> columns, TModel item, MainDocumentPart? mainPart)
+    static W.TableRow BuildDataRow(List<ColumnConfig<TModel>> columns, TModel item, Action<CellStyle>? tableBodyStyle, MainDocumentPart? mainPart)
     {
         var row = new W.TableRow();
         foreach (var column in columns)
         {
             var value = column.GetValue(item);
+            var style = ResolveBodyStyle(column, item, value, tableBodyStyle);
             var cell = new W.TableCell();
-            foreach (var paragraph in BuildCellParagraphs(column, item, value, mainPart))
+
+            // Cell-level properties (background shading, vertical alignment) apply regardless of the
+            // content path — plain text, HTML, or hyperlink.
+            var cellProperties = style == null ? null : BuildCellProperties(style);
+            if (cellProperties != null)
+            {
+                cell.Append(cellProperties);
+            }
+
+            foreach (var paragraph in BuildCellParagraphs(column, item, value, style, mainPart))
             {
                 cell.Append(paragraph);
             }
@@ -353,10 +364,38 @@ static class WordTableRenderer<TModel>
         return row;
     }
 
+    /// <summary>
+    /// Resolves the effective <see cref="CellStyle"/> for a data cell, layering the per-column
+    /// <c>CellStyle</c> on top of the table-wide body style. Returns <c>null</c> when neither is
+    /// configured so the cell falls back to the lean default (a bare run with no run/paragraph
+    /// properties), matching Excelsior's prior output.
+    /// </summary>
+    static CellStyle? ResolveBodyStyle(ColumnConfig<TModel> column, TModel item, object? value, Action<CellStyle>? tableBodyStyle)
+    {
+        if (tableBodyStyle == null &&
+            column.CellStyle == null)
+        {
+            return null;
+        }
+
+        var style = new CellStyle
+        {
+            Alignment =
+            {
+                Horizontal = HorizontalAlignmentValues.Left
+            }
+        };
+
+        tableBodyStyle?.Invoke(style);
+        column.CellStyle?.Invoke(style, item, value);
+        return style;
+    }
+
     static IReadOnlyList<W.Paragraph> BuildCellParagraphs(
         ColumnConfig<TModel> column,
         TModel item,
         object? value,
+        CellStyle? style,
         MainDocumentPart? mainPart)
     {
         // Excel formulas (=A2*B2 etc.) have no equivalent in Word tables. Fail loudly so the
@@ -383,8 +422,25 @@ static class WordTableRenderer<TModel>
         }
 
         var run = new W.Run();
+        if (style != null)
+        {
+            var runProperties = BuildRunProperties(style);
+            if (runProperties.HasChildren)
+            {
+                run.AppendChild(runProperties);
+            }
+        }
+
         AppendTextWithLineBreaks(run, text);
-        return [new(run)];
+
+        var paragraph = new W.Paragraph();
+        if (style != null)
+        {
+            paragraph.AppendChild(BuildAlignmentParagraphProperties(style));
+        }
+
+        paragraph.AppendChild(run);
+        return [paragraph];
     }
 
     static W.Paragraph BuildHyperlinkParagraph(Link link, MainDocumentPart mainPart)

@@ -592,6 +592,107 @@ public class WordTableBuilderTests
     }
 
     [Test]
+    public void BodyStyleAppliesFontAndAlignmentToEveryDataCell()
+    {
+        #region WordTableBodyStyle
+
+        var builder = new WordTableBuilder<Employee>(
+            SampleData.Employees(),
+            bodyStyle: _ =>
+            {
+                _.Font.Size = 9;
+                _.Font.Name = "Arial";
+            });
+
+        #endregion
+
+        var table = builder.Build();
+        var dataRow = table.Elements<TableRow>().Skip(1).First();
+        var paragraph = dataRow.GetFirstChild<TableCell>()!.GetFirstChild<Paragraph>()!;
+
+        // Body alignment is emitted on the paragraph.
+        IsNotNull(paragraph.ParagraphProperties!.GetFirstChild<Justification>());
+
+        var runProperties = paragraph.GetFirstChild<Run>()!.RunProperties!;
+        // 9pt -> 18 half-points.
+        AreEqual("18", runProperties.GetFirstChild<FontSize>()!.Val?.Value);
+        AreEqual("Arial", runProperties.GetFirstChild<RunFonts>()!.Ascii?.Value);
+    }
+
+    [Test]
+    public void ColumnCellStyleAppliesToDataCells()
+    {
+        var builder = new WordTableBuilder<Employee>(SampleData.Employees())
+            .Column(
+                _ => _.Name,
+                _ => _.CellStyle = (cell, _, _) => cell.BackgroundColor = "FFFF00");
+
+        var table = builder.Build();
+        var dataRow = table.Elements<TableRow>().Skip(1).First();
+
+        // Id is column 0, Name is column 1 — only Name should be shaded.
+        var idCell = dataRow.Elements<TableCell>().ElementAt(0);
+        IsNull(idCell.TableCellProperties?.GetFirstChild<Shading>());
+
+        var nameCell = dataRow.Elements<TableCell>().ElementAt(1);
+        var shading = nameCell.TableCellProperties!.GetFirstChild<Shading>()!;
+        AreEqual("FFFF00", shading.Fill?.Value);
+    }
+
+    [Test]
+    public void ColumnCellStyleCanStyleConditionallyOnValue()
+    {
+        var builder = new WordTableBuilder<Employee>(SampleData.Employees())
+            .Column(
+                _ => _.Salary,
+                _ => _.CellStyle = (cell, _, value) =>
+                {
+                    if (value is int salary && salary > 100_000)
+                    {
+                        cell.Font.Bold = true;
+                    }
+                });
+
+        var table = builder.Build();
+        var employees = SampleData.Employees();
+        var salaryIndex = table.Elements<TableRow>()
+            .First()
+            .Elements<TableCell>()
+            .Select(_ => _.InnerText)
+            .ToList()
+            .IndexOf("Annual Salary");
+        IsTrue(salaryIndex >= 0);
+
+        var dataRows = table.Elements<TableRow>().Skip(1).ToList();
+        for (var i = 0; i < employees.Count; i++)
+        {
+            var salaryCell = dataRows[i].Elements<TableCell>().ElementAt(salaryIndex);
+            var bold = salaryCell.GetFirstChild<Paragraph>()!.GetFirstChild<Run>()!.RunProperties?.GetFirstChild<Bold>();
+            if (employees[i].Salary > 100_000)
+            {
+                IsNotNull(bold);
+            }
+            else
+            {
+                IsNull(bold);
+            }
+        }
+    }
+
+    [Test]
+    public void NoBodyStyleLeavesDataCellsBare()
+    {
+        // Backward compatibility: without bodyStyle or a column CellStyle, data cells carry no
+        // paragraph or run properties (a bare run), exactly as before.
+        var table = new WordTableBuilder<Employee>(SampleData.Employees()).Build();
+
+        var dataRow = table.Elements<TableRow>().Skip(1).First();
+        var paragraph = dataRow.GetFirstChild<TableCell>()!.GetFirstChild<Paragraph>()!;
+        IsNull(paragraph.ParagraphProperties);
+        IsNull(paragraph.GetFirstChild<Run>()!.RunProperties);
+    }
+
+    [Test]
     public void FluentColumnConfigurationOverridesHeading()
     {
         var builder = new WordTableBuilder<Employee>([])
