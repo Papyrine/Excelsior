@@ -4,7 +4,7 @@ class DictionarySheetReader(string? name) :
 {
     List<ColumnReadInfo> columnInfos = [];
     List<IReadOnlyDictionary<string, object?>> rows = [];
-    HashSet<string> names = new(StringComparer.Ordinal);
+    HashSet<string> names = new(StringComparer.OrdinalIgnoreCase);
 
     public string? Name { get; } = name;
     public IReadOnlyList<IReadOnlyDictionary<string, object?>> Rows => rows;
@@ -18,10 +18,17 @@ class DictionarySheetReader(string? name) :
             throw new ArgumentException("Column name must be supplied.", nameof(name));
         }
 
-        if (!names.Add(name))
+        if (name != name.Trim())
         {
-            throw new($"Sheet already contains a column named '{name}'.");
+            throw new ArgumentException($"Column name must not have leading or trailing whitespace: '{name}'.", nameof(name));
         }
+
+        if (names.TryGetValue(name, out var existing))
+        {
+            throw new($"Sheet already contains a column named '{existing}' (column names are compared case-insensitively).");
+        }
+
+        names.Add(name);
 
         Func<Cell, object?>? boxed = convert == null ? null : cell => convert(cell);
         columnInfos.Add(new(

@@ -303,6 +303,8 @@ For sheets without a backing model, declare every column explicitly. Each parsed
 
 The `name` passed to `Column<T>` serves two roles: it is matched against the file's header row (case-insensitively) and it is the key under which the parsed value is exposed in each row dictionary. The simplest choice is the file's heading text itself. For files written by `BookBuilder`, the underlying property name can be passed instead; the workbook's metadata resolves it back to the correct column.
 
+Because header matching is case-insensitive, names must be unique within a sheet under the same comparison — `"Name"` and `"name"` collide — and must not have leading or trailing whitespace. Either violation throws when the column is declared.
+
 <!-- snippet: BookReaderDictionary -->
 <a id='snippet-BookReaderDictionary'></a>
 ```cs
@@ -1554,6 +1556,8 @@ using var book = await builder.Build();
 
 When the data isn't backed by a class, use `AddDictionarySheet` to write rows from `IReadOnlyDictionary<string, object?>`. Columns are declared explicitly via `Column<TProperty>("key", ...)`; the key is the dictionary lookup *and* the default heading. `TProperty` drives type-based defaults (date format, enum dropdown, numeric ISNUMBER validation) the same way a strong-typed property does. Keys missing from a row are written as null cells.
 
+Keys must be unique within a sheet — compared **case-insensitively**, so `"Name"` and `"name"` collide — and must not have leading or trailing whitespace. Either violation throws when the column is declared.
+
 <!-- snippet: DictionarySheetBasic -->
 <a id='snippet-DictionarySheetBasic'></a>
 ```cs
@@ -1717,6 +1721,8 @@ var first = sheet.Rows[0];
 ### Template Sheets
 
 `AddTemplateSheet` produces an empty spreadsheet for the user to fill in — known column names, types, widths, formats, and validation but no data rows. Validation, locked-cell behavior, and conditional formatting all extend down `templateRowCount` rows below the header (defaults to 1000).
+
+Column names must be unique within a sheet — compared **case-insensitively**, so `"Name"` and `"name"` collide — and must not have leading or trailing whitespace. Either violation throws when the column is declared.
 
 <!-- snippet: TemplateSheetBasic -->
 <a id='snippet-TemplateSheetBasic'></a>

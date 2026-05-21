@@ -13,10 +13,15 @@ class DictionarySheetBuilder :
             throw new ArgumentException("Column key must be supplied.", nameof(key));
         }
 
-        var existing = Columns.FirstOrDefault(_ => _.Name == key);
+        if (key != key.Trim())
+        {
+            throw new ArgumentException($"Column key must not have leading or trailing whitespace: '{key}'.", nameof(key));
+        }
+
+        var existing = Columns.FirstOrDefault(_ => string.Equals(_.Name, key, StringComparison.OrdinalIgnoreCase));
         if (existing != null)
         {
-            throw new($"Sheet already contains a column named '{key}'.");
+            throw new($"Sheet already contains a column named '{existing.Name}' (column names are compared case-insensitively).");
         }
 
         var type = typeof(TProperty);
