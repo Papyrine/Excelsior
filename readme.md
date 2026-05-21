@@ -2950,6 +2950,31 @@ var builder = new WordTableBuilder<Employee>(
 Colors accept a leading `#` (e.g. `"#4472C4"`) and it will be stripped before being written to OpenXml.
 
 
+### Body cell styling
+
+The constructor also accepts an optional `bodyStyle` callback that styles every data cell, mirroring `headingStyle`:
+
+<!-- snippet: WordTableBodyStyle -->
+<a id='snippet-WordTableBodyStyle'></a>
+```cs
+var builder = new WordTableBuilder<Employee>(
+    SampleData.Employees(),
+    bodyStyle: _ =>
+    {
+        _.Font.Size = 9;
+        _.Font.Name = "Arial";
+    });
+```
+<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L597-L607' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableBodyStyle' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+A per-column `CellStyle` on `ColumnConfig` composes on top, and — because it receives the model and value — can style cells conditionally (e.g. bold a salary over a threshold, shade a status cell). Font and alignment are written to the cell's runs/paragraph; background and vertical alignment to the cell properties.
+
+Body styling is applied to plain-text cells. `IsHtml` and `Link` cells own their own run formatting, so they only pick up cell-level properties (background, vertical alignment), not the body font.
+
+When neither `bodyStyle` nor a column `CellStyle` is configured, data cells stay lean — a bare run with no run or paragraph properties — so cell text follows the host document's styles (matching a hand-inserted Word table).
+
+
 ### Style inheritance
 
 Tables render at 100% page width (`<w:tblW w:type="pct" w:w="5000"/>`) and reference Word's built-in `TableGrid` style. When `Build(mainPart)` is called, the renderer adds the two style definitions Word itself ships when a table is inserted via the ribbon — `TableNormal` (the default table style that supplies 108dxa left/right cell padding) and `TableGrid` (single-line 4pt borders, declared `basedOn="TableNormal"` so the padding is inherited) — into the host's `StyleDefinitionsPart` if they aren't already there. Word lazy-writes both into a doc's `styles.xml` only once a table that uses them exists, so programmatically-built hosts and templates authored without tables won't have them on disk. The insertion is idempotent: building multiple tables against the same host adds each style once, and a host that already declares either style (typical of templates authored with tables present) is left untouched so customizations survive.

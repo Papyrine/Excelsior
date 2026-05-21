@@ -9,8 +9,19 @@ namespace Excelsior;
 /// This builder targets one specific use case: rendering a tabular collection inside an existing
 /// Word document part. It is intentionally not concerned with document-level concerns (sections,
 /// headers/footers, styles) — the caller owns the host document.
+/// <para>
+/// <paramref name="headingStyle"/> styles every header cell; <paramref name="bodyStyle"/> styles
+/// every data cell. Per-column overrides layer on top via <c>Column(..., c => c.HeadingStyle)</c>
+/// and <c>Column(..., c => c.CellStyle)</c>. Body styling (font, background, alignment) is applied
+/// directly to the cell runs and cell properties — the same way headings are — for plain-text
+/// cells. <c>IsHtml</c> and <see cref="Link"/> cells own their run formatting and only pick up
+/// cell-level properties (background, vertical alignment).
+/// </para>
 /// </remarks>
-public class WordTableBuilder<TModel>(IEnumerable<TModel> data, Action<CellStyle>? headingStyle = null)
+public class WordTableBuilder<TModel>(
+    IEnumerable<TModel> data,
+    Action<CellStyle>? headingStyle = null,
+    Action<CellStyle>? bodyStyle = null)
 {
     readonly Columns<TModel> columns = new();
 
@@ -37,5 +48,5 @@ public class WordTableBuilder<TModel>(IEnumerable<TModel> data, Action<CellStyle
     /// the host part. When omitted, link cells fall back to their display text only.
     /// </summary>
     public DocumentFormat.OpenXml.Wordprocessing.Table Build(MainDocumentPart? mainPart = null) =>
-        WordTableRenderer<TModel>.Build(data, columns.OrderedColumns(), headingStyle, mainPart);
+        WordTableRenderer<TModel>.Build(data, columns.OrderedColumns(), headingStyle, bodyStyle, mainPart);
 }
