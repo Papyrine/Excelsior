@@ -86,4 +86,38 @@ public class BookReaderAnonymousTests
         Assert.That(departments.Rows.Select(_ => _["HeadCount"]), Is.EqualTo(new object[] { 12, 7 }));
         #endregion
     }
+
+    [Test]
+    public void DuplicateColumnThrows()
+    {
+        var reader = new BookReader();
+        var sheet = reader.AddSheet("Staff");
+        sheet.Column<string>("Name");
+
+        var ex = Assert.Throws<Exception>(() => sheet.Column<string>("Name"));
+        Assert.That(ex!.Message, Does.Contain("already contains a column"));
+    }
+
+    [Test]
+    public void CaseInsensitiveDuplicateColumnThrows()
+    {
+        var reader = new BookReader();
+        var sheet = reader.AddSheet("Staff");
+        sheet.Column<string>("Name");
+
+        var ex = Assert.Throws<Exception>(() => sheet.Column<string>("NAME"));
+        Assert.That(ex!.Message, Does.Contain("already contains a column named 'Name'"));
+    }
+
+    [TestCase(" Name")]
+    [TestCase("Name ")]
+    [TestCase("\tName")]
+    public void WhitespaceColumnThrows(string name)
+    {
+        var reader = new BookReader();
+        var sheet = reader.AddSheet("Staff");
+
+        var ex = Assert.Throws<ArgumentException>(() => sheet.Column<string>(name));
+        Assert.That(ex!.Message, Does.Contain("must not have leading or trailing whitespace"));
+    }
 }

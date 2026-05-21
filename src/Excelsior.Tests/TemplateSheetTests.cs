@@ -220,4 +220,38 @@ public class TemplateSheetTests
 
         await Verify(book);
     }
+
+    [Test]
+    public void DuplicateColumnThrows()
+    {
+        var builder = new BookBuilder();
+        var sheet = builder.AddTemplateSheet("Employees")
+            .Column<string>("Name");
+
+        var ex = Assert.Throws<Exception>(() => sheet.Column<string>("Name"));
+        Assert.That(ex!.Message, Does.Contain("already contains a column"));
+    }
+
+    [Test]
+    public void CaseInsensitiveDuplicateColumnThrows()
+    {
+        var builder = new BookBuilder();
+        var sheet = builder.AddTemplateSheet("Employees")
+            .Column<string>("Name");
+
+        var ex = Assert.Throws<Exception>(() => sheet.Column<string>("NAME"));
+        Assert.That(ex!.Message, Does.Contain("already contains a column named 'Name'"));
+    }
+
+    [TestCase(" Name")]
+    [TestCase("Name ")]
+    [TestCase("\tName")]
+    public void WhitespaceColumnThrows(string name)
+    {
+        var builder = new BookBuilder();
+        var sheet = builder.AddTemplateSheet("Employees");
+
+        var ex = Assert.Throws<ArgumentException>(() => sheet.Column<string>(name));
+        Assert.That(ex!.Message, Does.Contain("must not have leading or trailing whitespace"));
+    }
 }

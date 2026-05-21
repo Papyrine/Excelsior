@@ -202,4 +202,27 @@ public class DictionarySheetTests
         var ex = Assert.Throws<Exception>(() => sheet.Column<string>("Name"));
         Assert.That(ex!.Message, Does.Contain("already contains a column"));
     }
+
+    [Test]
+    public void CaseInsensitiveDuplicateKeyThrows()
+    {
+        var builder = new BookBuilder();
+        var sheet = builder.AddDictionarySheet([])
+            .Column<string>("Name");
+
+        var ex = Assert.Throws<Exception>(() => sheet.Column<string>("NAME"));
+        Assert.That(ex!.Message, Does.Contain("already contains a column named 'Name'"));
+    }
+
+    [TestCase(" Name")]
+    [TestCase("Name ")]
+    [TestCase("\tName")]
+    public void WhitespaceKeyThrows(string key)
+    {
+        var builder = new BookBuilder();
+        var sheet = builder.AddDictionarySheet([]);
+
+        var ex = Assert.Throws<ArgumentException>(() => sheet.Column<string>(key));
+        Assert.That(ex!.Message, Does.Contain("must not have leading or trailing whitespace"));
+    }
 }

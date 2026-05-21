@@ -17,10 +17,15 @@ class TemplateSheetBuilder :
             throw new ArgumentException("Column name must be supplied.", nameof(name));
         }
 
-        var existing = Columns.FirstOrDefault(_ => _.Name == name);
+        if (name != name.Trim())
+        {
+            throw new ArgumentException($"Column name must not have leading or trailing whitespace: '{name}'.", nameof(name));
+        }
+
+        var existing = Columns.FirstOrDefault(_ => string.Equals(_.Name, name, StringComparison.OrdinalIgnoreCase));
         if (existing != null)
         {
-            throw new($"Template sheet already contains a column named '{name}'.");
+            throw new($"Template sheet already contains a column named '{existing.Name}' (column names are compared case-insensitively).");
         }
 
         var type = typeof(TProperty);
