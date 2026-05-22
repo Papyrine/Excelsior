@@ -2981,6 +2981,23 @@ Body styling is applied to plain-text cells. `IsHtml` and `Link` cells own their
 When neither `bodyStyle` nor a column `CellStyle` is configured, data cells stay lean — a bare run with no run or paragraph properties — so cell text follows the host document's styles (matching a hand-inserted Word table).
 
 
+### Named paragraph styles
+
+To drive cell appearance from named paragraph styles already defined in the host document (e.g. a branded template), use `HeadingParagraphStyle` and `BodyParagraphStyle`:
+
+<!-- snippet: WordTableParagraphStyles -->
+<a id='snippet-WordTableParagraphStyles'></a>
+```cs
+var builder = new WordTableBuilder<Employee>(SampleData.Employees())
+    .HeadingParagraphStyle("TBLHeading")
+    .BodyParagraphStyle("TBLText");
+```
+<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L698-L704' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableParagraphStyles' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+Unlike the run-level `headingStyle`/`bodyStyle` callbacks, a paragraph style is applied to **every** cell paragraph — including `IsHtml` and `Link` cells — so the style's font, size, and spacing reach all content. The referenced style ids must exist in the host document's styles part. This is the cleanest way to brand an Excelsior table from a template: define the look once as `TBLHeading`/`TBLText` (or any names) and point the table at them.
+
+
 ### Style inheritance
 
 Tables render at 100% page width (`<w:tblW w:type="pct" w:w="5000"/>`) and reference Word's built-in `TableGrid` style. When `Build(mainPart)` is called, the renderer adds the two style definitions Word itself ships when a table is inserted via the ribbon — `TableNormal` (the default table style that supplies 108dxa left/right cell padding) and `TableGrid` (single-line 4pt borders, declared `basedOn="TableNormal"` so the padding is inherited) — into the host's `StyleDefinitionsPart` if they aren't already there. Word lazy-writes both into a doc's `styles.xml` only once a table that uses them exists, so programmatically-built hosts and templates authored without tables won't have them on disk. The insertion is idempotent: building multiple tables against the same host adds each style once, and a host that already declares either style (typical of templates authored with tables present) is left untouched so customizations survive.
