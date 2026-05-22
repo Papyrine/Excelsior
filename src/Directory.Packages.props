@@ -14,7 +14,7 @@
     <PackageVersion Include="Microsoft.Office.Interop.Excel" Version="16.0.18925.20022" Pinned="true" />
     <PackageVersion Include="Polyfill" Version="10.6.0" />
     <PackageVersion Include="ProjectDefaults" Version="1.0.174" />
-    <PackageVersion Include="ProjectFiles" Version="1.1.1" />
+    <PackageVersion Include="ProjectFiles" Version="1.2.0" />
     <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageVersion Include="Verify" Version="31.16.3" />
     <PackageVersion Include="Verify.DiffPlex" Version="3.1.2" />
