@@ -11,19 +11,35 @@ static class WordTableRenderer<TModel>
         List<ColumnConfig<TModel>> columns,
         Action<CellStyle>? tableHeadingStyle,
         Action<CellStyle>? tableBodyStyle,
+        string? headingParagraphStyle,
+        string? bodyParagraphStyle,
         MainDocumentPart? mainPart)
     {
         var table = new W.Table();
         table.Append(BuildTableProperties(mainPart));
         table.Append(BuildGrid(columns.Count));
-        table.Append(BuildHeaderRow(columns, tableHeadingStyle));
+        table.Append(BuildHeaderRow(columns, tableHeadingStyle, headingParagraphStyle));
 
         foreach (var item in data)
         {
-            table.Append(BuildDataRow(columns, item, tableBodyStyle, mainPart));
+            table.Append(BuildDataRow(columns, item, tableBodyStyle, bodyParagraphStyle, mainPart));
         }
 
         return table;
+    }
+
+    /// <summary>
+    /// Applies a named paragraph style (by style id) to a cell paragraph. Set as the first child of
+    /// the paragraph's properties so it sits at the correct schema position; existing direct
+    /// formatting on the paragraph/runs still wins over the style per Word's precedence rules.
+    /// </summary>
+    static void ApplyParagraphStyle(W.Paragraph paragraph, string styleId)
+    {
+        var properties = paragraph.ParagraphProperties ??= new();
+        properties.ParagraphStyleId = new()
+        {
+            Val = styleId
+        };
     }
 
     /// <summary>
@@ -153,18 +169,18 @@ static class WordTableRenderer<TModel>
         }
     }
 
-    static W.TableRow BuildHeaderRow(List<ColumnConfig<TModel>> columns, Action<CellStyle>? tableHeadingStyle)
+    static W.TableRow BuildHeaderRow(List<ColumnConfig<TModel>> columns, Action<CellStyle>? tableHeadingStyle, string? headingParagraphStyle)
     {
         var row = new W.TableRow();
         foreach (var column in columns)
         {
-            row.Append(BuildHeaderCell(column, tableHeadingStyle));
+            row.Append(BuildHeaderCell(column, tableHeadingStyle, headingParagraphStyle));
         }
 
         return row;
     }
 
-    static W.TableCell BuildHeaderCell(ColumnConfig<TModel> column, Action<CellStyle>? tableHeadingStyle)
+    static W.TableCell BuildHeaderCell(ColumnConfig<TModel> column, Action<CellStyle>? tableHeadingStyle, string? headingParagraphStyle)
     {
         var style = ResolveHeadingStyle(column, tableHeadingStyle);
 
@@ -172,6 +188,11 @@ static class WordTableRenderer<TModel>
         AppendTextWithLineBreaks(run, column.Heading);
 
         var paragraph = new W.Paragraph(BuildAlignmentParagraphProperties(style), run);
+        if (headingParagraphStyle != null)
+        {
+            ApplyParagraphStyle(paragraph, headingParagraphStyle);
+        }
+
         var cell = new W.TableCell(paragraph);
 
         var cellProperties = BuildCellProperties(style);
@@ -336,7 +357,7 @@ static class WordTableRenderer<TModel>
     static string NormaliseColor(string color) =>
         color.StartsWith('#') ? color[1..] : color;
 
-    static W.TableRow BuildDataRow(List<ColumnConfig<TModel>> columns, TModel item, Action<CellStyle>? tableBodyStyle, MainDocumentPart? mainPart)
+    static W.TableRow BuildDataRow(List<ColumnConfig<TModel>> columns, TModel item, Action<CellStyle>? tableBodyStyle, string? bodyParagraphStyle, MainDocumentPart? mainPart)
     {
         var row = new W.TableRow();
         foreach (var column in columns)
@@ -355,6 +376,13 @@ static class WordTableRenderer<TModel>
 
             foreach (var paragraph in BuildCellParagraphs(column, item, value, style, mainPart))
             {
+                // A named paragraph style applies to every paragraph — including those produced by
+                // the HTML and hyperlink paths — so the style's font/size/spacing reaches all cells.
+                if (bodyParagraphStyle != null)
+                {
+                    ApplyParagraphStyle(paragraph, bodyParagraphStyle);
+                }
+
                 cell.Append(paragraph);
             }
 

@@ -693,6 +693,49 @@ public class WordTableBuilderTests
     }
 
     [Test]
+    public void ParagraphStylesAppliedToHeaderAndBodyCells()
+    {
+        #region WordTableParagraphStyles
+
+        var builder = new WordTableBuilder<Employee>(SampleData.Employees())
+            .HeadingParagraphStyle("TBLHeading")
+            .BodyParagraphStyle("TBLText");
+
+        #endregion
+
+        var table = builder.Build();
+        var rows = table.Elements<TableRow>().ToList();
+
+        var headerParagraph = rows[0].GetFirstChild<TableCell>()!.GetFirstChild<Paragraph>()!;
+        AreEqual("TBLHeading", headerParagraph.ParagraphProperties!.ParagraphStyleId!.Val?.Value);
+
+        var bodyParagraph = rows[1].GetFirstChild<TableCell>()!.GetFirstChild<Paragraph>()!;
+        AreEqual("TBLText", bodyParagraph.ParagraphProperties!.ParagraphStyleId!.Val?.Value);
+    }
+
+    [Test]
+    public void BodyParagraphStyleReachesHtmlCells()
+    {
+        // A named paragraph style must reach IsHtml cells (unlike the run-level bodyStyle), while
+        // leaving the HTML-derived inline formatting intact.
+        var rows = new[]
+        {
+            new HtmlRow
+            {
+                Name = "<i>A. Smith</i>"
+            }
+        };
+
+        var table = new WordTableBuilder<HtmlRow>(rows)
+            .BodyParagraphStyle("TBLText")
+            .Build();
+
+        var paragraph = table.Elements<TableRow>().Skip(1).First().GetFirstChild<TableCell>()!.GetFirstChild<Paragraph>()!;
+        AreEqual("TBLText", paragraph.ParagraphProperties!.ParagraphStyleId!.Val?.Value);
+        IsNotNull(paragraph.GetFirstChild<Run>()!.RunProperties!.GetFirstChild<Italic>());
+    }
+
+    [Test]
     public void FluentColumnConfigurationOverridesHeading()
     {
         var builder = new WordTableBuilder<Employee>([])

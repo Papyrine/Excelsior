@@ -17,6 +17,14 @@ namespace Excelsior;
 /// cells. <c>IsHtml</c> and <see cref="Link"/> cells own their run formatting and only pick up
 /// cell-level properties (background, vertical alignment).
 /// </para>
+/// <para>
+/// To drive cell appearance from named paragraph styles already defined in the host document
+/// (e.g. a branded template) rather than inline run formatting, use
+/// <see cref="HeadingParagraphStyle"/> and <see cref="BodyParagraphStyle"/>. Unlike the run-level
+/// callbacks, a paragraph style is applied to <em>every</em> cell paragraph — including
+/// <c>IsHtml</c> and <see cref="Link"/> cells — so the style's font, size, and spacing reach all
+/// content.
+/// </para>
 /// </remarks>
 public class WordTableBuilder<TModel>(
     IEnumerable<TModel> data,
@@ -24,6 +32,30 @@ public class WordTableBuilder<TModel>(
     Action<CellStyle>? bodyStyle = null)
 {
     readonly Columns<TModel> columns = new();
+    string? headingParagraphStyle;
+    string? bodyParagraphStyle;
+
+    /// <summary>
+    /// Apply a named Word paragraph style (by style id) to every header cell paragraph. The style
+    /// must be defined in the host document's styles part. Useful for sourcing the header font,
+    /// size, colour, and spacing from a branded template instead of inline run formatting.
+    /// </summary>
+    public WordTableBuilder<TModel> HeadingParagraphStyle(string styleId)
+    {
+        headingParagraphStyle = styleId;
+        return this;
+    }
+
+    /// <summary>
+    /// Apply a named Word paragraph style (by style id) to every data cell paragraph — including
+    /// <c>IsHtml</c> and <see cref="Link"/> cells. The style must be defined in the host document's
+    /// styles part. Useful for sourcing the body font, size, and spacing from a branded template.
+    /// </summary>
+    public WordTableBuilder<TModel> BodyParagraphStyle(string styleId)
+    {
+        bodyParagraphStyle = styleId;
+        return this;
+    }
 
     /// <summary>
     /// Configure a single column. Mirrors <c>ISheetBuilder&lt;TModel&gt;.Column</c>: any settings
@@ -48,5 +80,12 @@ public class WordTableBuilder<TModel>(
     /// the host part. When omitted, link cells fall back to their display text only.
     /// </summary>
     public DocumentFormat.OpenXml.Wordprocessing.Table Build(MainDocumentPart? mainPart = null) =>
-        WordTableRenderer<TModel>.Build(data, columns.OrderedColumns(), headingStyle, bodyStyle, mainPart);
+        WordTableRenderer<TModel>.Build(
+            data,
+            columns.OrderedColumns(),
+            headingStyle,
+            bodyStyle,
+            headingParagraphStyle,
+            bodyParagraphStyle,
+            mainPart);
 }
