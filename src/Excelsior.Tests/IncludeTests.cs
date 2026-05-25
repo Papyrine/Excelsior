@@ -7,6 +7,11 @@ public class IncludeTests
     // ReSharper disable once NotAccessedPositionalProperty.Local
     record AttributeIncludeFalseTarget(string Name, [Column(Include = false)] int Age, string Email);
 
+#pragma warning disable EXCEL004
+    // ReSharper disable once NotAccessedPositionalProperty.Local
+    record ExcludeWithOtherSettingsTarget(string Name, [Column(Include = false, Width = 40)] int Age, string Email);
+#pragma warning restore EXCEL004
+
     static List<Target> Data() =>
     [
         new("Alice", 30, "alice@test.com"),
@@ -75,6 +80,19 @@ public class IncludeTests
 
         var book = await builder.Build();
         await Verify(book);
+    }
+
+    [Test]
+    public void ExcludeCombinedWithOtherSettingsThrows()
+    {
+        var builder = new BookBuilder();
+
+        var exception = Assert.Catch(
+            () => builder.AddSheet(new List<ExcludeWithOtherSettingsTarget>()));
+
+        var inner = exception is TypeInitializationException tie ? tie.InnerException! : exception;
+        Assert.That(inner!.Message, Does.Contain("Include = false"));
+        Assert.That(inner.Message, Does.Contain("Width"));
     }
 
     [Test]
