@@ -252,7 +252,7 @@ public class WordTableBuilderTests
         return VerifyTable(builder);
     }
 
-    static async Task VerifyTable(WordTableBuilder<Employee> builder)
+    static async Task VerifyTable<T>(WordTableBuilder<T> builder)
     {
         using var stream = new MemoryStream();
         using (var doc = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document))
@@ -733,6 +733,110 @@ public class WordTableBuilderTests
         var paragraph = table.Elements<TableRow>().Skip(1).First().GetFirstChild<TableCell>()!.GetFirstChild<Paragraph>()!;
         AreEqual("TBLText", paragraph.ParagraphProperties!.ParagraphStyleId!.Val?.Value);
         IsNotNull(paragraph.GetFirstChild<Run>()!.RunProperties!.GetFirstChild<Italic>());
+    }
+
+    public class WidthRow
+    {
+        [Column(Heading = "A", Order = 1, Width = 10)]
+        public required string Fixed { get; init; }
+
+        [Column(Heading = "B", Order = 2, MaxWidth = 8)]
+        public required string Clamped { get; init; }
+
+        [Column(Heading = "C", Order = 3, MinWidth = 30)]
+        public required string Raised { get; init; }
+    }
+
+    static WidthRow[] WidthRows() =>
+    [
+        new()
+        {
+            Fixed = "short",
+            // Long enough that auto-sizing would far exceed the MaxWidth of 8.
+            Clamped = "a deliberately very long value that would auto-size wide",
+            Raised = "x"
+        }
+    ];
+
+    [Test]
+    public void WidthHintSwitchesTableToFixedDxaLayout()
+    {
+        var table = new WordTableBuilder<WidthRow>(WidthRows()).Build();
+        var props = table.GetFirstChild<TableProperties>()!;
+
+        // A width hint flips the table from the default pct auto-layout to fixed dxa layout.
+        var width = props.GetFirstChild<TableWidth>()!;
+        AreEqual(TableWidthUnitValues.Dxa, width.Type?.Value);
+
+        var layout = props.GetFirstChild<TableLayout>()!;
+        AreEqual(TableLayoutValues.Fixed, layout.Type?.Value);
+
+        // tblW is the sum of the grid column widths.
+        var gridWidths = table.GetFirstChild<TableGrid>()!
+            .Elements<GridColumn>()
+            .Select(_ => int.Parse(_.Width!.Value!))
+            .ToList();
+        AreEqual(gridWidths.Sum(), int.Parse(width.Width!.Value!));
+    }
+
+    [Test]
+    public void WidthHintsResolveExplicitClampedAndRaisedColumns()
+    {
+        var table = new WordTableBuilder<WidthRow>(WidthRows()).Build();
+        var gridWidths = table.GetFirstChild<TableGrid>()!
+            .Elements<GridColumn>()
+            .Select(_ => int.Parse(_.Width!.Value!))
+            .ToList();
+
+        // chars -> twips is (chars * 7 + 5) * 15.
+        // Fixed: explicit Width = 10 -> (10*7+5)*15 = 1125.
+        AreEqual(1125, gridWidths[0]);
+        // Clamped: long content auto-sizes wide but MaxWidth = 8 caps it -> (8*7+5)*15 = 915.
+        AreEqual(915, gridWidths[1]);
+        // Raised: tiny content but MinWidth = 30 floors it -> (30*7+5)*15 = 3225.
+        AreEqual(3225, gridWidths[2]);
+    }
+
+    [Test]
+    public void NoWidthHintKeepsAutoLayoutAndBareGridColumns()
+    {
+        // Regression: a model without any Width/MinWidth/MaxWidth keeps the prior output — a
+        // pct=5000 width, no tblLayout, and grid columns with no explicit width.
+        var table = new WordTableBuilder<Employee>(SampleData.Employees()).Build();
+        var props = table.GetFirstChild<TableProperties>()!;
+
+        var width = props.GetFirstChild<TableWidth>()!;
+        AreEqual(TableWidthUnitValues.Pct, width.Type?.Value);
+        AreEqual("5000", width.Width?.Value);
+        IsNull(props.GetFirstChild<TableLayout>());
+
+        var gridColumns = table.GetFirstChild<TableGrid>()!.Elements<GridColumn>().ToList();
+        IsTrue(gridColumns.All(_ => _.Width == null));
+    }
+
+    [Test]
+    public Task RendersTableWithColumnWidths()
+    {
+        // Snapshot showing the three width behaviours side by side: an explicit Width = 10 column,
+        // a MaxWidth = 8 column whose long content wraps within the cap, and a MinWidth = 30 column
+        // that stays wide despite tiny content. A width hint also flips the table to fixed layout.
+        var rows = new[]
+        {
+            new WidthRow
+            {
+                Fixed = "Alpha",
+                Clamped = "United Kingdom, France, Japan, United Arab Emirates, Canada",
+                Raised = "x"
+            },
+            new WidthRow
+            {
+                Fixed = "Beta",
+                Clamped = "Japan",
+                Raised = "y"
+            }
+        };
+
+        return VerifyTable(new WordTableBuilder<WidthRow>(rows));
     }
 
     [Test]

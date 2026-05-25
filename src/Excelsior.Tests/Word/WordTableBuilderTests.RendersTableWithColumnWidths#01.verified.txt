@@ -1,0 +1,3 @@
+﻿A	B	C
+Alpha	United Kingdom, France, Japan, United Arab Emirates, Canada	x
+Beta	Japan	y
