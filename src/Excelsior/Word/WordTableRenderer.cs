@@ -15,17 +15,173 @@ static class WordTableRenderer<TModel>
         string? bodyParagraphStyle,
         MainDocumentPart? mainPart)
     {
+        // Materialised so column widths can be measured (a pass over the data) before the rows are
+        // rendered. The measuring pass only runs when a column declares a Width/MinWidth/MaxWidth.
+        var rows = data as IReadOnlyList<TModel> ?? data.ToList();
+        var columnWidths = ResolveColumnWidths(columns, rows);
+
         var table = new W.Table();
-        table.Append(BuildTableProperties(mainPart));
-        table.Append(BuildGrid(columns.Count));
+        table.Append(BuildTableProperties(mainPart, columnWidths));
+        table.Append(BuildGrid(columns.Count, columnWidths));
         table.Append(BuildHeaderRow(columns, tableHeadingStyle, headingParagraphStyle));
 
-        foreach (var item in data)
+        foreach (var item in rows)
         {
             table.Append(BuildDataRow(columns, item, tableBodyStyle, bodyParagraphStyle, mainPart));
         }
 
         return table;
+    }
+
+    /// <summary>
+    /// Computes per-column widths (in twips) when any column declares a <c>Width</c>,
+    /// <c>MinWidth</c>, or <c>MaxWidth</c>. Returns <c>null</c> when no column sets a width hint, so
+    /// the table keeps its default 100%-page-width auto-layout and existing output is unchanged.
+    /// </summary>
+    static int[]? ResolveColumnWidths(List<ColumnConfig<TModel>> columns, IReadOnlyList<TModel> rows)
+    {
+        var anyHint = false;
+        foreach (var column in columns)
+        {
+            if (column.Width.HasValue ||
+                column.MinWidth.HasValue ||
+                column.MaxWidth.HasValue)
+            {
+                anyHint = true;
+                break;
+            }
+        }
+
+        if (!anyHint)
+        {
+            return null;
+        }
+
+        var widths = new int[columns.Count];
+        for (var index = 0; index < columns.Count; index++)
+        {
+            widths[index] = CharsToTwips(ResolveColumnChars(columns[index], rows));
+        }
+
+        return widths;
+    }
+
+    /// <summary>
+    /// Resolves a column's width in Excel character units, mirroring the Excel renderer
+    /// (<c>Renderer.ResizeColumn</c>): an explicit <c>Width</c> wins; otherwise the content is
+    /// auto-measured and clamped by <c>MinWidth</c> (lower) and <c>MaxWidth</c> (upper).
+    /// </summary>
+    static double ResolveColumnChars(ColumnConfig<TModel> column, IReadOnlyList<TModel> rows)
+    {
+        if (column.Width is { } width)
+        {
+            return width;
+        }
+
+        var measured = (int)Math.Round(MeasureAutoChars(column, rows)) + 1;
+        if (column.IsEnumerable)
+        {
+            measured += 5;
+        }
+
+        if (column.MinWidth is { } min &&
+            measured < min)
+        {
+            measured = min;
+        }
+
+        if (column.MaxWidth is { } max &&
+            measured > max)
+        {
+            measured = max;
+        }
+
+        return measured;
+    }
+
+    /// <summary>
+    /// Estimates the natural width (Excel character units) of a column from its heading and cell
+    /// text, mirroring <c>Renderer.AdjustColumnWidth</c>/<c>CharWidthFactor</c>: a floor of 8,
+    /// ~1.1 chars per glyph for the default font, +2 padding. The heading uses the bold factor
+    /// since header cells are bold. HTML cells are measured from their tag-stripped text.
+    /// </summary>
+    static double MeasureAutoChars(ColumnConfig<TModel> column, IReadOnlyList<TModel> rows)
+    {
+        const double charFactor = 1.1;
+        const double boldFactor = 1.05;
+
+        var max = 8d;
+
+        var headingChars = column.Heading.Length * charFactor * boldFactor + 2;
+        if (headingChars > max)
+        {
+            max = headingChars;
+        }
+
+        foreach (var row in rows)
+        {
+            var value = column.GetValue(row);
+            var text = ToText(column, row, value);
+            if (column.IsHtml)
+            {
+                text = StripTags(text);
+            }
+
+            var chars = text.Length * charFactor + 2;
+            if (chars > max)
+            {
+                max = chars;
+            }
+        }
+
+        return max;
+    }
+
+    /// <summary>
+    /// Strips angle-bracket tags so an <c>IsHtml</c> column is width-measured from its visible text
+    /// rather than its markup. A deliberately lightweight scan — exact rendered width is not
+    /// recoverable without laying out the runs, and column width is an estimate either way.
+    /// </summary>
+    static string StripTags(string html)
+    {
+        if (!html.Contains('<'))
+        {
+            return html;
+        }
+
+        var builder = new StringBuilder(html.Length);
+        var inside = false;
+        foreach (var ch in html)
+        {
+            if (ch == '<')
+            {
+                inside = true;
+            }
+            else if (ch == '>')
+            {
+                inside = false;
+            }
+            else if (!inside)
+            {
+                builder.Append(ch);
+            }
+        }
+
+        return builder.ToString();
+    }
+
+    /// <summary>
+    /// Converts an Excel column width (character units of the default Calibri 11 font) to twips.
+    /// One character ≈ 7px (max digit width) plus ~5px cell padding; 1px at 96 DPI = 15 twips.
+    /// </summary>
+    static int CharsToTwips(double chars)
+    {
+        const double pixelsPerChar = 7d;
+        const double cellPadding = 5d;
+        const double twipsPerPixel = 15d;
+
+        var pixels = chars * pixelsPerChar + cellPadding;
+        return (int)Math.Round(pixels * twipsPerPixel);
     }
 
     /// <summary>
@@ -51,13 +207,41 @@ static class WordTableRenderer<TModel>
     /// the supported way to rebrand Excelsior tables. The standalone path (no host) emits inline
     /// borders instead, since there's no styles part to add to.
     /// </summary>
-    static W.TableProperties BuildTableProperties(MainDocumentPart? mainPart)
+    static W.TableProperties BuildTableProperties(MainDocumentPart? mainPart, int[]? columnWidths)
     {
-        var tblW = new W.TableWidth
+        W.TableWidth tblW;
+        W.TableLayout? layout;
+        if (columnWidths == null)
         {
-            Width = "5000",
-            Type = W.TableWidthUnitValues.Pct
-        };
+            // Default: fill the content area and let Word auto-fit columns to their content.
+            tblW = new()
+            {
+                Width = "5000",
+                Type = W.TableWidthUnitValues.Pct
+            };
+            layout = null;
+        }
+        else
+        {
+            var total = 0;
+            foreach (var width in columnWidths)
+            {
+                total += width;
+            }
+
+            // Sum the explicit grid column widths and switch to fixed layout so Word honours them
+            // instead of auto-fitting. The width is content-derived (mirroring Excel), so a wide
+            // table can exceed the page; cap it with explicit Width/MaxWidth on the columns.
+            tblW = new()
+            {
+                Width = total.ToString(CultureInfo.InvariantCulture),
+                Type = W.TableWidthUnitValues.Dxa
+            };
+            layout = new()
+            {
+                Type = W.TableLayoutValues.Fixed
+            };
+        }
 
         var tblLook = new W.TableLook
         {
@@ -73,17 +257,26 @@ static class WordTableRenderer<TModel>
         if (mainPart != null)
         {
             TableGridStyle.EnsurePresent(mainPart);
-            return new(
+            var properties = new W.TableProperties(
                 new W.TableStyle
                 {
                     Val = TableGridStyle.StyleId
                 },
-                tblW,
-                tblLook);
+                tblW);
+            if (layout != null)
+            {
+                properties.Append(layout);
+            }
+
+            properties.Append(tblLook);
+            return properties;
         }
 
-        return new(
-            tblW,
+        // tblPr children must follow the schema order: tblW, tblBorders, tblLayout, tblCellMar,
+        // tblLook. Build incrementally so tblLayout lands in the right slot when present.
+        var standalone = new W.TableProperties();
+        standalone.Append(tblW);
+        standalone.Append(
             new W.TableBorders(
                 new W.TopBorder
                 {
@@ -114,7 +307,13 @@ static class WordTableRenderer<TModel>
                 {
                     Val = W.BorderValues.Single,
                     Size = 4
-                }),
+                }));
+        if (layout != null)
+        {
+            standalone.Append(layout);
+        }
+
+        standalone.Append(
             new W.TableCellMarginDefault(
                 new W.TopMargin
                 {
@@ -135,16 +334,28 @@ static class WordTableRenderer<TModel>
                 {
                     Width = "108",
                     Type = W.TableWidthUnitValues.Dxa
-                }),
-            tblLook);
+                }));
+        standalone.Append(tblLook);
+        return standalone;
     }
 
-    static W.TableGrid BuildGrid(int columnCount)
+    static W.TableGrid BuildGrid(int columnCount, int[]? columnWidths)
     {
         var grid = new W.TableGrid();
-        for (var i = 0; i < columnCount; i++)
+        for (var index = 0; index < columnCount; index++)
         {
-            grid.Append(new W.GridColumn());
+            if (columnWidths == null)
+            {
+                grid.Append(new W.GridColumn());
+            }
+            else
+            {
+                grid.Append(
+                    new W.GridColumn
+                    {
+                        Width = columnWidths[index].ToString(CultureInfo.InvariantCulture)
+                    });
+            }
         }
 
         return grid;
