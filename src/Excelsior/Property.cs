@@ -17,6 +17,7 @@ class Property<T>
         if (generated is null)
         {
             var column = info.Attribute<ColumnAttribute>() ?? constructorParameter?.Attribute<ColumnAttribute>();
+            ValidateExclusion(info, column);
             Order = GetOrder(column, display);
             Width = GetWidth(column);
             MinWidth = GetMinWidth(column);
@@ -45,6 +46,22 @@ class Property<T>
         IsNumber = Type.IsNumericType();
         IsNonNullable = ResolveIsNonNullable(info);
         IsRequired = ResolveIsRequired(info, constructorParameter);
+    }
+
+    static void ValidateExclusion(MemberInfo info, ColumnAttribute? column)
+    {
+        if (column is null)
+        {
+            return;
+        }
+
+        var conflicts = column.ConflictingExclusionSettings();
+        if (conflicts.Count == 0)
+        {
+            return;
+        }
+
+        throw new($"Property '{info.DeclaringType!.Name}.{info.Name}': [Column(Include = false)] cannot be combined with other column settings ({string.Join(", ", conflicts)}) — an excluded column is never written, so those settings have no effect.");
     }
 
     static bool ResolveIsRequired(MemberInfo info, ParameterInfo? constructorParameter)

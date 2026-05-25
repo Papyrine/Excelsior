@@ -50,4 +50,65 @@ public sealed class ColumnAttribute :
     } = true;
 
     internal bool IncludeHasValue { get; private set; }
+
+    /// <summary>
+    /// When <see cref="Include"/> is explicitly <c>false</c> the column is dropped before
+    /// any other setting is read, so every other setting is silently ignored. Returns the
+    /// names of any such redundant settings (empty when there is no conflict).
+    /// </summary>
+    internal IReadOnlyList<string> ConflictingExclusionSettings()
+    {
+        if (!IncludeHasValue || Include)
+        {
+            return [];
+        }
+
+        var conflicts = new List<string>();
+        if (Heading != null)
+        {
+            conflicts.Add(nameof(Heading));
+        }
+
+        if (Order > -1)
+        {
+            conflicts.Add(nameof(Order));
+        }
+
+        if (Width > -1)
+        {
+            conflicts.Add(nameof(Width));
+        }
+
+        if (MinWidth > -1)
+        {
+            conflicts.Add(nameof(MinWidth));
+        }
+
+        if (MaxWidth > -1)
+        {
+            conflicts.Add(nameof(MaxWidth));
+        }
+
+        if (Format != null)
+        {
+            conflicts.Add(nameof(Format));
+        }
+
+        if (NullDisplay != null)
+        {
+            conflicts.Add(nameof(NullDisplay));
+        }
+
+        if (IsHtmlHasValue)
+        {
+            conflicts.Add(nameof(IsHtml));
+        }
+
+        if (FilterHasValue)
+        {
+            conflicts.Add(nameof(Filter));
+        }
+
+        return conflicts;
+    }
 }

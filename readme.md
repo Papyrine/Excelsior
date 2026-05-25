@@ -2169,9 +2169,70 @@ public sealed class ColumnAttribute :
     } = true;
 
     internal bool IncludeHasValue { get; private set; }
+
+    /// <summary>
+    /// When <see cref="Include"/> is explicitly <c>false</c> the column is dropped before
+    /// any other setting is read, so every other setting is silently ignored. Returns the
+    /// names of any such redundant settings (empty when there is no conflict).
+    /// </summary>
+    internal IReadOnlyList<string> ConflictingExclusionSettings()
+    {
+        if (!IncludeHasValue || Include)
+        {
+            return [];
+        }
+
+        var conflicts = new List<string>();
+        if (Heading != null)
+        {
+            conflicts.Add(nameof(Heading));
+        }
+
+        if (Order > -1)
+        {
+            conflicts.Add(nameof(Order));
+        }
+
+        if (Width > -1)
+        {
+            conflicts.Add(nameof(Width));
+        }
+
+        if (MinWidth > -1)
+        {
+            conflicts.Add(nameof(MinWidth));
+        }
+
+        if (MaxWidth > -1)
+        {
+            conflicts.Add(nameof(MaxWidth));
+        }
+
+        if (Format != null)
+        {
+            conflicts.Add(nameof(Format));
+        }
+
+        if (NullDisplay != null)
+        {
+            conflicts.Add(nameof(NullDisplay));
+        }
+
+        if (IsHtmlHasValue)
+        {
+            conflicts.Add(nameof(IsHtml));
+        }
+
+        if (FilterHasValue)
+        {
+            conflicts.Add(nameof(Filter));
+        }
+
+        return conflicts;
+    }
 }
 ```
-<sup><a href='/src/Excelsior/Attributes/ColumnAttribute.cs#L1-L53' title='Snippet source file'>snippet source</a> | <a href='#snippet-ColumnAttribute.cs' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior/Attributes/ColumnAttribute.cs#L1-L114' title='Snippet source file'>snippet source</a> | <a href='#snippet-ColumnAttribute.cs' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -2636,7 +2697,7 @@ var builder = new BookBuilder();
 var sheet = builder.AddSheet(data);
 sheet.Include(_ => _.Email, !isInternalReport);
 ```
-<sup><a href='/src/Excelsior.Tests/IncludeTests.cs#L83-L92' title='Snippet source file'>snippet source</a> | <a href='#snippet-IncludeToggleBasedOnState' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/IncludeTests.cs#L101-L110' title='Snippet source file'>snippet source</a> | <a href='#snippet-IncludeToggleBasedOnState' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -2660,7 +2721,7 @@ var sheet = builder.AddSheet(data);
 sheet.Exclude(_ => _.Age);
 sheet.Exclude(_ => _.Email);
 ```
-<sup><a href='/src/Excelsior.Tests/IncludeTests.cs#L101-L111' title='Snippet source file'>snippet source</a> | <a href='#snippet-IncludeMultipleSpreadsheets_Public' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/IncludeTests.cs#L119-L129' title='Snippet source file'>snippet source</a> | <a href='#snippet-IncludeMultipleSpreadsheets_Public' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -2680,7 +2741,7 @@ List<Target> data = [
 var builder = new BookBuilder();
 builder.AddSheet(data);
 ```
-<sup><a href='/src/Excelsior.Tests/IncludeTests.cs#L120-L131' title='Snippet source file'>snippet source</a> | <a href='#snippet-IncludeMultipleSpreadsheets_Internal' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/IncludeTests.cs#L138-L149' title='Snippet source file'>snippet source</a> | <a href='#snippet-IncludeMultipleSpreadsheets_Internal' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -2702,7 +2763,7 @@ var builder = new BookBuilder();
 var sheet = builder.AddSheet(data);
 sheet.Exclude(_ => _.Age);
 ```
-<sup><a href='/src/Excelsior.Tests/IncludeTests.cs#L29-L39' title='Snippet source file'>snippet source</a> | <a href='#snippet-IncludeExcludeOne' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/IncludeTests.cs#L34-L44' title='Snippet source file'>snippet source</a> | <a href='#snippet-IncludeExcludeOne' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -2726,7 +2787,7 @@ sheet.Column(
     _ => _.Age,
     _ => _.Include = false);
 ```
-<sup><a href='/src/Excelsior.Tests/IncludeTests.cs#L48-L60' title='Snippet source file'>snippet source</a> | <a href='#snippet-IncludeExcludeOneViaColumn' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/IncludeTests.cs#L53-L65' title='Snippet source file'>snippet source</a> | <a href='#snippet-IncludeExcludeOneViaColumn' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
