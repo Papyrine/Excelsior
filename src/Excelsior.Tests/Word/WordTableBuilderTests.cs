@@ -647,7 +647,7 @@ public class WordTableBuilderTests
                 _ => _.Salary,
                 _ => _.CellStyle = (cell, _, value) =>
                 {
-                    if (value is int salary && salary > 100_000)
+                    if (value > 100_000)
                     {
                         cell.Font.Bold = true;
                     }

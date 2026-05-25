@@ -114,7 +114,7 @@ public class ExcludedColumnSettingsAnalyzer : DiagnosticAnalyzer
         key switch
         {
             "Heading" or "Format" or "NullDisplay" => value is string,
-            "Order" or "Width" or "MinWidth" or "MaxWidth" => value is int and > -1,
+            "Order" or "Width" or "MinWidth" or "MaxWidth" => value is > -1,
             "IsHtml" or "Filter" => true,
             _ => false
         };
