@@ -248,16 +248,84 @@ class Renderer<TModel>(
     static double EstimateBannerLines(string text, double width, double fontSize)
     {
         // Column width units are "characters of the default font", so a larger banner font fits
-        // fewer per line — scale the per-line capacity by the font ratio.
+        // fewer per line — scale the per-line capacity by the font ratio. Subtracting 1 leaves
+        // room for the cell's left/right padding; the earlier (-2)/1.1 fudge was too tight and
+        // caused the per-line estimate to land at roughly half of Excel's actual capacity, which
+        // in turn made the word-wrap simulation below count every word as too long to fit.
         var fontRatio = fontSize / defaultExcelFontSize;
-        var charsPerLine = Math.Max(1d, (width - 2) / (1.1 * fontRatio));
+        var charsPerLine = Math.Max(1d, (width - 1) / fontRatio);
         double lines = 0;
         foreach (var line in text.Split('\n'))
         {
-            lines += Math.Max(1d, Math.Ceiling(line.Length / charsPerLine));
+            lines += CountWrappedLines(line, charsPerLine);
         }
 
         return Math.Max(1d, lines);
+    }
+
+    // Excel wraps merged-cell text on word boundaries: when the next word does not fit in the
+    // remaining space on the current visual line, it starts on a new line and the trailing space
+    // on the current line stays blank. A pure ceil(length/charsPerLine) over-estimates because
+    // it implicitly assumes mid-word breaks — every char-of-overflow becomes a line, even if
+    // Excel would have packed the overflowing word to the next line and left the previous line
+    // half-full. That over-estimate is what causes a banner to render with extra whitespace
+    // below the last word.
+    //
+    // This pass simulates the greedy word-wrap Excel actually performs: words are packed onto
+    // the current line until one would not fit, at which point it starts a new line. A word
+    // longer than charsPerLine still breaks mid-word (matching Excel's behaviour for an
+    // un-breakable token) and contributes ceil(word/charsPerLine) lines.
+    static int CountWrappedLines(string line, double charsPerLine)
+    {
+        if (line.Length == 0)
+        {
+            return 1;
+        }
+
+        var lines = 1;
+        var used = 0d;
+        foreach (var word in line.Split(' '))
+        {
+            if (word.Length > charsPerLine)
+            {
+                // Word longer than a line: flush any in-progress line, then split the word into
+                // full lines plus a remainder that anchors the next line.
+                if (used > 0)
+                {
+                    lines++;
+                    used = 0;
+                }
+
+                var wholeLines = (int)(word.Length / charsPerLine);
+                var remainder = word.Length - wholeLines * charsPerLine;
+                lines += wholeLines - 1;
+                if (remainder > 0)
+                {
+                    lines++;
+                    used = remainder;
+                }
+                else
+                {
+                    used = charsPerLine;
+                }
+
+                continue;
+            }
+
+            // Leading space before every non-first word on the line — costs one char of capacity.
+            var prefix = used == 0 ? 0d : 1d;
+            if (used + prefix + word.Length > charsPerLine)
+            {
+                lines++;
+                used = word.Length;
+            }
+            else
+            {
+                used += prefix + word.Length;
+            }
+        }
+
+        return lines;
     }
 
     void CreateHeadings(SheetContext sheet)

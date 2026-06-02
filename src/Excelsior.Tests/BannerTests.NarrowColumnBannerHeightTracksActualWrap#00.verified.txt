@@ -1,0 +1,21 @@
+﻿{
+  Sheets: [
+    {
+      Name: Solo,
+      Columns: [
+        {
+          Name:
+Validation rules (enforced after upload):
+• name: required,
+          Metadata: {
+            property: name
+          },
+          Width: 10.0,
+          ContainsRichText: false,
+          RequiredHighlight: false
+        }
+      ]
+    }
+  ],
+  WorksheetCount: 1
+}

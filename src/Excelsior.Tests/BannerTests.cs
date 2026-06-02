@@ -148,6 +148,30 @@ public class BannerTests
     }
 
     [Test]
+    public async Task NarrowColumnBannerHeightTracksActualWrap()
+    {
+        // Regression: a long banner on a single narrow column used to grow the row to fit a
+        // char-count-based line estimate, which over-counted because it assumed mid-word breaks.
+        // Excel actually word-wraps, so the row would render with several lines of empty space
+        // below the last word. The estimator now simulates the same greedy word-wrap.
+        var builder = new BookBuilder();
+        builder.AddTemplateSheet("Solo")
+            .Banner("Validation rules (enforced after upload):\n• name: required")
+            .Column<string>("name", _ => _.Width = 10);
+
+        using var book = await builder.Build();
+
+        // Without the fix this rendered ~165pt (11 char-based lines). After: ≤ 8 lines worth
+        // (~120pt) — comfortably under the previous ceiling. The exact word-wrap count depends
+        // on the conservative chars-per-line ratio, so this asserts the upper bound rather than
+        // an exact value, and Verify captures the actual height for snapshot review.
+        var row = BannerRow(book);
+        Assert.That(row.Height!.Value, Is.LessThanOrEqualTo(120));
+
+        await Verify(book);
+    }
+
+    [Test]
     public async Task ExpandsHeightForMultilineText()
     {
         var builder = new BookBuilder();
