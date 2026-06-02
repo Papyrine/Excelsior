@@ -3,6 +3,7 @@ class Columns<TModel>
     Dictionary<string, ColumnConfig<TModel>> columns = [];
     bool inferValidationFromTypes;
     public bool AutoFilter { get; set; } = true;
+    public bool AutoInputMessages { get; set; } = true;
 
     public Columns(bool inferValidationFromTypes = false)
     {

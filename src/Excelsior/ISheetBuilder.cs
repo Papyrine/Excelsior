@@ -102,6 +102,13 @@ public interface ISheetBuilder<TModel>
     public void DisableFilter();
 
     /// <summary>
+    /// Disable the auto-generated constraint input hints for every column on the sheet. Explicit
+    /// <see cref="InputMessage{TProperty}"/> hints still apply, and individual columns can be
+    /// suppressed instead via <see cref="DisableInputMessage{TProperty}"/>.
+    /// </summary>
+    public void DisableInputMessages();
+
+    /// <summary>
     /// Include or exclude a specific column from the output.
     /// </summary>
     public void Include<TProperty>(
