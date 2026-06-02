@@ -13,6 +13,7 @@ class Renderer<TModel>(
     const string requiredHighlightColor = "FFFFC7CE";
 
     internal bool AutoFilter { get; set; } = true;
+    internal bool AutoInputMessages { get; set; } = true;
 
     StyleManager? styleManager;
     Dictionary<Cell, CellStyle> cellStyles = [];
@@ -703,7 +704,7 @@ class Renderer<TModel>(
             var letter = SheetContext.GetColumnLetter(i);
             var firstCell = $"{letter}{validationFirstRow}";
             var sqref = $"{firstCell}:{letter}{validationLastRow}";
-            var validation = BuildDataValidation(column, sqref, firstCell);
+            var validation = BuildDataValidation(column, sqref, firstCell, AutoInputMessages);
             if (validation == null)
             {
                 continue;
@@ -823,7 +824,7 @@ class Renderer<TModel>(
         return 1 + dataRowCount + templateRowCount;
     }
 
-    static DataValidation? BuildDataValidation(ColumnConfig<TModel> column, string sqref, string firstCell)
+    static DataValidation? BuildDataValidation(ColumnConfig<TModel> column, string sqref, string firstCell, bool autoInputMessages)
     {
         var validation = new DataValidation
         {
@@ -907,7 +908,8 @@ class Renderer<TModel>(
                 validation.Prompt = column.InputMessage;
             }
         }
-        else if (hasValidation &&
+        else if (autoInputMessages &&
+                 hasValidation &&
                  !column.DisableInputMessage &&
                  BuildDefaultInputMessage(column) is { } autoPrompt)
         {

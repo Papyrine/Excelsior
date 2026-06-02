@@ -90,6 +90,9 @@ class SheetBuilder<TModel>(Columns<TModel> columns) :
     public void DisableFilter() =>
         columns.AutoFilter = false;
 
+    public void DisableInputMessages() =>
+        columns.AutoInputMessages = false;
+
     public void Include<TProperty>(
         Expression<Func<TModel, TProperty>> property,
         bool value) =>

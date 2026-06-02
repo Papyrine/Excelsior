@@ -4,6 +4,7 @@ class TemplateSheetBuilder :
     bool inferValidationFromTypes;
     public List<ColumnConfig<TemplateRow>> Columns { get; } = [];
     public bool AutoFilter { get; private set; } = true;
+    public bool AutoInputMessages { get; private set; } = true;
 
     public TemplateSheetBuilder(bool inferValidationFromTypes = true) =>
         this.inferValidationFromTypes = inferValidationFromTypes;
@@ -84,6 +85,8 @@ class TemplateSheetBuilder :
     }
 
     public void DisableFilter() => AutoFilter = false;
+
+    public void DisableInputMessages() => AutoInputMessages = false;
 
     static string? DeriveDefaultFormat(Type type)
     {

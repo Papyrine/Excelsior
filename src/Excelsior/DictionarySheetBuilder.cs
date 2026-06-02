@@ -3,6 +3,7 @@ class DictionarySheetBuilder :
 {
     public List<ColumnConfig<IReadOnlyDictionary<string, object?>>> Columns { get; } = [];
     public bool AutoFilter { get; private set; } = true;
+    public bool AutoInputMessages { get; private set; } = true;
 
     public IDictionarySheetBuilder Column<TProperty>(
         string key,
@@ -92,6 +93,8 @@ class DictionarySheetBuilder :
     }
 
     public void DisableFilter() => AutoFilter = false;
+
+    public void DisableInputMessages() => AutoInputMessages = false;
 
     static string? DeriveDefaultFormat(Type type)
     {
