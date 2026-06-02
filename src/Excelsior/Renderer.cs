@@ -14,17 +14,24 @@ class Renderer<TModel>(
 
     internal bool AutoFilter { get; set; } = true;
     internal bool AutoInputMessages { get; set; } = true;
+    internal Banner? Banner { get; set; }
+
+    // Number of rows inserted above the header. A banner occupies one; everything below
+    // (header, data, validations, notes, freeze pane) shifts down by this amount.
+    int BannerRows => Banner == null ? 0 : 1;
 
     StyleManager? styleManager;
     Dictionary<Cell, CellStyle> cellStyles = [];
     Dictionary<Cell, int> cellDisplayLengths = [];
     Dictionary<int, double> finalColumnWidths = [];
     Dictionary<int, uint> columnLevelStyles = [];
+    Cell? bannerCell;
 
     internal async Task AddSheet(SpreadsheetDocument book, Cancel cancel)
     {
         ValidateFormulaColumnWidths();
         var sheet = BuildSheet(book);
+        CreateBanner(sheet);
         CreateHeadings(sheet);
         FreezeHeader(sheet);
         await PopulateData(sheet, cancel);
@@ -60,7 +67,9 @@ class Renderer<TModel>(
         BuildColumnLevelStyles();
         ResizeRows(sheet);
         ApplyMaxRowHeight(sheet);
+        ResizeBannerRow(sheet);
         ApplySheetProtection(sheet);
+        MergeBanner(sheet);
         EmitConditionalFormatting(sheet);
         EmitDataValidations(sheet);
         EmitComments(sheet);
@@ -109,13 +118,147 @@ class Renderer<TModel>(
         sheet.Worksheet.InsertAfter(sheetProtection, sheet.SheetData);
     }
 
+    // Renders the merged instruction row above the header. Runs before CreateHeadings so the
+    // banner occupies row 1 and the header/data rows stay in ascending order in SheetData.
+    void CreateBanner(SheetContext sheet)
+    {
+        if (Banner == null)
+        {
+            return;
+        }
+
+        var cell = sheet.GetCell(0, 0);
+        bannerCell = cell;
+        var style = GetStyle(cell);
+        style.Alignment.Horizontal = HorizontalAlignmentValues.Left;
+        style.Alignment.Vertical = VerticalAlignmentValues.Top;
+        style.Alignment.WrapText = true;
+        if (bookBuilder.IsProtected)
+        {
+            // A protected sheet leaves the banner read-only — instructions are not meant to be
+            // edited. Data columns opt back in to editable via their (un)Locked handling.
+            style.Locked = true;
+        }
+
+        if (Banner.Render == null)
+        {
+            SetCellValue(cell, Banner.Text!);
+        }
+        else
+        {
+            Banner.Render(cell);
+        }
+
+        Banner.Style?.Invoke(style);
+        CommitStyle(cell, style);
+    }
+
+    // Spans the banner cell across every column. Excel needs the anchor cell (A1) plus a merge
+    // region; the cells it merges over can stay absent. Skipped for a single-column sheet, where
+    // a 1x1 merge is invalid.
+    void MergeBanner(SheetContext sheet)
+    {
+        if (Banner == null ||
+            columns.Count < 2)
+        {
+            return;
+        }
+
+        var lastColumn = SheetContext.GetColumnLetter(columns.Count - 1);
+        var mergeCells = new MergeCells
+        {
+            Count = 1
+        };
+        mergeCells.Append(
+            new MergeCell
+            {
+                Reference = $"A1:{lastColumn}1"
+            });
+
+        // mergeCells must sit after sheetData/sheetProtection/autoFilter but before the
+        // conditionalFormatting and dataValidations that are appended later.
+        var worksheet = sheet.Worksheet;
+        OpenXmlElement? anchor = worksheet.GetFirstChild<AutoFilter>();
+        anchor ??= worksheet.GetFirstChild<SheetProtection>();
+        anchor ??= sheet.SheetData;
+        worksheet.InsertAfter(mergeCells, anchor);
+    }
+
+    // Merged cells do not auto-size their row in Excel, so a multi-line banner would be clipped at
+    // the default single-line height. Estimate how many lines the text wraps to across the full
+    // merged width and grow the banner row to match, bounded by Banner.MaxHeight and Excel's limit.
+    void ResizeBannerRow(SheetContext sheet)
+    {
+        if (Banner == null ||
+            bannerCell == null)
+        {
+            return;
+        }
+
+        double mergedWidth = 0;
+        for (var i = 0; i < columns.Count; i++)
+        {
+            mergedWidth += finalColumnWidths.GetValueOrDefault(i, 8d);
+        }
+
+        var fontSize = BannerFontSize();
+        var text = string.Concat(EnumerateCellTexts(bannerCell));
+        var lines = EstimateBannerLines(text, mergedWidth, fontSize);
+        var height = lines * (fontSize + 4);
+
+        if (Banner.MaxHeight is { } max &&
+            height > max)
+        {
+            height = max;
+        }
+
+        if (height > maxExcelRowHeight)
+        {
+            height = maxExcelRowHeight;
+        }
+
+        var row = sheet.SheetData
+            .Elements<Row>()
+            .FirstOrDefault(_ => _.RowIndex?.Value == 1);
+        if (row == null)
+        {
+            return;
+        }
+
+        row.Height = height;
+        row.CustomHeight = true;
+    }
+
+    double BannerFontSize()
+    {
+        var size = defaultExcelFontSize;
+        ProbeFontSize(bookBuilder.GlobalStyle, ref size);
+        ProbeFontSize(Banner!.Style, ref size);
+        return size;
+    }
+
+    static double EstimateBannerLines(string text, double width, double fontSize)
+    {
+        // Column width units are "characters of the default font", so a larger banner font fits
+        // fewer per line — scale the per-line capacity by the font ratio.
+        var fontRatio = fontSize / defaultExcelFontSize;
+        var charsPerLine = Math.Max(1d, (width - 2) / (1.1 * fontRatio));
+        double lines = 0;
+        foreach (var line in text.Split('\n'))
+        {
+            lines += Math.Max(1d, Math.Ceiling(line.Length / charsPerLine));
+        }
+
+        return Math.Max(1d, lines);
+    }
+
     void CreateHeadings(SheetContext sheet)
     {
         for (var i = 0; i < columns.Count; i++)
         {
             var column = columns[i];
 
-            var cell = sheet.GetCell(0, i);
+            var cell = sheet.GetCell(BannerRows, i);
 
             SetCellValue(cell, column.Heading);
             var style = GetStyle(cell);
@@ -195,7 +338,7 @@ class Renderer<TModel>(
         var itemIndex = 0;
         await foreach (var item in data.WithCancellation(cancel))
         {
-            var rowIndex = itemIndex + 1; // +1 to skip heading;
+            var rowIndex = itemIndex + 1 + BannerRows; // +1 to skip heading, plus any banner
 
             for (var columnIndex = 0; columnIndex < columns.Count; columnIndex++)
             {
@@ -289,14 +432,23 @@ class Renderer<TModel>(
         return new(worksheetPart);
     }
 
-    static void FreezeHeader(SheetContext sheet)
+    void FreezeHeader(SheetContext sheet)
     {
+        // Frozen rows are always contiguous from the top, so freezing the header necessarily
+        // freezes any banner above it. A banner with Freeze=false therefore frees the whole top
+        // region (the header cannot stay pinned while the banner above it scrolls).
+        var freezeRows = Banner is { Freeze: false } ? 0 : 1 + BannerRows;
+        if (freezeRows == 0)
+        {
+            return;
+        }
+
         var sheetViews = new SheetViews(
             new SheetView(
                 new Pane
                 {
-                    VerticalSplit = 1,
-                    TopLeftCell = "A2",
+                    VerticalSplit = freezeRows,
+                    TopLeftCell = $"A{freezeRows + 1}",
                     ActivePane = PaneValues.BottomLeft,
                     State = PaneStateValues.Frozen
                 })
@@ -450,7 +602,7 @@ class Renderer<TModel>(
         }
     }
 
-    static void ApplyFilter(SheetContext sheet, int firstColumn, int lastColumn)
+    void ApplyFilter(SheetContext sheet, int firstColumn, int lastColumn)
     {
         if (sheet.RowCount == 0)
         {
@@ -459,7 +611,7 @@ class Renderer<TModel>(
 
         var firstCol = SheetContext.GetColumnLetter(firstColumn);
         var lastCol = SheetContext.GetColumnLetter(lastColumn);
-        var reference = $"{firstCol}1:{lastCol}{sheet.RowCount}";
+        var reference = $"{firstCol}{BannerRows + 1}:{lastCol}{sheet.RowCount}";
         sheet.Worksheet
             .InsertAfter(
                 new AutoFilter
@@ -476,6 +628,14 @@ class Renderer<TModel>(
 
         foreach (var row in sheet.SheetData.Elements<Row>())
         {
+            if (Banner != null &&
+                row.RowIndex?.Value == 1)
+            {
+                // The banner spans every column (merged), so its text must not drive any single
+                // column's width.
+                continue;
+            }
+
             var cellRef = colLetter + row.RowIndex;
             var cell = row.Elements<Cell>()
                 .FirstOrDefault(_ => _.CellReference?.Value == cellRef);
@@ -640,7 +800,7 @@ class Renderer<TModel>(
 
     void EmitConditionalFormatting(SheetContext sheet)
     {
-        var validationFirstRow = 2;
+        var validationFirstRow = 2 + BannerRows;
         var validationLastRow = ComputeValidationLastRow(sheet);
         if (validationLastRow < validationFirstRow)
         {
@@ -681,7 +841,7 @@ class Renderer<TModel>(
 
     void EmitDataValidations(SheetContext sheet)
     {
-        var validationFirstRow = 2;
+        var validationFirstRow = 2 + BannerRows;
         var validationLastRow = ComputeValidationLastRow(sheet);
         if (validationLastRow < validationFirstRow)
         {
@@ -746,7 +906,7 @@ class Renderer<TModel>(
             }
 
             notes ??= [];
-            notes.Add((i, $"{SheetContext.GetColumnLetter(i)}1", text));
+            notes.Add((i, $"{SheetContext.GetColumnLetter(i)}{BannerRows + 1}", text));
         }
 
         if (notes == null)
@@ -780,7 +940,7 @@ class Renderer<TModel>(
         commentsPart.Comments = new(new Authors(new Author("")), commentList);
 
         var vmlPart = worksheetPart.AddNewPart<VmlDrawingPart>();
-        WriteCommentVml(vmlPart, notes);
+        WriteCommentVml(vmlPart, notes, BannerRows);
 
         sheet.Worksheet.Append(
             new LegacyDrawing
@@ -789,7 +949,7 @@ class Renderer<TModel>(
             });
     }
 
-    static void WriteCommentVml(VmlDrawingPart part, List<(int Index, string Reference, string Text)> notes)
+    static void WriteCommentVml(VmlDrawingPart part, List<(int Index, string Reference, string Text)> notes, int rowOffset)
     {
         var builder = new StringBuilder();
         builder.Append(
@@ -806,7 +966,7 @@ class Renderer<TModel>(
             // hidden until the cell is hovered, matching how Excel itself emits notes.
             builder.Append(
                 $"""
-                 <v:shape id="_x0000_s{shapeId}" type="#_x0000_t202" style="position:absolute;width:108pt;height:60pt;z-index:{zIndex};visibility:hidden" fillcolor="#ffffe1" o:insetmode="auto"><v:fill color2="#ffffe1"/><v:shadow on="t" color="black" obscured="t"/><v:path o:connecttype="none"/><v:textbox style="mso-direction-alt:auto"><div style="text-align:left"></div></v:textbox><x:ClientData ObjectType="Note"><x:MoveWithCells/><x:SizeWithCells/><x:Anchor>{column + 1}, 15, 0, 2, {column + 3}, 15, 4, 16</x:Anchor><x:AutoFill>False</x:AutoFill><x:Row>0</x:Row><x:Column>{column}</x:Column></x:ClientData></v:shape>
+                 <v:shape id="_x0000_s{shapeId}" type="#_x0000_t202" style="position:absolute;width:108pt;height:60pt;z-index:{zIndex};visibility:hidden" fillcolor="#ffffe1" o:insetmode="auto"><v:fill color2="#ffffe1"/><v:shadow on="t" color="black" obscured="t"/><v:path o:connecttype="none"/><v:textbox style="mso-direction-alt:auto"><div style="text-align:left"></div></v:textbox><x:ClientData ObjectType="Note"><x:MoveWithCells/><x:SizeWithCells/><x:Anchor>{column + 1}, 15, {rowOffset}, 2, {column + 3}, 15, {rowOffset + 4}, 16</x:Anchor><x:AutoFill>False</x:AutoFill><x:Row>{rowOffset}</x:Row><x:Column>{column}</x:Column></x:ClientData></v:shape>
                  """);
             shapeId++;
         }
@@ -820,8 +980,9 @@ class Renderer<TModel>(
 
     int ComputeValidationLastRow(SheetContext sheet)
     {
-        var dataRowCount = Math.Max(0, sheet.RowCount - 1);
-        return 1 + dataRowCount + templateRowCount;
+        var headerRow = 1 + BannerRows;
+        var dataRowCount = Math.Max(0, sheet.RowCount - headerRow);
+        return headerRow + dataRowCount + templateRowCount;
     }
 
     static DataValidation? BuildDataValidation(ColumnConfig<TModel> column, string sqref, string firstCell, bool autoInputMessages)
@@ -1097,11 +1258,12 @@ class Renderer<TModel>(
 
         var maxLinesAllowed = max.Value / pointsPerLine;
 
+        var lastPinnedRow = (uint)(1 + BannerRows);
         foreach (var row in sheet.SheetData.Elements<Row>())
         {
-            if (row.RowIndex?.Value == 1)
+            if (row.RowIndex?.Value <= lastPinnedRow)
             {
-                // Header row always auto-sizes; MaxRowHeight does not apply.
+                // Banner and header rows always auto-size; MaxRowHeight does not apply.
                 continue;
             }
 

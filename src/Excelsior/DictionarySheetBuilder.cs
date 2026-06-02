@@ -4,6 +4,7 @@ class DictionarySheetBuilder :
     public List<ColumnConfig<IReadOnlyDictionary<string, object?>>> Columns { get; } = [];
     public bool AutoFilter { get; private set; } = true;
     public bool AutoInputMessages { get; private set; } = true;
+    public Banner? BannerRow { get; private set; }
 
     public IDictionarySheetBuilder Column<TProperty>(
         string key,
@@ -95,6 +96,29 @@ class DictionarySheetBuilder :
     public void DisableFilter() => AutoFilter = false;
 
     public void DisableInputMessages() => AutoInputMessages = false;
+
+    public IDictionarySheetBuilder Banner(string text, Action<CellStyle>? style = null, bool freeze = true, int? maxHeight = null)
+    {
+        BannerRow = new()
+        {
+            Text = text,
+            Style = style,
+            Freeze = freeze,
+            MaxHeight = maxHeight
+        };
+        return this;
+    }
+
+    public IDictionarySheetBuilder Banner(Action<Cell> render, bool freeze = true, int? maxHeight = null)
+    {
+        BannerRow = new()
+        {
+            Render = render,
+            Freeze = freeze,
+            MaxHeight = maxHeight
+        };
+        return this;
+    }
 
     static string? DeriveDefaultFormat(Type type)
     {
