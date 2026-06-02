@@ -10,6 +10,7 @@ class Renderer<TModel>(
 {
     const int maxExcelRowHeight = 409;
     const double defaultExcelFontSize = 11;
+    const double defaultRowHeight = defaultExcelFontSize + 4;
     const string requiredHighlightColor = "FFFFC7CE";
 
     internal bool AutoFilter { get; set; } = true;
@@ -215,6 +216,13 @@ class Renderer<TModel>(
         if (height > maxExcelRowHeight)
         {
             height = maxExcelRowHeight;
+        }
+
+        if (Math.Abs(height - defaultRowHeight) < 0.01)
+        {
+            // A single default-font line needs no explicit height — Excel's default row height
+            // already fits it, so leave the row attribute off.
+            return;
         }
 
         var row = sheet.SheetData
