@@ -26,7 +26,8 @@
               White-ish
             ],
             AllowBlank: true,
-            ShowInputMessage: false,
+            ShowInputMessage: true,
+            InputMessage: Select one of: White-ish.,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
             ErrorMessage: Must be one of: White-ish.,
@@ -47,7 +48,8 @@
               BUILDYOURDREAM
             ],
             AllowBlank: true,
-            ShowInputMessage: false,
+            ShowInputMessage: true,
+            InputMessage: Select one of: BUILDYOURDREAM.,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
             ErrorMessage: Must be one of: BUILDYOURDREAM.,

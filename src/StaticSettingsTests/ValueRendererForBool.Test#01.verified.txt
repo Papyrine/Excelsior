@@ -27,7 +27,8 @@
               No
             ],
             AllowBlank: true,
-            ShowInputMessage: false,
+            ShowInputMessage: true,
+            InputMessage: Select one of: Yes, No.,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
             ErrorMessage: Must be one of: Yes, No.,
@@ -49,7 +50,8 @@
               No
             ],
             AllowBlank: true,
-            ShowInputMessage: false,
+            ShowInputMessage: true,
+            InputMessage: Select one of: Yes, No.,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
             ErrorMessage: Must be one of: Yes, No.,

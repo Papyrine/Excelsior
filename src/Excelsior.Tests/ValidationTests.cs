@@ -40,6 +40,41 @@ public class ValidationTests
     }
 
     [Test]
+    public async Task AutoInputMessageFromConstraint()
+    {
+        #region AutoInputMessage
+
+        // No InputMessage is set, yet the Range constraint is surfaced as an input hint
+        // ("Enter a number between 0 and 1000000.") shown when the cell is selected.
+        var builder = new BookBuilder();
+        builder.AddSheet(SampleData.Employees(), templateRowCount: 10)
+            .Column(_ => _.Salary, _ => _.Range(0, 1_000_000));
+
+        using var book = await builder.Build();
+
+        #endregion
+
+        await Verify(book);
+    }
+
+    [Test]
+    public async Task AutoInputMessageDisabled()
+    {
+        #region DisableInputMessage
+
+        var builder = new BookBuilder();
+        var sheet = builder.AddSheet(SampleData.Employees(), templateRowCount: 10);
+        sheet.Range(_ => _.Salary, 0, 1_000_000);
+        sheet.DisableInputMessage(_ => _.Salary);
+
+        using var book = await builder.Build();
+
+        #endregion
+
+        await Verify(book);
+    }
+
+    [Test]
     public async Task RequiredHighlightOnDataBoundSheet()
     {
         var builder = new BookBuilder();

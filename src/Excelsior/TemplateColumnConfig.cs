@@ -57,6 +57,18 @@ public class TemplateColumnConfig
     /// </summary>
     public ValidationErrorStyle? ErrorStyle { get; set; }
 
+    /// <summary>
+    /// Suppresses the input-hint tooltip that is otherwise auto-generated from this column's
+    /// constraint. Has no effect on an explicit <see cref="InputMessage"/>.
+    /// </summary>
+    public bool DisableInputMessage { get; set; }
+
+    /// <summary>
+    /// Attaches an Excel note (the legacy red-triangle comment) to this column's heading cell.
+    /// Notes remain visible on hover even when the sheet is protected.
+    /// </summary>
+    public string? Note { get; set; }
+
     public void Range(decimal min, decimal max)
     {
         NumericMin = min;

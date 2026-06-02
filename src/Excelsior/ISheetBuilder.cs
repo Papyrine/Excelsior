@@ -171,4 +171,20 @@ public interface ISheetBuilder<TModel>
         Expression<Func<TModel, TProperty>> property,
         string message,
         string? title = null);
+
+    /// <summary>
+    /// Suppress the input-hint tooltip that is otherwise auto-generated from this column's
+    /// constraint (allowed values, numeric/date range, or required).
+    /// </summary>
+    public void DisableInputMessage<TProperty>(
+        Expression<Func<TModel, TProperty>> property);
+
+    /// <summary>
+    /// Attach an Excel note (the legacy red-triangle comment) to this column's heading cell.
+    /// Notes stay visible on hover even when the sheet is protected, making them a good place
+    /// to explain a constraint or why a column is locked.
+    /// </summary>
+    public void Note<TProperty>(
+        Expression<Func<TModel, TProperty>> property,
+        string text);
 }

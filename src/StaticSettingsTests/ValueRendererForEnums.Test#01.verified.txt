@@ -17,7 +17,8 @@
               BUILDYOURDREAM
             ],
             AllowBlank: true,
-            ShowInputMessage: false,
+            ShowInputMessage: true,
+            InputMessage: Select one of: BUILDYOURDREAM.,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
             ErrorMessage: Must be one of: BUILDYOURDREAM.,
@@ -38,7 +39,8 @@
               ANTIQUEWHITE
             ],
             AllowBlank: true,
-            ShowInputMessage: false,
+            ShowInputMessage: true,
+            InputMessage: Select one of: ANTIQUEWHITE.,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
             ErrorMessage: Must be one of: ANTIQUEWHITE.,
@@ -59,7 +61,8 @@
               ANTIQUEWHITE
             ],
             AllowBlank: true,
-            ShowInputMessage: false,
+            ShowInputMessage: true,
+            InputMessage: Select one of: ANTIQUEWHITE.,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
             ErrorMessage: Must be one of: ANTIQUEWHITE.,

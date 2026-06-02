@@ -48,6 +48,13 @@ public class DictionaryColumnConfig<TProperty> :
     public string? ErrorTitle { get; set; }
     public string? ErrorMessage { get; set; }
     public ValidationErrorStyle? ErrorStyle { get; set; }
+    public bool DisableInputMessage { get; set; }
+
+    /// <summary>
+    /// Attaches an Excel note (the legacy red-triangle comment) to this column's heading cell.
+    /// Notes remain visible on hover even when the sheet is protected.
+    /// </summary>
+    public string? Note { get; set; }
 
     public void Range(decimal min, decimal max)
     {

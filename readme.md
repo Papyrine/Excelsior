@@ -1166,6 +1166,25 @@ public class SheetProtectionOptions
 | `PivotTables` | `true` | Editing pivot tables and pivot charts |
 
 
+### Cell Notes
+
+`Note` attaches an Excel note (the classic red-triangle comment) to a column's **heading** cell. Unlike an input hint — which only appears on an editable cell — a note stays visible on hover even when the sheet is protected and the cell is locked. That makes it the natural place to explain a constraint, document a column, or say *why* a column is read-only.
+
+<!-- snippet: Note -->
+<a id='snippet-Note'></a>
+```cs
+var builder = new BookBuilder();
+builder.AddSheet(SampleData.Employees())
+    .Note(_ => _.Salary, "Gross annual salary in USD, before tax.");
+
+using var stream = await builder.ToMemoryStream();
+```
+<sup><a href='/src/Excelsior.Tests/NoteTests.cs#L37-L45' title='Snippet source file'>snippet source</a> | <a href='#snippet-Note' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+Notes work on every sheet kind (data-bound, dictionary, and template) and combine freely with [protection](#protection) and [validation](#input-hints-and-error-messages).
+
+
 ### Complex Types
 
 For complex types, by default is to render via `.ToString()`.
@@ -1910,9 +1929,43 @@ using var book = await builder.Build();
 
 #### Input Hints and Error Messages
 
-`InputTitle` / `InputMessage` configure the tooltip Excel shows when a cell is selected. `ErrorTitle` / `ErrorMessage` override the popup shown when invalid input is rejected.
+Excel speaks to editors through two channels, and Excelsior fills both in automatically so a constraint is never a hidden surprise:
 
-When neither is set, Excelsior fills in a sensible default based on the validation type — `"Must be one of: A, B, C."` for dropdowns, `"Must be a number between X and Y."` for ranges, `"Must be a number."` for the auto-`ISNUMBER` constraint, etc. Set `ErrorMessage` explicitly to override.
+- **Input hint** — the tooltip shown *proactively* when a cell is selected, before anything is typed. This is the only channel that tells an editor the rule *before* they break it.
+- **Error alert** — the popup shown *reactively* after an invalid value is rejected.
+
+Every constrained column advertises its rule as an input hint with no configuration: `"Select one of: A, B, C."` for dropdowns, `"Enter a number between X and Y."` for ranges, `"This field is required."` for required cells.
+
+<!-- snippet: AutoInputMessage -->
+<a id='snippet-AutoInputMessage'></a>
+```cs
+// No InputMessage is set, yet the Range constraint is surfaced as an input hint
+// ("Enter a number between 0 and 1000000.") shown when the cell is selected.
+var builder = new BookBuilder();
+builder.AddSheet(SampleData.Employees(), templateRowCount: 10)
+    .Column(_ => _.Salary, _ => _.Range(0, 1_000_000));
+
+using var book = await builder.Build();
+```
+<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L45-L55' title='Snippet source file'>snippet source</a> | <a href='#snippet-AutoInputMessage' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+Set `InputTitle` / `InputMessage` to replace the auto-generated hint with custom wording, or call `DisableInputMessage` to suppress it for a column. (The bare `ISNUMBER` check on a plain numeric column is intentionally *not* surfaced as a hint — that a number column holds numbers is self-evident, and nagging about it on every cell select is noise.)
+
+<!-- snippet: DisableInputMessage -->
+<a id='snippet-DisableInputMessage'></a>
+```cs
+var builder = new BookBuilder();
+var sheet = builder.AddSheet(SampleData.Employees(), templateRowCount: 10);
+sheet.Range(_ => _.Salary, 0, 1_000_000);
+sheet.DisableInputMessage(_ => _.Salary);
+
+using var book = await builder.Build();
+```
+<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L63-L72' title='Snippet source file'>snippet source</a> | <a href='#snippet-DisableInputMessage' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+`ErrorTitle` / `ErrorMessage` override the rejection popup. When unset, Excelsior fills in a default based on the validation type — `"Must be one of: A, B, C."` for dropdowns, `"Must be a number between X and Y."` for ranges, `"Must be a number."` for the auto-`ISNUMBER` constraint, etc.
 
 `ErrorStyle` controls Excel's response to invalid input:
 
@@ -1937,7 +1990,7 @@ builder.AddSheet(SampleData.Employees(), templateRowCount: 5)
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L85-L99' title='Snippet source file'>snippet source</a> | <a href='#snippet-ValidationErrorStyleWarning' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L120-L134' title='Snippet source file'>snippet source</a> | <a href='#snippet-ValidationErrorStyleWarning' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 #### Required Cells
@@ -2099,7 +2152,7 @@ sheet.ErrorMessage(_ => _.Salary, "Salary must be between 0 and 1,000,000.", "In
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L107-L118' title='Snippet source file'>snippet source</a> | <a href='#snippet-ValidationShortcuts' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L142-L153' title='Snippet source file'>snippet source</a> | <a href='#snippet-ValidationShortcuts' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 

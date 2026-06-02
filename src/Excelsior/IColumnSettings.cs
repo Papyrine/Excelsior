@@ -30,4 +30,6 @@ interface IColumnSettings
     string? ErrorTitle { get; }
     string? ErrorMessage { get; }
     ValidationErrorStyle? ErrorStyle { get; }
+    bool DisableInputMessage { get; }
+    string? Note { get; }
 }

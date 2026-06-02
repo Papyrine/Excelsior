@@ -62,6 +62,7 @@ class Renderer<TModel>(
         ApplySheetProtection(sheet);
         EmitConditionalFormatting(sheet);
         EmitDataValidations(sheet);
+        EmitComments(sheet);
         RegisterMetadata();
     }
 
@@ -727,6 +728,95 @@ class Renderer<TModel>(
         sheet.Worksheet.Append(validations);
     }
 
+    // Notes are anchored to the heading cell of each column that declares one. They survive
+    // sheet protection (unlike an input-message tooltip, which only shows on an editable cell)
+    // and are the natural place to explain a constraint or why a column is locked. A legacy
+    // note needs three things: a comments part (the text), a VML drawing part (the box shape),
+    // and a <legacyDrawing> on the worksheet pointing at the VML.
+    void EmitComments(SheetContext sheet)
+    {
+        List<(int Index, string Reference, string Text)>? notes = null;
+        for (var i = 0; i < columns.Count; i++)
+        {
+            var text = columns[i].Note;
+            if (string.IsNullOrEmpty(text))
+            {
+                continue;
+            }
+
+            notes ??= [];
+            notes.Add((i, $"{SheetContext.GetColumnLetter(i)}1", text));
+        }
+
+        if (notes == null)
+        {
+            return;
+        }
+
+        var worksheetPart = sheet.WorksheetPart;
+
+        var commentList = new CommentList();
+        foreach (var note in notes)
+        {
+            var comment = new Comment
+            {
+                Reference = note.Reference,
+                AuthorId = 0U
+            };
+            comment.Append(
+                new CommentText(
+                    new Run(
+                        new Text(note.Text)
+                        {
+                            Space = SpaceProcessingModeValues.Preserve
+                        })));
+            commentList.Append(comment);
+        }
+
+        var commentsPart = worksheetPart.AddNewPart<WorksheetCommentsPart>();
+        // A single empty author keeps the note body clean — Excel shows just the text, with no
+        // "Author:" prefix — while still satisfying the schema's required authors list.
+        commentsPart.Comments = new(new Authors(new Author("")), commentList);
+
+        var vmlPart = worksheetPart.AddNewPart<VmlDrawingPart>();
+        WriteCommentVml(vmlPart, notes);
+
+        sheet.Worksheet.Append(
+            new LegacyDrawing
+            {
+                Id = worksheetPart.GetIdOfPart(vmlPart)
+            });
+    }
+
+    static void WriteCommentVml(VmlDrawingPart part, List<(int Index, string Reference, string Text)> notes)
+    {
+        var builder = new StringBuilder();
+        builder.Append(
+            """
+            <xml xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><o:shapelayout v:ext="edit"><o:idmap v:ext="edit" data="1"/></o:shapelayout><v:shapetype id="_x0000_t202" coordsize="21600,21600" o:spt="202" path="m,l,21600r21600,l21600,xe"><v:stroke joinstyle="miter"/><v:path gradientshapeok="t" o:connecttype="rect"/></v:shapetype>
+            """);
+
+        var shapeId = 1025;
+        foreach (var note in notes)
+        {
+            var column = note.Index;
+            var zIndex = shapeId - 1024;
+            // The box is anchored a couple of columns to the right of the heading and stays
+            // hidden until the cell is hovered, matching how Excel itself emits notes.
+            builder.Append(
+                $"""
+                 <v:shape id="_x0000_s{shapeId}" type="#_x0000_t202" style="position:absolute;width:108pt;height:60pt;z-index:{zIndex};visibility:hidden" fillcolor="#ffffe1" o:insetmode="auto"><v:fill color2="#ffffe1"/><v:shadow on="t" color="black" obscured="t"/><v:path o:connecttype="none"/><v:textbox style="mso-direction-alt:auto"><div style="text-align:left"></div></v:textbox><x:ClientData ObjectType="Note"><x:MoveWithCells/><x:SizeWithCells/><x:Anchor>{column + 1}, 15, 0, 2, {column + 3}, 15, 4, 16</x:Anchor><x:AutoFill>False</x:AutoFill><x:Row>0</x:Row><x:Column>{column}</x:Column></x:ClientData></v:shape>
+                 """);
+            shapeId++;
+        }
+
+        builder.Append("</xml>");
+
+        using var stream = part.GetStream(FileMode.Create);
+        using var writer = new StreamWriter(stream, new UTF8Encoding(false));
+        writer.Write(builder.ToString());
+    }
+
     int ComputeValidationLastRow(SheetContext sheet)
     {
         var dataRowCount = Math.Max(0, sheet.RowCount - 1);
@@ -817,6 +907,16 @@ class Renderer<TModel>(
                 validation.Prompt = column.InputMessage;
             }
         }
+        else if (hasValidation &&
+                 !column.DisableInputMessage &&
+                 BuildDefaultInputMessage(column) is { } autoPrompt)
+        {
+            // The column carries a constraint but the author hasn't written an input hint.
+            // Surface the rule proactively so the editor sees it on cell select, not just
+            // after tripping the error popup.
+            validation.ShowInputMessage = true;
+            validation.Prompt = autoPrompt;
+        }
 
         return validation;
     }
@@ -888,6 +988,67 @@ class Renderer<TModel>(
         }
 
         return "Invalid value.";
+
+        static string Num(decimal value) =>
+            value.ToString(CultureInfo.InvariantCulture);
+
+        static string Day(DateTime value) =>
+            value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>
+    /// Guidance text shown proactively as the cell's input hint, derived from the column's
+    /// constraint. Mirrors <see cref="BuildDefaultErrorMessage"/> but phrased as instruction,
+    /// and returns <c>null</c> for the bare <c>ISNUMBER</c> type check — that a numeric column
+    /// holds numbers is self-evident, so nagging about it on every cell select is noise.
+    /// </summary>
+    static string? BuildDefaultInputMessage(ColumnConfig<TModel> column)
+    {
+        if (column.AllowedValues is { Count: > 0 } values)
+        {
+            const int previewCount = 5;
+            var preview = values.Count <= previewCount
+                ? string.Join(", ", values)
+                : string.Join(", ", values.Take(previewCount)) + ", …";
+            return $"Select one of: {preview}.";
+        }
+
+        if (column is { NumericMin: not null, NumericMax: not null })
+        {
+            return $"Enter a number between {Num(column.NumericMin.Value)} and {Num(column.NumericMax.Value)}.";
+        }
+
+        if (column.NumericMin.HasValue)
+        {
+            return $"Enter a number greater than or equal to {Num(column.NumericMin.Value)}.";
+        }
+
+        if (column.NumericMax.HasValue)
+        {
+            return $"Enter a number less than or equal to {Num(column.NumericMax.Value)}.";
+        }
+
+        if (column is { DateMin: not null, DateMax: not null })
+        {
+            return $"Enter a date between {Day(column.DateMin.Value)} and {Day(column.DateMax.Value)}.";
+        }
+
+        if (column.DateMin.HasValue)
+        {
+            return $"Enter a date on or after {Day(column.DateMin.Value)}.";
+        }
+
+        if (column.DateMax.HasValue)
+        {
+            return $"Enter a date on or before {Day(column.DateMax.Value)}.";
+        }
+
+        if (column.Required)
+        {
+            return "This field is required.";
+        }
+
+        return null;
 
         static string Num(decimal value) =>
             value.ToString(CultureInfo.InvariantCulture);

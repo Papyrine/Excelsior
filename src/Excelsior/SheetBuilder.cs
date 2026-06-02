@@ -158,4 +158,13 @@ class SheetBuilder<TModel>(Columns<TModel> columns) :
                     _.ErrorTitle = title;
                 }
             });
+
+    public void DisableInputMessage<TProperty>(
+        Expression<Func<TModel, TProperty>> property) =>
+        Column(property, _ => _.DisableInputMessage = true);
+
+    public void Note<TProperty>(
+        Expression<Func<TModel, TProperty>> property,
+        string text) =>
+        Column(property, _ => _.Note = text);
 }
