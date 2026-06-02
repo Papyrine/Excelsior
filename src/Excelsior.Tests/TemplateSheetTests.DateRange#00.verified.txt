@@ -28,7 +28,7 @@
             Max: 2030-12-31,
             AllowBlank: false,
             ShowInputMessage: true,
-            InputMessage: Enter a date between 2020-01-01 and 2030-12-31.,
+            InputMessage: Date between 2020-01-01 and 2030-12-31,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
             ErrorMessage: Must be a date between 2020-01-01 and 2030-12-31.,

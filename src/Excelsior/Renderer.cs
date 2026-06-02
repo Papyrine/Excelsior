@@ -1010,42 +1010,42 @@ class Renderer<TModel>(
             var preview = values.Count <= previewCount
                 ? string.Join(", ", values)
                 : string.Join(", ", values.Take(previewCount)) + ", …";
-            return $"Select one of: {preview}.";
+            return $"Select one of: {preview}";
         }
 
         if (column is { NumericMin: not null, NumericMax: not null })
         {
-            return $"Number between {Num(column.NumericMin.Value)} and {Num(column.NumericMax.Value)}.";
+            return $"Number between {Num(column.NumericMin.Value)} and {Num(column.NumericMax.Value)}";
         }
 
         if (column.NumericMin.HasValue)
         {
-            return $"Number greater than or equal to {Num(column.NumericMin.Value)}.";
+            return $"Number greater than or equal to {Num(column.NumericMin.Value)}";
         }
 
         if (column.NumericMax.HasValue)
         {
-            return $"Number less than or equal to {Num(column.NumericMax.Value)}.";
+            return $"Number less than or equal to {Num(column.NumericMax.Value)}";
         }
 
         if (column is { DateMin: not null, DateMax: not null })
         {
-            return $"Date between {Day(column.DateMin.Value)} and {Day(column.DateMax.Value)}.";
+            return $"Date between {Day(column.DateMin.Value)} and {Day(column.DateMax.Value)}";
         }
 
         if (column.DateMin.HasValue)
         {
-            return $"Date on or after {Day(column.DateMin.Value)}.";
+            return $"Date on or after {Day(column.DateMin.Value)}";
         }
 
         if (column.DateMax.HasValue)
         {
-            return $"Date on or before {Day(column.DateMax.Value)}.";
+            return $"Date on or before {Day(column.DateMax.Value)}";
         }
 
         if (column.Required)
         {
-            return "This field is required.";
+            return "Required field";
         }
 
         return null;

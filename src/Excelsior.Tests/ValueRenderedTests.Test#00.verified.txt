@@ -28,7 +28,7 @@
             ],
             AllowBlank: true,
             ShowInputMessage: true,
-            InputMessage: Select one of: Rendered EnumValue1, Rendered EnumValue2.,
+            InputMessage: Select one of: Rendered EnumValue1, Rendered EnumValue2,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
             ErrorMessage: Must be one of: Rendered EnumValue1, Rendered EnumValue2.,

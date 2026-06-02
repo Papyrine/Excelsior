@@ -64,7 +64,7 @@
             ],
             AllowBlank: true,
             ShowInputMessage: true,
-            InputMessage: Select one of: SA.,
+            InputMessage: Select one of: SA,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
             ErrorMessage: Must be one of: SA.,
