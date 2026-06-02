@@ -75,6 +75,26 @@ public class ValidationTests
     }
 
     [Test]
+    public async Task AutoInputMessagesDisabledForSheet()
+    {
+        #region DisableInputMessages
+
+        var builder = new BookBuilder();
+        var sheet = builder.AddSheet(SampleData.Employees(), templateRowCount: 10);
+        sheet.Range(_ => _.Salary, 0, 1_000_000);
+        // Turn the auto-generated hints off for every column on the sheet...
+        sheet.DisableInputMessages();
+        // ...but an explicit InputMessage still applies.
+        sheet.InputMessage(_ => _.Email, "Use the corporate address.");
+
+        using var book = await builder.Build();
+
+        #endregion
+
+        await Verify(book);
+    }
+
+    [Test]
     public async Task RequiredHighlightOnDataBoundSheet()
     {
         var builder = new BookBuilder();

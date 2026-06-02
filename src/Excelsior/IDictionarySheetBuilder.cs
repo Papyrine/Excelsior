@@ -16,4 +16,9 @@ public interface IDictionarySheetBuilder
     /// Disable the default auto-filter on the header row.
     /// </summary>
     void DisableFilter();
+
+    /// <summary>
+    /// Disable the auto-generated constraint input hints for every column on the sheet.
+    /// </summary>
+    void DisableInputMessages();
 }

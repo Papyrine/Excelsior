@@ -1959,7 +1959,7 @@ using var book = await builder.Build();
 <sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L45-L55' title='Snippet source file'>snippet source</a> | <a href='#snippet-AutoInputMessage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
-Set `InputTitle` / `InputMessage` to replace the auto-generated hint with custom wording, or call `DisableInputMessage` to suppress it for a column.
+Set `InputTitle` / `InputMessage` to replace the auto-generated hint with custom wording, or suppress the auto hints entirely — `DisableInputMessage` for a single column, or `DisableInputMessages` for the whole sheet. An explicit `InputMessage` always survives either.
 
 <!-- snippet: DisableInputMessage -->
 <a id='snippet-DisableInputMessage'></a>
@@ -1972,6 +1972,24 @@ sheet.DisableInputMessage(_ => _.Salary);
 using var book = await builder.Build();
 ```
 <sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L63-L72' title='Snippet source file'>snippet source</a> | <a href='#snippet-DisableInputMessage' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+`DisableInputMessages` turns the auto hints off across the sheet in one call (handy for a dense data-entry sheet where every column would otherwise carry a tooltip):
+
+<!-- snippet: DisableInputMessages -->
+<a id='snippet-DisableInputMessages'></a>
+```cs
+var builder = new BookBuilder();
+var sheet = builder.AddSheet(SampleData.Employees(), templateRowCount: 10);
+sheet.Range(_ => _.Salary, 0, 1_000_000);
+// Turn the auto-generated hints off for every column on the sheet...
+sheet.DisableInputMessages();
+// ...but an explicit InputMessage still applies.
+sheet.InputMessage(_ => _.Email, "Use the corporate address.");
+
+using var book = await builder.Build();
+```
+<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L80-L92' title='Snippet source file'>snippet source</a> | <a href='#snippet-DisableInputMessages' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 `ErrorTitle` / `ErrorMessage` override the rejection popup. When unset, Excelsior fills in a default based on the validation type — `"Must be one of: A, B, C."` for dropdowns, `"Must be a number between X and Y."` for ranges, `"Must be a number."` for the auto-`ISNUMBER` constraint, etc.
@@ -1999,7 +2017,7 @@ builder.AddSheet(SampleData.Employees(), templateRowCount: 5)
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L120-L134' title='Snippet source file'>snippet source</a> | <a href='#snippet-ValidationErrorStyleWarning' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L140-L154' title='Snippet source file'>snippet source</a> | <a href='#snippet-ValidationErrorStyleWarning' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 #### Required Cells
@@ -2161,7 +2179,7 @@ sheet.ErrorMessage(_ => _.Salary, "Salary must be between 0 and 1,000,000.", "In
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L142-L153' title='Snippet source file'>snippet source</a> | <a href='#snippet-ValidationShortcuts' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L162-L173' title='Snippet source file'>snippet source</a> | <a href='#snippet-ValidationShortcuts' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 

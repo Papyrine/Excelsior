@@ -114,7 +114,8 @@ public class BookBuilder
                 this,
                 templateRowCount)
             {
-                AutoFilter = columns.AutoFilter
+                AutoFilter = columns.AutoFilter,
+                AutoInputMessages = columns.AutoInputMessages
             };
 
             return renderer.AddSheet(book, cancel);
@@ -158,7 +159,8 @@ public class BookBuilder
                 maxRowHeight,
                 this)
             {
-                AutoFilter = builder.AutoFilter
+                AutoFilter = builder.AutoFilter,
+                AutoInputMessages = builder.AutoInputMessages
             };
 
             return renderer.AddSheet(book, cancel);
@@ -201,7 +203,8 @@ public class BookBuilder
                 this,
                 templateRowCount)
             {
-                AutoFilter = builder.AutoFilter
+                AutoFilter = builder.AutoFilter,
+                AutoInputMessages = builder.AutoInputMessages
             };
 
             return renderer.AddSheet(book, cancel);
