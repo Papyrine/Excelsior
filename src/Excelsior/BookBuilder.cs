@@ -43,12 +43,12 @@ public class BookBuilder
     internal const string MetadataNamespace = "https://github.com/SimonCropp/Excelsior/columnMetadata/v1";
     internal const string UserMetadataNamespace = "https://github.com/SimonCropp/Excelsior/userMetadata/v1";
 
-    record SheetMetadata(string SheetName, IReadOnlyList<(int Index, string PropertyName)> Columns);
+    record SheetMetadata(string SheetName, IReadOnlyList<(int Index, string PropertyName)> Columns, int BannerRows);
     List<SheetMetadata> sheetMetadata = [];
     string? userMetadataJson;
 
-    internal void RegisterSheetMetadata(string sheetName, IReadOnlyList<(int Index, string PropertyName)> columns) =>
-        sheetMetadata.Add(new(sheetName, columns));
+    internal void RegisterSheetMetadata(string sheetName, IReadOnlyList<(int Index, string PropertyName)> columns, int bannerRows) =>
+        sheetMetadata.Add(new(sheetName, columns, bannerRows));
 
     /// <summary>
     /// Embeds an arbitrary instance in the workbook, serialized as JSON via
@@ -263,14 +263,25 @@ public class BookBuilder
             new XElement(
                 ns + "columnMetadata",
                 sheetMetadata.Select(sheet =>
-                    new XElement(
+                {
+                    var element = new XElement(
                         ns + "sheet",
                         new XAttribute("name", sheet.SheetName),
                         sheet.Columns.Select(column =>
                             new XElement(
                                 ns + "column",
                                 new XAttribute("index", column.Index),
-                                new XAttribute("property", column.PropertyName)))))));
+                                new XAttribute("property", column.PropertyName))));
+                    // Only emit bannerRows when the sheet actually carries a banner, so files
+                    // without one keep the pre-banner metadata shape (and existing snapshots
+                    // stay byte-identical).
+                    if (sheet.BannerRows > 0)
+                    {
+                        element.SetAttributeValue("bannerRows", sheet.BannerRows);
+                    }
+
+                    return element;
+                })));
 
         var customPart = book.AddCustomXmlPart(CustomXmlPartType.CustomXml);
         using var stream = customPart.GetStream(FileMode.Create);

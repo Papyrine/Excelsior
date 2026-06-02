@@ -1,9 +1,11 @@
 static class SheetParser
 {
-    public static Dictionary<string, Dictionary<int, string>> ReadMetadata(WorkbookPart workbookPart, out string? userMetadataJson)
+    public record SheetMetadata(Dictionary<int, string> ColumnMap, int BannerRows);
+
+    public static Dictionary<string, SheetMetadata> ReadMetadata(WorkbookPart workbookPart, out string? userMetadataJson)
     {
         userMetadataJson = null;
-        var result = new Dictionary<string, Dictionary<int, string>>(StringComparer.Ordinal);
+        var result = new Dictionary<string, SheetMetadata>(StringComparer.Ordinal);
         foreach (var part in workbookPart.GetPartsOfType<CustomXmlPart>())
         {
             using var stream = part.GetStream();
@@ -54,7 +56,19 @@ static class SheetParser
                     map[index] = name;
                 }
 
-                result[sheetName] = map;
+                // Attribute is omitted by writers that emit no banner — treat absent as zero.
+                // Unparseable / negative values defensively fall back to zero too; a malformed
+                // metadata file should never make parsing silently swallow real data rows.
+                var bannerRows = 0;
+                var bannerAttribute = sheet.Attribute("bannerRows")?.Value;
+                if (bannerAttribute != null &&
+                    int.TryParse(bannerAttribute, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) &&
+                    parsed > 0)
+                {
+                    bannerRows = parsed;
+                }
+
+                result[sheetName] = new(map, bannerRows);
             }
         }
 
@@ -67,6 +81,7 @@ static class SheetParser
         WorksheetPart worksheetPart,
         string?[]? sharedStrings,
         Dictionary<int, string>? metadataColumnMap,
+        int bannerRows,
         List<ReadError> errors)
     {
         sheet.Reset();
@@ -85,6 +100,7 @@ static class SheetParser
         using var reader = OpenXmlReader.Create(worksheetPart);
 
         var headerSeen = false;
+        var bannerRowsSkipped = 0;
         Dictionary<int, int>? fileIndexToSlot = null;
         Cell?[]? cellsBySlot = null;
         Action<int, string>? onError = null;
@@ -98,6 +114,16 @@ static class SheetParser
             }
 
             var row = (Row)reader.LoadCurrentElement()!;
+
+            // Banner row(s) sit above the header — the writer records how many in the metadata
+            // XML so the reader can skip past them without parsing. Without this, the merged
+            // banner cell would be misread as the header row and every declared column would
+            // surface as "not found".
+            if (bannerRowsSkipped < bannerRows)
+            {
+                bannerRowsSkipped++;
+                continue;
+            }
 
             if (!headerSeen)
             {

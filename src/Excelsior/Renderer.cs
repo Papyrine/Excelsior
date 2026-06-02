@@ -85,7 +85,7 @@ class Renderer<TModel>(
             metadata.Add((i + 1, columns[i].Name));
         }
 
-        bookBuilder.RegisterSheetMetadata(name, metadata);
+        bookBuilder.RegisterSheetMetadata(name, metadata, BannerRows);
     }
 
     void ApplySheetProtection(SheetContext sheet)

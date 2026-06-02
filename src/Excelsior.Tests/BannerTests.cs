@@ -119,9 +119,10 @@ public class BannerTests
 
         using var book = await builder.Build();
 
-        // A single-column banner has no merge (a 1x1 merge is invalid), so there is nothing for the
-        // reader to detect as a banner — the snapshot model therefore reads the banner text as the
-        // header. The .xlsx target still captures the absence of a merge.
+        // A single-column banner has no merge (a 1x1 merge is invalid); the .xlsx target captures
+        // the absence of a merge. Round-tripping still works because the metadata XML records the
+        // banner row count — see RoundTrip_SingleColumnBanner — so detection does not rely on the
+        // merge being present.
         await Verify(book);
     }
 
@@ -178,6 +179,95 @@ public class BannerTests
         Assert.That(BannerRow(book).Height!.Value, Is.EqualTo(30).Within(0.001));
 
         await Verify(book);
+    }
+
+    [Test]
+    public async Task RoundTrip_TypedSheet()
+    {
+        // Verifies the OOTB fix: the writer records the banner row count in the column metadata
+        // XML; the reader uses it to skip past the banner and resolve the header on row 2.
+        var builder = new BookBuilder();
+        builder.AddSheet(SampleData.Employees())
+            .Banner("Please review before editing.");
+
+        using var stream = await builder.ToMemoryStream();
+        var reader = new BookReader();
+        var sheet = reader.AddSheet<Employee>();
+        reader.Convert(stream);
+
+        await Verify(sheet.Rows);
+    }
+
+    [Test]
+    public async Task RoundTrip_DictionarySheet()
+    {
+        var builder = new BookBuilder();
+        builder.AddDictionarySheet(
+                new[]
+                {
+                    new Dictionary<string, object?>
+                    {
+                        ["Name"] = "John",
+                        ["Team"] = "Sales"
+                    },
+                    new Dictionary<string, object?>
+                    {
+                        ["Name"] = "Jane",
+                        ["Team"] = "Eng"
+                    }
+                })
+            .Banner("Imported data — read-only.")
+            .Column<string>("Name")
+            .Column<string>("Team");
+
+        using var stream = await builder.ToMemoryStream();
+        var reader = new BookReader();
+        var sheet = reader.AddSheet();
+        sheet.Column<string>("Name");
+        sheet.Column<string>("Team");
+        reader.Convert(stream);
+
+        await Verify(sheet.Rows);
+    }
+
+    [Test]
+    public async Task RoundTrip_SingleColumnBanner()
+    {
+        // Single-column banners write no merge cell (a 1x1 merge is invalid) so merge-cell
+        // geometry alone cannot detect the banner. The metadata XML route still works because
+        // the writer records the banner row count regardless of column count.
+        var builder = new BookBuilder();
+        builder.AddTemplateSheet("Solo")
+            .Banner("Only one column here.")
+            .Column<string>("Name", _ => _.Width = 20);
+
+        using var stream = await builder.ToMemoryStream();
+        var reader = new BookReader();
+        var sheet = reader.AddSheet("Solo");
+        sheet.Column<string>("Name");
+        var result = reader.TryConvert(stream);
+
+        // Empty template — what matters is that the header resolved (no "column not found" errors).
+        Assert.That(result.Errors, Is.Empty);
+    }
+
+    [Test]
+    public async Task RoundTrip_BannerWithProtection()
+    {
+        var builder = new BookBuilder(
+            protection: new()
+            {
+                Password = "secret"
+            });
+        builder.AddSheet(SampleData.Employees())
+            .Banner("Locked instructions.");
+
+        using var stream = await builder.ToMemoryStream();
+        var reader = new BookReader();
+        var sheet = reader.AddSheet<Employee>();
+        reader.Convert(stream);
+
+        await Verify(sheet.Rows);
     }
 
     [Test]
