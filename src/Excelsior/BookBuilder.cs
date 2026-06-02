@@ -115,7 +115,8 @@ public class BookBuilder
                 templateRowCount)
             {
                 AutoFilter = columns.AutoFilter,
-                AutoInputMessages = columns.AutoInputMessages
+                AutoInputMessages = columns.AutoInputMessages,
+                Banner = columns.BannerRow
             };
 
             return renderer.AddSheet(book, cancel);
@@ -160,7 +161,8 @@ public class BookBuilder
                 this)
             {
                 AutoFilter = builder.AutoFilter,
-                AutoInputMessages = builder.AutoInputMessages
+                AutoInputMessages = builder.AutoInputMessages,
+                Banner = builder.BannerRow
             };
 
             return renderer.AddSheet(book, cancel);
@@ -204,7 +206,8 @@ public class BookBuilder
                 templateRowCount)
             {
                 AutoFilter = builder.AutoFilter,
-                AutoInputMessages = builder.AutoInputMessages
+                AutoInputMessages = builder.AutoInputMessages,
+                Banner = builder.BannerRow
             };
 
             return renderer.AddSheet(book, cancel);

@@ -4,6 +4,7 @@ class Columns<TModel>
     bool inferValidationFromTypes;
     public bool AutoFilter { get; set; } = true;
     public bool AutoInputMessages { get; set; } = true;
+    public Banner? BannerRow { get; set; }
 
     public Columns(bool inferValidationFromTypes = false)
     {

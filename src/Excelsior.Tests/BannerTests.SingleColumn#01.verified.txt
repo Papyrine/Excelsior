@@ -1,0 +1,19 @@
+﻿{
+  Sheets: [
+    {
+      Name: Solo,
+      Columns: [
+        {
+          Name: Only one column here.,
+          Metadata: {
+            property: Name
+          },
+          Width: 20.0,
+          ContainsRichText: false,
+          RequiredHighlight: false
+        }
+      ]
+    }
+  ],
+  WorksheetCount: 1
+}

@@ -109,6 +109,36 @@ public interface ISheetBuilder<TModel>
     public void DisableInputMessages();
 
     /// <summary>
+    /// Add a merged row of arbitrary text above the header — a place to surface instructions to
+    /// whoever edits the sheet. The row spans every column. Under sheet protection the banner is
+    /// read-only. Note: a banner shifts the header and data down a row, and Excelsior's reader does
+    /// not yet skip it, so a bannered sheet does not round-trip through <c>BookReader</c>.
+    /// </summary>
+    /// <param name="text">The banner text. Newlines wrap within the merged cell.</param>
+    /// <param name="style">Optional styling for the banner cell (font, fill, alignment).</param>
+    /// <param name="freeze">When <c>true</c> (default) the banner and header stay pinned while
+    /// scrolling. When <c>false</c> nothing is frozen — Excel cannot keep the header frozen while
+    /// the banner above it scrolls.</param>
+    /// <param name="maxHeight">Caps the auto-grown banner row height, in points. The row expands to
+    /// fit its wrapped text (merged cells do not auto-size in Excel); beyond this ceiling the text
+    /// is clipped. <c>null</c> (default) leaves only Excel's hard maximum (409) in effect.</param>
+    /// <returns>The builder instance for fluent chaining.</returns>
+    public ISheetBuilder<TModel> Banner(string text, Action<CellStyle>? style = null, bool freeze = true, int? maxHeight = null);
+
+    /// <summary>
+    /// Add a merged banner row above the header whose cell is populated by <paramref name="render"/>,
+    /// which receives the raw <see cref="Cell"/> so rich text (multiple formatted runs) can be placed
+    /// in it. The row spans every column and is read-only under sheet protection. See
+    /// <see cref="Banner(string, Action{CellStyle}, bool, int?)"/> for the round-trip caveat.
+    /// </summary>
+    /// <param name="render">Callback that populates the raw banner cell.</param>
+    /// <param name="freeze">When <c>true</c> (default) the banner and header stay pinned while scrolling.</param>
+    /// <param name="maxHeight">Caps the auto-grown banner row height, in points; <c>null</c> (default)
+    /// leaves only Excel's hard maximum (409) in effect.</param>
+    /// <returns>The builder instance for fluent chaining.</returns>
+    public ISheetBuilder<TModel> Banner(Action<Cell> render, bool freeze = true, int? maxHeight = null);
+
+    /// <summary>
     /// Include or exclude a specific column from the output.
     /// </summary>
     public void Include<TProperty>(

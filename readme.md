@@ -1185,6 +1185,49 @@ using var book = await builder.Build();
 Notes work on every sheet kind (data-bound, dictionary, and template) and combine freely with [protection](#protection) and [validation](#input-hints-and-error-messages).
 
 
+### Banner Row
+
+`Banner` adds a single merged row of arbitrary text *above* the header — a place to surface instructions to whoever edits the sheet. The row spans every column, and under [protection](#protection) it is read-only.
+
+<!-- snippet: Banner -->
+<a id='snippet-Banner'></a>
+```cs
+var builder = new BookBuilder();
+builder.AddSheet(SampleData.Employees())
+    .Banner("Confidential - for internal distribution only.");
+
+using var book = await builder.Build();
+```
+<sup><a href='/src/Excelsior.Tests/BannerTests.cs#L17-L25' title='Snippet source file'>snippet source</a> | <a href='#snippet-Banner' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+By default the banner and header are frozen together, so the instructions stay visible while scrolling. Pass `freeze: false` to leave the top of the sheet unpinned — Excel can only freeze contiguous rows from the top, so a scrolling banner means the header scrolls with it.
+
+The banner row grows to fit its wrapped text, since Excel does not auto-size merged cells. Pass `maxHeight` (in points) to cap how tall it can get; text beyond the cap is clipped.
+
+A second overload hands back the raw `Cell` instead of a string, so rich text (multiple formatted runs) can be placed in the banner:
+
+<!-- snippet: BannerRichText -->
+<a id='snippet-BannerRichText'></a>
+```cs
+builder.AddSheet(SampleData.Employees())
+    .Banner(cell =>
+    {
+        cell.DataType = CellValues.InlineString;
+        cell.InlineString = new(
+            new Run(
+                new RunProperties(new Bold()),
+                new Text("Action required: ")),
+            new Run(
+                new Text("complete every highlighted field.")));
+    });
+```
+<sup><a href='/src/Excelsior.Tests/BannerTests.cs#L35-L49' title='Snippet source file'>snippet source</a> | <a href='#snippet-BannerRichText' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+Banners work on every sheet kind (data-bound, dictionary, and template). One caveat: a banner shifts the header down a row and `BookReader` does not skip it, so a bannered sheet does not round-trip back through the reader.
+
+
 ### Complex Types
 
 For complex types, by default is to render via `.ToString()`.

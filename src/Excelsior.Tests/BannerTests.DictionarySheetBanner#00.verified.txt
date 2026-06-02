@@ -1,0 +1,28 @@
+﻿{
+  Sheets: [
+    {
+      Name: Sheet1,
+      Columns: [
+        {
+          Name: Name,
+          Metadata: {
+            property: Name
+          },
+          Width: 9.0,
+          ContainsRichText: false,
+          RequiredHighlight: false
+        },
+        {
+          Name: Team,
+          Metadata: {
+            property: Team
+          },
+          Width: 9.0,
+          ContainsRichText: false,
+          RequiredHighlight: false
+        }
+      ]
+    }
+  ],
+  WorksheetCount: 1
+}

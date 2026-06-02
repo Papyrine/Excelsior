@@ -5,6 +5,7 @@ class TemplateSheetBuilder :
     public List<ColumnConfig<TemplateRow>> Columns { get; } = [];
     public bool AutoFilter { get; private set; } = true;
     public bool AutoInputMessages { get; private set; } = true;
+    public Banner? BannerRow { get; private set; }
 
     public TemplateSheetBuilder(bool inferValidationFromTypes = true) =>
         this.inferValidationFromTypes = inferValidationFromTypes;
@@ -87,6 +88,29 @@ class TemplateSheetBuilder :
     public void DisableFilter() => AutoFilter = false;
 
     public void DisableInputMessages() => AutoInputMessages = false;
+
+    public ITemplateSheetBuilder Banner(string text, Action<CellStyle>? style = null, bool freeze = true, int? maxHeight = null)
+    {
+        BannerRow = new()
+        {
+            Text = text,
+            Style = style,
+            Freeze = freeze,
+            MaxHeight = maxHeight
+        };
+        return this;
+    }
+
+    public ITemplateSheetBuilder Banner(Action<Cell> render, bool freeze = true, int? maxHeight = null)
+    {
+        BannerRow = new()
+        {
+            Render = render,
+            Freeze = freeze,
+            MaxHeight = maxHeight
+        };
+        return this;
+    }
 
     static string? DeriveDefaultFormat(Type type)
     {

@@ -93,6 +93,29 @@ class SheetBuilder<TModel>(Columns<TModel> columns) :
     public void DisableInputMessages() =>
         columns.AutoInputMessages = false;
 
+    public ISheetBuilder<TModel> Banner(string text, Action<CellStyle>? style = null, bool freeze = true, int? maxHeight = null)
+    {
+        columns.BannerRow = new()
+        {
+            Text = text,
+            Style = style,
+            Freeze = freeze,
+            MaxHeight = maxHeight
+        };
+        return this;
+    }
+
+    public ISheetBuilder<TModel> Banner(Action<Cell> render, bool freeze = true, int? maxHeight = null)
+    {
+        columns.BannerRow = new()
+        {
+            Render = render,
+            Freeze = freeze,
+            MaxHeight = maxHeight
+        };
+        return this;
+    }
+
     public void Include<TProperty>(
         Expression<Func<TModel, TProperty>> property,
         bool value) =>
