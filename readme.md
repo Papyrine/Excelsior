@@ -989,7 +989,7 @@ builder.AddSheet(notes);
 
 ### Protection
 
-Pass a `SheetProtectionOptions` to produce a password-protected workbook. By default:
+Pass a `SheetProtectionOptions` to produce a [password-protected](https://support.microsoft.com/en-us/office/protect-a-worksheet-3179efdb-1285-4d49-a9c3-f4ca36276de6) workbook. By default:
 
  * data cells are editable, header cells are locked
  * the sheet structure (add / remove / rename / reorder) is locked
@@ -1168,7 +1168,7 @@ public class SheetProtectionOptions
 
 ### Cell Notes
 
-`Note` attaches an Excel note (the classic red-triangle comment) to a column's **heading** cell. Unlike an input hint — which only appears on an editable cell — a note stays visible on hover even when the sheet is protected and the cell is locked. That makes it the natural place to explain a constraint, document a column, or say *why* a column is read-only.
+`Note` attaches an Excel [note](https://support.microsoft.com/en-us/office/insert-comments-and-notes-in-excel-bdcc9f5d-38e2-45b4-9a92-0b2b5c7bf6f8) — the classic red-triangle annotation, [not a threaded comment](https://support.microsoft.com/en-us/office/the-difference-between-threaded-comments-and-notes-75a51eec-4092-42ab-abf8-7669077b7be3) — to a column's **heading** cell. Unlike an input hint — which only appears on an editable cell — a note stays visible on hover even when the sheet is protected and the cell is locked. That makes it the natural place to explain a constraint, document a column, or say *why* a column is read-only.
 
 <!-- snippet: Note -->
 <a id='snippet-Note'></a>
@@ -1177,9 +1177,9 @@ var builder = new BookBuilder();
 builder.AddSheet(SampleData.Employees())
     .Note(_ => _.Salary, "Gross annual salary in USD, before tax.");
 
-using var stream = await builder.ToMemoryStream();
+using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/NoteTests.cs#L37-L45' title='Snippet source file'>snippet source</a> | <a href='#snippet-Note' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/NoteTests.cs#L11-L19' title='Snippet source file'>snippet source</a> | <a href='#snippet-Note' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Notes work on every sheet kind (data-bound, dictionary, and template) and combine freely with [protection](#protection) and [validation](#input-hints-and-error-messages).
@@ -1934,7 +1934,16 @@ Excel speaks to editors through two channels, and Excelsior fills both in automa
 - **Input hint** — the tooltip shown *proactively* when a cell is selected, before anything is typed. This is the only channel that tells an editor the rule *before* they break it.
 - **Error alert** — the popup shown *reactively* after an invalid value is rejected.
 
-Every constrained column advertises its rule as an input hint with no configuration: `"Select one of: A, B, C."` for dropdowns, `"Enter a number between X and Y."` for ranges, `"This field is required."` for required cells.
+Both ride on Excel's [data validation](https://support.microsoft.com/en-us/office/apply-data-validation-to-cells-29fecbcc-d1b9-42c1-9d76-eff3ce5f7249): the input hint is its *input message*; the rejection popup is its *error alert*.
+
+Every constrained column advertises its rule as an input hint with no configuration. A hint is derived for:
+
+- **allowed-value lists / dropdowns** — `"Select one of: A, B, C."`
+- **numeric ranges** — `"Enter a number between X and Y."` (a one-sided bound becomes *greater than or equal to* / *less than or equal to*)
+- **date ranges** — `"Enter a date between X and Y."`, with the same one-sided variants
+- **required cells** — `"This field is required."`, shown only when no range or list also applies to the column
+
+The one constraint left **without** a hint is the bare `ISNUMBER` check on a plain numeric column — that a number column holds numbers is self-evident, so it is not surfaced on every cell select.
 
 <!-- snippet: AutoInputMessage -->
 <a id='snippet-AutoInputMessage'></a>
@@ -1950,7 +1959,7 @@ using var book = await builder.Build();
 <sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L45-L55' title='Snippet source file'>snippet source</a> | <a href='#snippet-AutoInputMessage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
-Set `InputTitle` / `InputMessage` to replace the auto-generated hint with custom wording, or call `DisableInputMessage` to suppress it for a column. (The bare `ISNUMBER` check on a plain numeric column is intentionally *not* surfaced as a hint — that a number column holds numbers is self-evident, and nagging about it on every cell select is noise.)
+Set `InputTitle` / `InputMessage` to replace the auto-generated hint with custom wording, or call `DisableInputMessage` to suppress it for a column.
 
 <!-- snippet: DisableInputMessage -->
 <a id='snippet-DisableInputMessage'></a>
