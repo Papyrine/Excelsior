@@ -131,14 +131,13 @@ public class BannerTests
     {
         var builder = new BookBuilder();
         builder.AddDictionarySheet(
-                new[]
+            [
+                new Dictionary<string, object?>
                 {
-                    new Dictionary<string, object?>
-                    {
-                        ["Name"] = "John",
-                        ["Team"] = "Sales"
-                    }
-                })
+                    ["Name"] = "John",
+                    ["Team"] = "Sales"
+                }
+            ])
             .Banner("Imported data - do not edit.")
             .Column<string>("Name")
             .Column<string>("Team");
@@ -203,19 +202,18 @@ public class BannerTests
     {
         var builder = new BookBuilder();
         builder.AddDictionarySheet(
-                new[]
+            [
+                new Dictionary<string, object?>
                 {
-                    new Dictionary<string, object?>
-                    {
-                        ["Name"] = "John",
-                        ["Team"] = "Sales"
-                    },
-                    new Dictionary<string, object?>
-                    {
-                        ["Name"] = "Jane",
-                        ["Team"] = "Eng"
-                    }
-                })
+                    ["Name"] = "John",
+                    ["Team"] = "Sales"
+                },
+                new Dictionary<string, object?>
+                {
+                    ["Name"] = "Jane",
+                    ["Team"] = "Eng"
+                }
+            ])
             .Banner("Imported data — read-only.")
             .Column<string>("Name")
             .Column<string>("Team");
