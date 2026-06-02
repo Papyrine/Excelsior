@@ -1,0 +1,10 @@
+﻿[
+  {
+    Name: John,
+    Team: Sales
+  },
+  {
+    Name: Jane,
+    Team: Eng
+  }
+]

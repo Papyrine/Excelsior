@@ -1,0 +1,36 @@
+﻿[
+  {
+    Id: 1,
+    Name: John Doe,
+    Email: john@company.com,
+    HireDate: 2020-01-15,
+    Salary: 75000,
+    IsActive: true
+  },
+  {
+    Id: 2,
+    Name: Jane Smith,
+    Email: jane@company.com,
+    HireDate: 2019-03-22,
+    Salary: 120000,
+    IsActive: true
+  },
+  {
+    Id: 3,
+    Name: Bob Johnson,
+    Email: bob@company.com,
+    HireDate: 2021-07-10,
+    Salary: 45000,
+    IsActive: false,
+    Status: PartTime
+  },
+  {
+    Id: 4,
+    Name: Alice Brown,
+    Email: alice@company.com,
+    HireDate: 2018-11-05,
+    Salary: 95000,
+    IsActive: true,
+    Status: Contract
+  }
+]

@@ -1225,7 +1225,7 @@ builder.AddSheet(SampleData.Employees())
 <sup><a href='/src/Excelsior.Tests/BannerTests.cs#L35-L49' title='Snippet source file'>snippet source</a> | <a href='#snippet-BannerRichText' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
-Banners work on every sheet kind (data-bound, dictionary, and template). One caveat: a banner shifts the header down a row and `BookReader` does not skip it, so a bannered sheet does not round-trip back through the reader.
+Banners work on every sheet kind (data-bound, dictionary, and template). The banner row count is recorded in the workbook's column metadata, so `BookReader` skips past it automatically and a bannered sheet round-trips cleanly.
 
 
 ### Complex Types
@@ -2468,6 +2468,8 @@ builder.AddSheet(data);
 ### ValueRenderer.ForEnums using Humanizer
 
 Using [Humanizer](https://github.com/Humanizr/Humanizer) to convert enums to strings:
+
+Humanizer is not a dependency of Excelsior, so a reference to the [Humanizer](https://nuget.org/packages/Humanizer) NuGet package (or `Humanizer.Core`) must be added to make the `Humanize()` extension method available.
 
 
 #### Config in a ModuleInitializer

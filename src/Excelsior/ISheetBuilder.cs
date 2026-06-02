@@ -111,8 +111,8 @@ public interface ISheetBuilder<TModel>
     /// <summary>
     /// Add a merged row of arbitrary text above the header — a place to surface instructions to
     /// whoever edits the sheet. The row spans every column. Under sheet protection the banner is
-    /// read-only. Note: a banner shifts the header and data down a row, and Excelsior's reader does
-    /// not yet skip it, so a bannered sheet does not round-trip through <c>BookReader</c>.
+    /// read-only. The banner row count is recorded in the workbook's column metadata, so
+    /// <c>BookReader</c> skips past it automatically and the sheet round-trips cleanly.
     /// </summary>
     /// <param name="text">The banner text. Newlines wrap within the merged cell.</param>
     /// <param name="style">Optional styling for the banner cell (font, fill, alignment).</param>
