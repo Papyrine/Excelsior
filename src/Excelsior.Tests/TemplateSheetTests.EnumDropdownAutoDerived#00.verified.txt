@@ -29,7 +29,8 @@
               Terminated
             ],
             AllowBlank: false,
-            ShowInputMessage: false,
+            ShowInputMessage: true,
+            InputMessage: Select one of: Full Time, Part Time, Contract, Terminated,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
             ErrorMessage: Must be one of: Full Time, Part Time, Contract, Terminated.,

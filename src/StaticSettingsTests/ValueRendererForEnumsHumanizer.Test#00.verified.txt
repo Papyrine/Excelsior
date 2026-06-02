@@ -17,7 +17,8 @@
               Build your dream
             ],
             AllowBlank: true,
-            ShowInputMessage: false,
+            ShowInputMessage: true,
+            InputMessage: Select one of: Build your dream,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
             ErrorMessage: Must be one of: Build your dream.,
@@ -38,7 +39,8 @@
               Antique white
             ],
             AllowBlank: true,
-            ShowInputMessage: false,
+            ShowInputMessage: true,
+            InputMessage: Select one of: Antique white,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
             ErrorMessage: Must be one of: Antique white.,
@@ -59,7 +61,8 @@
               Antique white
             ],
             AllowBlank: true,
-            ShowInputMessage: false,
+            ShowInputMessage: true,
+            InputMessage: Select one of: Antique white,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
             ErrorMessage: Must be one of: Antique white.,

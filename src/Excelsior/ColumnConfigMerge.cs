@@ -131,5 +131,15 @@ internal static class ColumnConfigMerge
         {
             target.ErrorStyle = settings.ErrorStyle;
         }
+
+        if (settings.DisableInputMessage)
+        {
+            target.DisableInputMessage = true;
+        }
+
+        if (settings.Note != null)
+        {
+            target.Note = settings.Note;
+        }
     }
 }

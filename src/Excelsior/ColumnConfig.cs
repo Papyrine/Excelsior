@@ -35,6 +35,8 @@ class ColumnConfig<TModel>
     public string? ErrorTitle { get; set; }
     public string? ErrorMessage { get; set; }
     public ValidationErrorStyle? ErrorStyle { get; set; }
+    public bool DisableInputMessage { get; set; }
+    public string? Note { get; set; }
 
     public bool HasValidation =>
         AllowedValues is { Count: > 0 } ||
@@ -184,6 +186,20 @@ public class ColumnConfig<TModel, TProperty> :
     /// <c>Warning</c> and <c>Information</c> let the user accept it.
     /// </summary>
     public ValidationErrorStyle? ErrorStyle { get; set; }
+
+    /// <summary>
+    /// Suppresses the input-hint tooltip that is otherwise auto-generated from this column's
+    /// constraint (allowed values, numeric/date range, or required). Has no effect on an
+    /// explicit <see cref="InputMessage"/>, which always wins.
+    /// </summary>
+    public bool DisableInputMessage { get; set; }
+
+    /// <summary>
+    /// Attaches an Excel note (the legacy red-triangle comment) to this column's heading cell.
+    /// Useful for explaining a constraint or why a column is locked — notes remain visible on
+    /// hover even when the sheet is protected.
+    /// </summary>
+    public string? Note { get; set; }
 
     /// <summary>
     /// Set <see cref="NumericMin"/> and <see cref="NumericMax"/> from a single call.

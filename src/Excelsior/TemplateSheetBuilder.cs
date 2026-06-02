@@ -75,7 +75,9 @@ class TemplateSheetBuilder :
             InputMessage = config.InputMessage,
             ErrorTitle = config.ErrorTitle,
             ErrorMessage = config.ErrorMessage,
-            ErrorStyle = config.ErrorStyle
+            ErrorStyle = config.ErrorStyle,
+            DisableInputMessage = config.DisableInputMessage,
+            Note = config.Note
         };
         Columns.Add(column);
         return this;
