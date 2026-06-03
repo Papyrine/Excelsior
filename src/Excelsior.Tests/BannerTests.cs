@@ -329,8 +329,7 @@ public class BannerTests
         var validator = new OpenXmlValidator(FileFormatVersions.Office2019);
         var errors = validator
             .Validate(document)
-            .Select(_ => $"{_.Part?.Uri}: {_.Description}")
-            .ToList();
+            .Select(_ => $"{_.Part?.Uri}: {_.Description}");
 
         Assert.That(errors, Is.Empty);
     }

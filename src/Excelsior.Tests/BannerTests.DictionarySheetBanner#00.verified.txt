@@ -2,6 +2,9 @@
   Sheets: [
     {
       Name: Sheet1,
+      Metadata: {
+        bannerRows: 1
+      },
       Columns: [
         {
           Name: Name,
