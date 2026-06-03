@@ -43,12 +43,12 @@ public class BookBuilder
     internal const string MetadataNamespace = "https://github.com/SimonCropp/Excelsior/columnMetadata/v1";
     internal const string UserMetadataNamespace = "https://github.com/SimonCropp/Excelsior/userMetadata/v1";
 
-    record SheetMetadata(string SheetName, IReadOnlyList<(int Index, string PropertyName)> Columns, int BannerRows);
+    record SheetMetadata(string SheetName, IReadOnlyList<(int Index, string PropertyName)> Columns, bool HasBanner);
     List<SheetMetadata> sheetMetadata = [];
     string? userMetadataJson;
 
-    internal void RegisterSheetMetadata(string sheetName, IReadOnlyList<(int Index, string PropertyName)> columns, int bannerRows) =>
-        sheetMetadata.Add(new(sheetName, columns, bannerRows));
+    internal void RegisterSheetMetadata(string sheetName, IReadOnlyList<(int Index, string PropertyName)> columns, bool hasBanner) =>
+        sheetMetadata.Add(new(sheetName, columns, hasBanner));
 
     /// <summary>
     /// Embeds an arbitrary instance in the workbook, serialized as JSON via
@@ -272,12 +272,12 @@ public class BookBuilder
                                 ns + "column",
                                 new XAttribute("index", column.Index),
                                 new XAttribute("property", column.PropertyName))));
-                    // Only emit bannerRows when the sheet actually carries a banner, so files
-                    // without one keep the pre-banner metadata shape (and existing snapshots
-                    // stay byte-identical).
-                    if (sheet.BannerRows > 0)
+                    // Only emit the banner flag when the sheet actually carries a banner, so
+                    // files without one keep the pre-banner metadata shape (and existing
+                    // snapshots stay byte-identical).
+                    if (sheet.HasBanner)
                     {
-                        element.SetAttributeValue("bannerRows", sheet.BannerRows);
+                        element.SetAttributeValue("banner", "true");
                     }
 
                     return element;

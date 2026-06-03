@@ -3,7 +3,7 @@
     {
       Name: Sheet1,
       Metadata: {
-        bannerRows: 1
+        banner: true
       },
       Columns: [
         {
