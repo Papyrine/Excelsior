@@ -4,6 +4,7 @@ public class BookReader
 {
     List<IReaderSheet> sheets = [];
     string? userMetadataJson;
+    Dictionary<string, string?>? customProperties;
 
     /// <summary>
     /// Deserializes the arbitrary instance previously embedded via
@@ -71,6 +72,58 @@ public class BookReader
     {
         value = userMetadataJson;
         return value != null;
+    }
+
+    /// <summary>
+    /// Reads a user-defined custom document property (one set via
+    /// <see cref="DocumentProperties.Custom"/>) and converts its value to
+    /// <typeparamref name="T"/> — the inverse of <see cref="BookBuilder.SetProperties"/>.
+    /// Throws if no property named <paramref name="name"/> is present, or if its value
+    /// cannot be converted to <typeparamref name="T"/>. Use
+    /// <see cref="TryGetCustomProperty{T}"/> when the property may be absent. Names are
+    /// matched case-insensitively. Must be called after <see cref="Convert(Stream)"/> or
+    /// <see cref="TryConvert(Stream)"/>.
+    /// </summary>
+    public T GetCustomProperty<T>(string name)
+    {
+        if (customProperties == null)
+        {
+            throw new("Custom properties are unavailable. Call Convert or TryConvert first.");
+        }
+
+        if (!customProperties.TryGetValue(name, out var raw))
+        {
+            throw new($"No custom document property named '{name}' was found. Use TryGetCustomProperty to handle the absent case.");
+        }
+
+        if (!CellConverter.TryConvertRaw(raw, typeof(T), out var value, out var error))
+        {
+            throw new($"Custom document property '{name}' could not be read as {typeof(T).Name}: {error}");
+        }
+
+        return (T)value!;
+    }
+
+    /// <summary>
+    /// Attempts to read a user-defined custom document property (one set via
+    /// <see cref="DocumentProperties.Custom"/>) and convert its value to
+    /// <typeparamref name="T"/>. Returns <c>false</c> when no property named
+    /// <paramref name="name"/> is present or its value cannot be converted. Names are
+    /// matched case-insensitively. Must be called after <see cref="Convert(Stream)"/> or
+    /// <see cref="TryConvert(Stream)"/>.
+    /// </summary>
+    public bool TryGetCustomProperty<T>(string name, [NotNullWhen(true)] out T? value)
+    {
+        if (customProperties != null &&
+            customProperties.TryGetValue(name, out var raw) &&
+            CellConverter.TryConvertRaw(raw, typeof(T), out var converted, out _))
+        {
+            value = (T)converted!;
+            return true;
+        }
+
+        value = default;
+        return false;
     }
 
     /// <summary>
@@ -143,6 +196,8 @@ public class BookReader
         var workbookPart = document.WorkbookPart!;
         var sharedStrings = CellConverter.BuildSharedStrings(workbookPart.SharedStringTablePart?.SharedStringTable);
         var metadata = SheetParser.ReadMetadata(workbookPart, out userMetadataJson);
+        // Read while the package is still open; the values are needed after it is disposed.
+        customProperties = DocumentPropertiesReader.ReadCustom(document);
 
         var workbookSheets = workbookPart.Workbook?
             .GetFirstChild<Sheets>()?

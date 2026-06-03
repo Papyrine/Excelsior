@@ -76,4 +76,97 @@ public class DocumentPropertiesTests
         var exception = Assert.ThrowsAsync<ArgumentException>(async () => await builder.ToMemoryStream());
         Assert.That(exception!.Message, Does.Contain("Bad").And.Contain("System.Object"));
     }
+
+    [Test]
+    public async Task ReadCustomProperties()
+    {
+        #region ReadCustomProperties
+
+        var datasetId = new Guid("9b8a7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d");
+
+        var builder = new BookBuilder();
+        builder.AddSheet(SampleData.Employees());
+        builder.SetProperties(
+            new()
+            {
+                Custom =
+                {
+                    ["DatasetId"] = datasetId,
+                    ["Project"] = "Excelsior",
+                    ["Revision"] = 3,
+                    ["Reviewed"] = true,
+                    ["Score"] = 9.5
+                }
+            });
+
+        using var stream = await builder.ToMemoryStream();
+
+        var reader = new BookReader();
+        reader.AddSheet<Employee>();
+        reader.Convert(stream);
+
+        // The type argument drives the conversion: a Guid is parsed back from its text form.
+        var id = reader.GetCustomProperty<Guid>("DatasetId");
+        var revision = reader.GetCustomProperty<int>("Revision");
+
+        #endregion
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(id, Is.EqualTo(datasetId));
+            Assert.That(revision, Is.EqualTo(3));
+            Assert.That(reader.GetCustomProperty<string>("Project"), Is.EqualTo("Excelsior"));
+            Assert.That(reader.GetCustomProperty<bool>("Reviewed"), Is.True);
+            Assert.That(reader.GetCustomProperty<double>("Score"), Is.EqualTo(9.5));
+            // Names are matched case-insensitively, mirroring Excel and sheet-name lookup.
+            Assert.That(reader.GetCustomProperty<Guid>("datasetid"), Is.EqualTo(datasetId));
+        });
+    }
+
+    [Test]
+    public async Task TryGetCustomProperty()
+    {
+        var builder = new BookBuilder();
+        builder.AddSheet(SampleData.Employees());
+        builder.SetProperties(new() { Custom = { ["Project"] = "Excelsior" } });
+        using var stream = await builder.ToMemoryStream();
+
+        var reader = new BookReader();
+        reader.AddSheet<Employee>();
+        reader.Convert(stream);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(reader.TryGetCustomProperty<string>("Project", out var present), Is.True);
+            Assert.That(present, Is.EqualTo("Excelsior"));
+            // Absent property.
+            Assert.That(reader.TryGetCustomProperty<string>("Missing", out _), Is.False);
+            // Present, but its value is not convertible to the requested type.
+            Assert.That(reader.TryGetCustomProperty<Guid>("Project", out _), Is.False);
+        });
+    }
+
+    [Test]
+    public async Task GetCustomProperty_Missing_Throws()
+    {
+        var builder = new BookBuilder();
+        builder.AddSheet(SampleData.Employees());
+        builder.SetProperties(new() { Custom = { ["Project"] = "Excelsior" } });
+        using var stream = await builder.ToMemoryStream();
+
+        var reader = new BookReader();
+        reader.AddSheet<Employee>();
+        reader.Convert(stream);
+
+        var exception = Assert.Throws<Exception>(() => reader.GetCustomProperty<string>("Missing"));
+        Assert.That(exception!.Message, Does.Contain("Missing"));
+    }
+
+    [Test]
+    public void GetCustomProperty_BeforeConvert_Throws()
+    {
+        var reader = new BookReader();
+        var exception = Assert.Throws<Exception>(() => reader.GetCustomProperty<Guid>("DatasetId"));
+        Assert.That(exception!.Message, Does.Contain("Convert"));
+    }
 }

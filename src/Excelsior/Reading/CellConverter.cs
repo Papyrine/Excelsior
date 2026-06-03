@@ -50,16 +50,28 @@ static class CellConverter
         Type targetType,
         string?[]? sharedStrings,
         out object? value,
+        [NotNullWhen(false)] out string? error) =>
+        TryConvertRaw(ReadRaw(cell, sharedStrings), targetType, out value, out error);
+
+    /// <summary>
+    /// Converts an already-extracted raw string (e.g. a custom document property value) to
+    /// <paramref name="targetType"/>, sharing the exact type handling the cell path uses.
+    /// Returns true and assigns <paramref name="value"/> on success; on failure returns false
+    /// and assigns <paramref name="error"/>. A null/empty input on a nullable target succeeds
+    /// with <c>value = null</c>.
+    /// </summary>
+    public static bool TryConvertRaw(
+        string? raw,
+        Type targetType,
+        out object? value,
         [NotNullWhen(false)] out string? error)
     {
         var underlying = Nullable.GetUnderlyingType(targetType);
         var isNullable = underlying != null;
         var effective = underlying ?? targetType;
 
-        var raw = ReadRaw(cell, sharedStrings);
-
         // String targets accept empty content as the empty string. For all other
-        // target types, an empty/missing cell is "empty" and only valid for a
+        // target types, an empty/missing value is "empty" and only valid for a
         // nullable target.
         if (effective == typeof(string))
         {
@@ -74,8 +86,7 @@ static class CellConverter
             return true;
         }
 
-        if (cell == null ||
-            string.IsNullOrEmpty(raw))
+        if (string.IsNullOrEmpty(raw))
         {
             if (isNullable ||
                 !effective.IsValueType)
