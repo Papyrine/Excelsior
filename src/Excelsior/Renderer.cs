@@ -12,6 +12,8 @@ class Renderer<TModel>(
     const double defaultExcelFontSize = 11;
     const double defaultRowHeight = defaultExcelFontSize + 4;
     const string requiredHighlightColor = "FFFFC7CE";
+    // Excel's column upper bound is column XFD (1-indexed = 16,384; 0-indexed = 16,383).
+    const int maxExcelColumnIndex = 16383;
 
     internal bool AutoFilter { get; set; } = true;
     internal bool AutoInputMessages { get; set; } = true;
@@ -154,18 +156,20 @@ class Renderer<TModel>(
         CommitStyle(cell, style);
     }
 
-    // Spans the banner cell across every column. Excel needs the anchor cell (A1) plus a merge
-    // region; the cells it merges over can stay absent. Skipped for a single-column sheet, where
-    // a 1x1 merge is invalid.
+    // Spans the banner cell across the entire spreadsheet row (A1:XFD1) rather than only the
+    // declared data columns. Excel needs the anchor cell (A1) plus a merge region; the cells
+    // it merges over can stay absent. Merging the whole row keeps the banner reading as a
+    // single horizontal stripe even when the user adds columns past the declared ones, and it
+    // makes the single-column case work too — a 1x1 merge would be invalid, but 1xN where N is
+    // the full row width is fine.
     void MergeBanner(SheetContext sheet)
     {
-        if (Banner == null ||
-            columns.Count < 2)
+        if (Banner == null)
         {
             return;
         }
 
-        var lastColumn = SheetContext.GetColumnLetter(columns.Count - 1);
+        var lastColumn = SheetContext.GetColumnLetter(maxExcelColumnIndex);
         var mergeCells = new MergeCells
         {
             Count = 1
@@ -185,9 +189,12 @@ class Renderer<TModel>(
         worksheet.InsertAfter(mergeCells, anchor);
     }
 
-    // Merged cells do not auto-size their row in Excel, so a multi-line banner would be clipped at
-    // the default single-line height. Estimate how many lines the text wraps to across the full
-    // merged width and grow the banner row to match, bounded by Banner.MaxHeight and Excel's limit.
+    // Merged cells do not auto-size their row in Excel, so a multi-line banner would be clipped
+    // at the default single-line height. The banner is merged across the entire row (A1:XFD1),
+    // so text never wraps on the cell boundary — only on its explicit newlines. The line count
+    // is therefore just `text.Split('\n').Length`; no chars-per-line / word-wrap estimation is
+    // required, which is why the previous EstimateBannerLines / CountWrappedLines machinery
+    // could be deleted.
     void ResizeBannerRow(SheetContext sheet)
     {
         if (Banner == null ||
@@ -196,15 +203,9 @@ class Renderer<TModel>(
             return;
         }
 
-        double mergedWidth = 0;
-        for (var i = 0; i < columns.Count; i++)
-        {
-            mergedWidth += finalColumnWidths.GetValueOrDefault(i, 8d);
-        }
-
         var fontSize = BannerFontSize();
         var text = string.Concat(EnumerateCellTexts(bannerCell));
-        var lines = EstimateBannerLines(text, mergedWidth, fontSize);
+        var lines = text.AsSpan().Count('\n') + 1;
         var height = lines * (fontSize + 4);
 
         if (Banner.MaxHeight is { } max &&
@@ -243,21 +244,6 @@ class Renderer<TModel>(
         ProbeFontSize(bookBuilder.GlobalStyle, ref size);
         ProbeFontSize(Banner!.Style, ref size);
         return size;
-    }
-
-    static double EstimateBannerLines(string text, double width, double fontSize)
-    {
-        // Column width units are "characters of the default font", so a larger banner font fits
-        // fewer per line — scale the per-line capacity by the font ratio.
-        var fontRatio = fontSize / defaultExcelFontSize;
-        var charsPerLine = Math.Max(1d, (width - 2) / (1.1 * fontRatio));
-        double lines = 0;
-        foreach (var line in text.Split('\n'))
-        {
-            lines += Math.Max(1d, Math.Ceiling(line.Length / charsPerLine));
-        }
-
-        return Math.Max(1d, lines);
     }
 
     void CreateHeadings(SheetContext sheet)

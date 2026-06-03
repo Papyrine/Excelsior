@@ -7,11 +7,11 @@
       },
       Columns: [
         {
-          Name: Name,
+          Name: name,
           Metadata: {
-            property: Name
+            property: name
           },
-          Width: 20.0,
+          Width: 10.0,
           ContainsRichText: false,
           RequiredHighlight: false
         }

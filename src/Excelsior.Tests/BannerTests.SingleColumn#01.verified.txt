@@ -2,9 +2,12 @@
   Sheets: [
     {
       Name: Solo,
+      Metadata: {
+        bannerRows: 1
+      },
       Columns: [
         {
-          Name: Only one column here.,
+          Name: Name,
           Metadata: {
             property: Name
           },
