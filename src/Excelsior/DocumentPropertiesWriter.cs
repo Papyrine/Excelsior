@@ -2,8 +2,6 @@ using DocumentFormat.OpenXml.VariantTypes;
 using CustomProps = DocumentFormat.OpenXml.CustomProperties;
 using ExtendedProps = DocumentFormat.OpenXml.ExtendedProperties;
 
-namespace Excelsior;
-
 /// <summary>
 /// Applies a <see cref="DocumentProperties"/> to a <see cref="SpreadsheetDocument"/>:
 /// core properties go to <c>docProps/core.xml</c> via <see cref="OpenXmlPackage.PackageProperties"/>,
@@ -23,6 +21,9 @@ static class DocumentPropertiesWriter
         ApplyExtended(document, properties);
         ApplyCustom(document, properties);
     }
+
+    static XNamespace cp = "http://schemas.openxmlformats.org/package/2006/metadata/core-properties";
+    static XNamespace dc = "http://purl.org/dc/elements/1.1/";
 
     // Core properties are written as an explicit CoreFilePropertiesPart rather than through
     // OpenXmlPackage.PackageProperties: the latter is backed by the OPC package's intrinsic
@@ -44,9 +45,6 @@ static class DocumentPropertiesWriter
         {
             return;
         }
-
-        XNamespace cp = "http://schemas.openxmlformats.org/package/2006/metadata/core-properties";
-        XNamespace dc = "http://purl.org/dc/elements/1.1/";
 
         var root = new XElement(
             cp + "coreProperties",
@@ -118,7 +116,7 @@ static class DocumentPropertiesWriter
                 PropertyId = id,
                 Name = name
             };
-            property.AppendChild(ToVariant(value));
+            property.AppendChild(ToVariant(name, value));
             custom.AppendChild(property);
             id++;
         }
@@ -126,7 +124,7 @@ static class DocumentPropertiesWriter
         part.Properties = custom;
     }
 
-    static OpenXmlElement ToVariant(object? value) =>
+    static OpenXmlElement ToVariant(string name, object? value) =>
         value switch
         {
             null => new VTLPWSTR(string.Empty),
@@ -141,6 +139,10 @@ static class DocumentPropertiesWriter
             decimal m => new VTDouble(m.ToString(CultureInfo.InvariantCulture)),
             DateTime time => new VTFileTime(time.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture)),
             Date date => new VTFileTime($"{date:yyyy-MM-dd}T00:00:00Z"),
-            _ => new VTLPWSTR(value.ToString() ?? string.Empty)
+            // Deliberately strict rather than falling back to value.ToString(): coercing an
+            // unsupported type would write something like "System.Int32[]" into the property and
+            // hide the caller's mistake. Make them convert to a supported type explicitly.
+            _ => throw new ArgumentException(
+                $"Custom document property '{name}' has unsupported value type '{value.GetType()}'. Supported types are string, bool, integral and floating-point numbers, DateTime and DateOnly. Convert the value to one of these before adding it.")
         };
 }

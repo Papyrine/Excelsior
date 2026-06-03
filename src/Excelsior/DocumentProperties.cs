@@ -43,7 +43,8 @@ public class DocumentProperties
     /// User-defined properties shown on the "Custom" tab of Excel's Advanced Properties dialog.
     /// Supported value types are <see cref="string"/>, <see cref="bool"/>, integral and
     /// floating-point numbers, <see cref="DateTime"/> and <see cref="DateOnly"/>; any other
-    /// value is written as its <see cref="object.ToString"/> text.
+    /// value type throws an <see cref="ArgumentException"/> when the workbook is built, so
+    /// convert it to a supported type first. A <c>null</c> value is written as empty text.
     /// </summary>
     public Dictionary<string, object?> Custom { get; init; } = new();
 }

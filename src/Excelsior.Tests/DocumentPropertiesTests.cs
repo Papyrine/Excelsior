@@ -88,4 +88,23 @@ public class DocumentPropertiesTests
 
         Assert.That(document.PackageProperties.Title, Is.EqualTo("second"));
     }
+
+    [Test]
+    public void SetProperties_UnsupportedCustomType_Throws()
+    {
+        var builder = new BookBuilder();
+        builder.AddSheet(SampleData.Employees());
+        builder.SetProperties(
+            new()
+            {
+                Custom =
+                {
+                    ["Bad"] = new()
+                }
+            });
+
+        // The unsupported value is only encountered when the workbook is built.
+        var exception = Assert.ThrowsAsync<ArgumentException>(async () => await builder.ToMemoryStream());
+        Assert.That(exception!.Message, Does.Contain("Bad").And.Contain("System.Object"));
+    }
 }
