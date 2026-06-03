@@ -6,13 +6,13 @@
   <ItemGroup>
     <PackageVersion Include="DocumentFormat.OpenXml" Version="3.5.1" />
     <PackageVersion Include="Humanizer.Core" Version="3.0.10" />
-    <PackageVersion Include="Verify.OpenXML" Version="1.17.0" />
+    <PackageVersion Include="Verify.OpenXML" Version="1.18.0" />
     <PackageVersion Include="Morph.OpenXml.Skia" Version="0.10.0" />
     <PackageVersion Include="MarkdownSnippets.MsBuild" Version="28.3.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.8" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.6.0" />
     <PackageVersion Include="Microsoft.Office.Interop.Excel" Version="16.0.18925.20022" Pinned="true" />
-    <PackageVersion Include="Polyfill" Version="10.7.2" />
+    <PackageVersion Include="Polyfill" Version="10.8.0" />
     <PackageVersion Include="ProjectDefaults" Version="1.0.174" />
     <PackageVersion Include="ProjectFiles" Version="1.2.0" />
     <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />

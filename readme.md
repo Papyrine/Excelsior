@@ -1200,7 +1200,7 @@ builder.SetProperties(
 
 using var stream = await builder.ToMemoryStream();
 ```
-<sup><a href='/src/Excelsior.Tests/DocumentPropertiesTests.cs#L10-L39' title='Snippet source file'>snippet source</a> | <a href='#snippet-DocumentPropertiesUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/DocumentPropertiesTests.cs#L9-L38' title='Snippet source file'>snippet source</a> | <a href='#snippet-DocumentPropertiesUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 The standard fields map onto the workbook's core and extended (app) property parts:
