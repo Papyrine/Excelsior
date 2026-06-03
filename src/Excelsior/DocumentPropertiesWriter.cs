@@ -139,10 +139,14 @@ static class DocumentPropertiesWriter
             decimal m => new VTDouble(m.ToString(CultureInfo.InvariantCulture)),
             DateTime time => new VTFileTime(time.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture)),
             Date date => new VTFileTime($"{date:yyyy-MM-dd}T00:00:00Z"),
+            // Written as text rather than the clsid variant: Excel's Advanced Properties dialog
+            // only surfaces Text/Date/Number/Yes-No, so a string shows as an editable property
+            // whereas clsid would not appear at all.
+            Guid guid => new VTLPWSTR(guid.ToString()),
             // Deliberately strict rather than falling back to value.ToString(): coercing an
             // unsupported type would write something like "System.Int32[]" into the property and
             // hide the caller's mistake. Make them convert to a supported type explicitly.
             _ => throw new ArgumentException(
-                $"Custom document property '{name}' has unsupported value type '{value.GetType()}'. Supported types are string, bool, integral and floating-point numbers, DateTime and DateOnly. Convert the value to one of these before adding it.")
+                $"Custom document property '{name}' has unsupported value type '{value.GetType()}'. Supported types are string, bool, integral and floating-point numbers, DateTime, DateOnly and Guid. Convert the value to one of these before adding it.")
         };
 }

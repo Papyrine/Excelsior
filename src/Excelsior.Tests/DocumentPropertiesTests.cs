@@ -29,7 +29,8 @@ public class DocumentPropertiesTests
                     ["Reviewed"] = true,
                     ["Revision"] = 3,
                     ["Score"] = 9.5,
-                    ["GeneratedAt"] = new DateTime(2026, 1, 15, 9, 30, 0, DateTimeKind.Utc)
+                    ["GeneratedAt"] = new DateTime(2026, 1, 15, 9, 30, 0, DateTimeKind.Utc),
+                    ["DatasetId"] = new Guid("9b8a7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d")
                 }
             });
 

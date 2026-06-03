@@ -152,6 +152,7 @@
   Company: Papyrine,
   Manager: Jane,
   CustomProperties: {
+    DatasetId: 9b8a7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d,
     GeneratedAt: 2026-01-15T09:30:00Z,
     Project: Excelsior,
     Reviewed: true,
