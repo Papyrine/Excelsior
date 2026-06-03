@@ -172,7 +172,7 @@ public class BookReader
             var worksheetPart = (WorksheetPart) workbookPart.GetPartById(match.Id!.Value!);
             var resolvedName = match.Name?.Value ?? name ?? $"#{i}";
             metadata.TryGetValue(resolvedName, out var sheetMetadata);
-            SheetParser.Parse(sheet, resolvedName, worksheetPart, sharedStrings, sheetMetadata?.ColumnMap, sheetMetadata?.BannerRows ?? 0, errors);
+            SheetParser.Parse(sheet, resolvedName, worksheetPart, sharedStrings, sheetMetadata?.ColumnMap, sheetMetadata?.HasBanner ?? false, errors);
         }
 
         return errors;
