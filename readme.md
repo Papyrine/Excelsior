@@ -1194,13 +1194,14 @@ builder.SetProperties(
             ["Reviewed"] = true,
             ["Revision"] = 3,
             ["Score"] = 9.5,
-            ["GeneratedAt"] = new DateTime(2026, 1, 15, 9, 30, 0, DateTimeKind.Utc)
+            ["GeneratedAt"] = new DateTime(2026, 1, 15, 9, 30, 0, DateTimeKind.Utc),
+            ["DatasetId"] = new Guid("9b8a7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d")
         }
     });
 
 using var stream = await builder.ToMemoryStream();
 ```
-<sup><a href='/src/Excelsior.Tests/DocumentPropertiesTests.cs#L9-L38' title='Snippet source file'>snippet source</a> | <a href='#snippet-DocumentPropertiesUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/DocumentPropertiesTests.cs#L9-L39' title='Snippet source file'>snippet source</a> | <a href='#snippet-DocumentPropertiesUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 The standard fields map onto the workbook's core and extended (app) property parts:
@@ -1214,9 +1215,46 @@ The standard fields map onto the workbook's core and extended (app) property par
 | `Company`, `Manager` | Extended (app) properties |
 | `Custom` | "Custom" tab — user-defined name/value pairs |
 
-Custom values may be a `string`, `bool`, an integral or floating-point number, `DateTime`, or `DateOnly` (`Date`). Any other value type throws an `ArgumentException` when the workbook is built, so convert it to a supported type first. A `null` value is written as empty text.
+Custom values may be a `string`, `bool`, an integral or floating-point number, `DateTime`, `DateOnly` (`Date`), or `Guid`. Any other value type throws an `ArgumentException` when the workbook is built, so convert it to a supported type first. A `null` value is written as empty text.
 
 The last call to `SetProperties` wins; pass a fresh `DocumentProperties` to replace previously set values.
+
+#### Reading custom properties
+
+`BookReader` reads custom properties back with `GetCustomProperty<T>(name)` (throws when the property is absent or its value cannot be converted to `T`) and `TryGetCustomProperty<T>(name, out value)` (returns `false` in those cases instead). The type argument drives the conversion — the inverse of the value type passed in — so a `Guid` written as text is parsed back to a `Guid`. Names are matched case-insensitively. Call after `Convert`/`TryConvert`.
+
+<!-- snippet: ReadCustomProperties -->
+<a id='snippet-ReadCustomProperties'></a>
+```cs
+var datasetId = new Guid("9b8a7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d");
+
+var builder = new BookBuilder();
+builder.AddSheet(SampleData.Employees());
+builder.SetProperties(
+    new()
+    {
+        Custom =
+        {
+            ["DatasetId"] = datasetId,
+            ["Project"] = "Excelsior",
+            ["Revision"] = 3,
+            ["Reviewed"] = true,
+            ["Score"] = 9.5
+        }
+    });
+
+using var stream = await builder.ToMemoryStream();
+
+var reader = new BookReader();
+reader.AddSheet<Employee>();
+reader.Convert(stream);
+
+// The type argument drives the conversion: a Guid is parsed back from its text form.
+var id = reader.GetCustomProperty<Guid>("DatasetId");
+var revision = reader.GetCustomProperty<int>("Revision");
+```
+<sup><a href='/src/Excelsior.Tests/DocumentPropertiesTests.cs#L83-L112' title='Snippet source file'>snippet source</a> | <a href='#snippet-ReadCustomProperties' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
 
 
 ### Cell Notes
