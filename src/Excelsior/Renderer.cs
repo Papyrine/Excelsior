@@ -14,9 +14,6 @@ class Renderer<TModel>(
     const string requiredHighlightColor = "FFFFC7CE";
     // Excel's column upper bound is column XFD (1-indexed = 16,384; 0-indexed = 16,383).
     const int maxExcelColumnIndex = 16383;
-    // Default column width in width-units ("characters of the default font"). Used as a stand-in
-    // for the empty columns the banner merge spans past the declared data columns.
-    const double defaultExcelColumnWidth = 8.43d;
 
     internal bool AutoFilter { get; set; } = true;
     internal bool AutoInputMessages { get; set; } = true;
@@ -192,13 +189,12 @@ class Renderer<TModel>(
         worksheet.InsertAfter(mergeCells, anchor);
     }
 
-    // Merged cells do not auto-size their row in Excel, so a multi-line banner would be clipped at
-    // the default single-line height. The banner is merged across the full row width
-    // (A1:XFD1), so the effective wrap width is the entire spreadsheet row — declared data
-    // columns contribute their actual widths and the remainder uses the default column width
-    // as a stand-in. In practice that leaves enough horizontal space for any realistic banner
-    // text to stay on a single line per explicit newline, so the estimator's word-wrap pass
-    // collapses to "count newline-separated lines".
+    // Merged cells do not auto-size their row in Excel, so a multi-line banner would be clipped
+    // at the default single-line height. The banner is merged across the entire row (A1:XFD1),
+    // so text never wraps on the cell boundary — only on its explicit newlines. The line count
+    // is therefore just `text.Split('\n').Length`; no chars-per-line / word-wrap estimation is
+    // required, which is why the previous EstimateBannerLines / CountWrappedLines machinery
+    // could be deleted.
     void ResizeBannerRow(SheetContext sheet)
     {
         if (Banner == null ||
@@ -207,21 +203,9 @@ class Renderer<TModel>(
             return;
         }
 
-        double mergedWidth = 0;
-        for (var i = 0; i < columns.Count; i++)
-        {
-            mergedWidth += finalColumnWidths.GetValueOrDefault(i, defaultExcelColumnWidth);
-        }
-
-        var emptyColumns = maxExcelColumnIndex + 1 - columns.Count;
-        if (emptyColumns > 0)
-        {
-            mergedWidth += emptyColumns * defaultExcelColumnWidth;
-        }
-
         var fontSize = BannerFontSize();
         var text = string.Concat(EnumerateCellTexts(bannerCell));
-        var lines = EstimateBannerLines(text, mergedWidth, fontSize);
+        var lines = text.AsSpan().Count('\n') + 1;
         var height = lines * (fontSize + 4);
 
         if (Banner.MaxHeight is { } max &&
@@ -260,89 +244,6 @@ class Renderer<TModel>(
         ProbeFontSize(bookBuilder.GlobalStyle, ref size);
         ProbeFontSize(Banner!.Style, ref size);
         return size;
-    }
-
-    static double EstimateBannerLines(string text, double width, double fontSize)
-    {
-        // Column width units are "characters of the default font", so a larger banner font fits
-        // fewer per line — scale the per-line capacity by the font ratio. Subtracting 1 leaves
-        // room for the cell's left/right padding; the earlier (-2)/1.1 fudge was too tight and
-        // caused the per-line estimate to land at roughly half of Excel's actual capacity, which
-        // in turn made the word-wrap simulation below count every word as too long to fit.
-        var fontRatio = fontSize / defaultExcelFontSize;
-        var charsPerLine = Math.Max(1d, (width - 1) / fontRatio);
-        double lines = 0;
-        foreach (var line in text.Split('\n'))
-        {
-            lines += CountWrappedLines(line, charsPerLine);
-        }
-
-        return Math.Max(1d, lines);
-    }
-
-    // Excel wraps merged-cell text on word boundaries: when the next word does not fit in the
-    // remaining space on the current visual line, it starts on a new line and the trailing space
-    // on the current line stays blank. A pure ceil(length/charsPerLine) over-estimates because
-    // it implicitly assumes mid-word breaks — every char-of-overflow becomes a line, even if
-    // Excel would have packed the overflowing word to the next line and left the previous line
-    // half-full. That over-estimate is what causes a banner to render with extra whitespace
-    // below the last word.
-    //
-    // This pass simulates the greedy word-wrap Excel actually performs: words are packed onto
-    // the current line until one would not fit, at which point it starts a new line. A word
-    // longer than charsPerLine still breaks mid-word (matching Excel's behaviour for an
-    // un-breakable token) and contributes ceil(word/charsPerLine) lines.
-    static int CountWrappedLines(string line, double charsPerLine)
-    {
-        if (line.Length == 0)
-        {
-            return 1;
-        }
-
-        var lines = 1;
-        var used = 0d;
-        foreach (var word in line.Split(' '))
-        {
-            if (word.Length > charsPerLine)
-            {
-                // Word longer than a line: flush any in-progress line, then split the word into
-                // full lines plus a remainder that anchors the next line.
-                if (used > 0)
-                {
-                    lines++;
-                    used = 0;
-                }
-
-                var wholeLines = (int)(word.Length / charsPerLine);
-                var remainder = word.Length - wholeLines * charsPerLine;
-                lines += wholeLines - 1;
-                if (remainder > 0)
-                {
-                    lines++;
-                    used = remainder;
-                }
-                else
-                {
-                    used = charsPerLine;
-                }
-
-                continue;
-            }
-
-            // Leading space before every non-first word on the line — costs one char of capacity.
-            var prefix = used == 0 ? 0d : 1d;
-            if (used + prefix + word.Length > charsPerLine)
-            {
-                lines++;
-                used = word.Length;
-            }
-            else
-            {
-                used += prefix + word.Length;
-            }
-        }
-
-        return lines;
     }
 
     void CreateHeadings(SheetContext sheet)
