@@ -12,6 +12,11 @@ class Renderer<TModel>(
     const double defaultExcelFontSize = 11;
     const double defaultRowHeight = defaultExcelFontSize + 4;
     const string requiredHighlightColor = "FFFFC7CE";
+    // Excel's column upper bound is column XFD (1-indexed = 16,384; 0-indexed = 16,383).
+    const int maxExcelColumnIndex = 16383;
+    // Default column width in width-units ("characters of the default font"). Used as a stand-in
+    // for the empty columns the banner merge spans past the declared data columns.
+    const double defaultExcelColumnWidth = 8.43d;
 
     internal bool AutoFilter { get; set; } = true;
     internal bool AutoInputMessages { get; set; } = true;
@@ -154,18 +159,20 @@ class Renderer<TModel>(
         CommitStyle(cell, style);
     }
 
-    // Spans the banner cell across every column. Excel needs the anchor cell (A1) plus a merge
-    // region; the cells it merges over can stay absent. Skipped for a single-column sheet, where
-    // a 1x1 merge is invalid.
+    // Spans the banner cell across the entire spreadsheet row (A1:XFD1) rather than only the
+    // declared data columns. Excel needs the anchor cell (A1) plus a merge region; the cells
+    // it merges over can stay absent. Merging the whole row keeps the banner reading as a
+    // single horizontal stripe even when the user adds columns past the declared ones, and it
+    // makes the single-column case work too — a 1x1 merge would be invalid, but 1xN where N is
+    // the full row width is fine.
     void MergeBanner(SheetContext sheet)
     {
-        if (Banner == null ||
-            columns.Count < 2)
+        if (Banner == null)
         {
             return;
         }
 
-        var lastColumn = SheetContext.GetColumnLetter(columns.Count - 1);
+        var lastColumn = SheetContext.GetColumnLetter(maxExcelColumnIndex);
         var mergeCells = new MergeCells
         {
             Count = 1
@@ -186,8 +193,12 @@ class Renderer<TModel>(
     }
 
     // Merged cells do not auto-size their row in Excel, so a multi-line banner would be clipped at
-    // the default single-line height. Estimate how many lines the text wraps to across the full
-    // merged width and grow the banner row to match, bounded by Banner.MaxHeight and Excel's limit.
+    // the default single-line height. The banner is merged across the full row width
+    // (A1:XFD1), so the effective wrap width is the entire spreadsheet row — declared data
+    // columns contribute their actual widths and the remainder uses the default column width
+    // as a stand-in. In practice that leaves enough horizontal space for any realistic banner
+    // text to stay on a single line per explicit newline, so the estimator's word-wrap pass
+    // collapses to "count newline-separated lines".
     void ResizeBannerRow(SheetContext sheet)
     {
         if (Banner == null ||
@@ -199,7 +210,13 @@ class Renderer<TModel>(
         double mergedWidth = 0;
         for (var i = 0; i < columns.Count; i++)
         {
-            mergedWidth += finalColumnWidths.GetValueOrDefault(i, 8d);
+            mergedWidth += finalColumnWidths.GetValueOrDefault(i, defaultExcelColumnWidth);
+        }
+
+        var emptyColumns = maxExcelColumnIndex + 1 - columns.Count;
+        if (emptyColumns > 0)
+        {
+            mergedWidth += emptyColumns * defaultExcelColumnWidth;
         }
 
         var fontSize = BannerFontSize();

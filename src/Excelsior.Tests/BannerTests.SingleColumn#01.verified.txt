@@ -4,7 +4,7 @@
       Name: Solo,
       Columns: [
         {
-          Name: Only one column here.,
+          Name: Name,
           Metadata: {
             property: Name
           },

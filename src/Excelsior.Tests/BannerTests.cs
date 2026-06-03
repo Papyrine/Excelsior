@@ -119,10 +119,10 @@ public class BannerTests
 
         using var book = await builder.Build();
 
-        // A single-column banner has no merge (a 1x1 merge is invalid); the .xlsx target captures
-        // the absence of a merge. Round-tripping still works because the metadata XML records the
-        // banner row count — see RoundTrip_SingleColumnBanner — so detection does not rely on the
-        // merge being present.
+        // The banner merges across the entire spreadsheet row (A1:XFD1), so the single-column
+        // case is no longer a 1x1 (invalid) merge — it's a 1x16384 merge like every other banner.
+        // The .xlsx target captures the merge reference. Round-tripping is unaffected: the
+        // metadata XML records the banner row count, see RoundTrip_SingleColumnBanner.
         await Verify(book);
     }
 
@@ -150,10 +150,12 @@ public class BannerTests
     [Test]
     public async Task NarrowColumnBannerHeightTracksActualWrap()
     {
-        // Regression: a long banner on a single narrow column used to grow the row to fit a
-        // char-count-based line estimate, which over-counted because it assumed mid-word breaks.
-        // Excel actually word-wraps, so the row would render with several lines of empty space
-        // below the last word. The estimator now simulates the same greedy word-wrap.
+        // Regression: a long banner on a single narrow column used to inflate row 1 because the
+        // estimator wrap-counted against the data-column width, which was much smaller than
+        // Excel's actual rendering capacity. Both contributors are addressed: the estimator now
+        // simulates word-wrap with a less pessimistic chars-per-line formula, AND the banner
+        // merges across the entire row so the effective wrap width is the whole spreadsheet
+        // and text only breaks on its explicit newlines.
         var builder = new BookBuilder();
         builder.AddTemplateSheet("Solo")
             .Banner("Validation rules (enforced after upload):\n• name: required")
@@ -161,12 +163,12 @@ public class BannerTests
 
         using var book = await builder.Build();
 
-        // Without the fix this rendered ~165pt (11 char-based lines). After: ≤ 8 lines worth
-        // (~120pt) — comfortably under the previous ceiling. The exact word-wrap count depends
-        // on the conservative chars-per-line ratio, so this asserts the upper bound rather than
-        // an exact value, and Verify captures the actual height for snapshot review.
+        // Without the fixes this rendered ~165pt of mostly-empty space. After: two explicit
+        // newline-separated lines → ~30pt, or no explicit height at all if the writer decides
+        // the default row height already fits. Asserting the upper bound rather than an exact
+        // value so estimator tuning doesn't make this brittle; Verify captures the actual height.
         var row = BannerRow(book);
-        Assert.That(row.Height!.Value, Is.LessThanOrEqualTo(120));
+        Assert.That(row.Height?.Value, Is.Null.Or.LessThanOrEqualTo(60));
 
         await Verify(book);
     }
