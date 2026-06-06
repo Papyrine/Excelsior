@@ -81,7 +81,7 @@ public class NoteTests
 
         var vmlPart = worksheetPart.GetPartsOfType<VmlDrawingPart>().Single();
         using var reader = new StreamReader(vmlPart.GetStream());
-        var vml = reader.ReadToEnd();
+        var vml = await reader.ReadToEndAsync();
 
         Assert.That(vml, Does.Contain("_x0000_s1025"));
         Assert.That(vml, Does.Contain("_x0000_s1026"));
