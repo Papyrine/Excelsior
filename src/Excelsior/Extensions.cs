@@ -92,9 +92,36 @@
             };
     }
 
-    public static bool IsTemporalType(this Type type) =>
-        type == typeof(DateTime) ||
-        type == typeof(DateTimeOffset) ||
-        type == typeof(Date) ||
-        type == typeof(Time);
+    public static TemporalKind? GetTemporalKind(this Type type)
+    {
+        if (type == typeof(DateTime))
+        {
+            return TemporalKind.DateTime;
+        }
+
+        if (type == typeof(DateTimeOffset))
+        {
+            return TemporalKind.DateTimeOffset;
+        }
+
+        if (type == typeof(Date))
+        {
+            return TemporalKind.Date;
+        }
+
+        if (type == typeof(Time))
+        {
+            return TemporalKind.Time;
+        }
+
+        return null;
+    }
+}
+
+enum TemporalKind
+{
+    Date,
+    Time,
+    DateTime,
+    DateTimeOffset
 }

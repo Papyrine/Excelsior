@@ -1153,7 +1153,17 @@ class Renderer<TModel>(
 
         if (column.HasDateValidation)
         {
-            return "Must be a valid date.";
+            // Word the message for the actual temporal kind and surface the column's display
+            // format so the user sees exactly what to type.
+            var noun = column.Temporal switch
+            {
+                TemporalKind.Time => "time",
+                TemporalKind.Date => "date",
+                _ => "date and time"
+            };
+            return column.Format is { Length: > 0 } format
+                ? $"Must be a valid {noun} ({format})."
+                : $"Must be a valid {noun}.";
         }
 
         if (column.HasNumericValidation)

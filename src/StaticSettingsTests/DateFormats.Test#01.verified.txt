@@ -41,7 +41,7 @@
             ShowInputMessage: false,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
-            ErrorMessage: Must be a valid date.,
+            ErrorMessage: Must be a valid date and time.,
             Range: 2
           }
         },
@@ -62,7 +62,7 @@
             ShowInputMessage: false,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
-            ErrorMessage: Must be a valid date.,
+            ErrorMessage: Must be a valid date and time.,
             Range: 2
           }
         }
