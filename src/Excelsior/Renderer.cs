@@ -979,6 +979,11 @@ class Renderer<TModel>(
         return headerRow + dataRowCount + templateRowCount;
     }
 
+    // Excel's representable date range. Used as the implicit bounds for a date column that has no
+    // author-supplied range, turning the validation into a plain "must be a valid date" check.
+    static readonly DateTime ExcelMinDate = new(1900, 1, 1);
+    static readonly DateTime ExcelMaxDate = new(9999, 12, 31);
+
     static DataValidation? BuildDataValidation(ColumnConfig<TModel> column, string sqref, string firstCell, bool autoInputMessages)
     {
         var validation = new DataValidation
@@ -1014,6 +1019,18 @@ class Renderer<TModel>(
                 validation,
                 column.DateMin?.ToOADate() is { } min ? (decimal)min : null,
                 column.DateMax?.ToOADate() is { } max ? (decimal)max : null);
+        }
+        else if (column.HasDateValidation)
+        {
+            // A date column with no explicit range still enforces date-ness: constrain it to
+            // Excel's full supported date span so manually-typed text is rejected (the same role
+            // ISNUMBER plays for numeric columns) while any real date the user picks is accepted.
+            hasValidation = true;
+            validation.Type = DataValidationValues.Date;
+            ApplyRangeOperator(
+                validation,
+                (decimal)ExcelMinDate.ToOADate(),
+                (decimal)ExcelMaxDate.ToOADate());
         }
         else if (column.HasNumericValidation)
         {
@@ -1132,6 +1149,11 @@ class Renderer<TModel>(
         if (column.DateMax.HasValue)
         {
             return $"Must be a date on or before {Day(column.DateMax.Value)}.";
+        }
+
+        if (column.HasDateValidation)
+        {
+            return "Must be a valid date.";
         }
 
         if (column.HasNumericValidation)

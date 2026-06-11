@@ -61,6 +61,7 @@ class Columns<TModel>
                 Filter = property.Filter,
                 Include = property.Include ?? true,
                 IsNumber = property.IsNumber,
+                IsDate = property.IsDate,
                 IsEnumerable = isEnumerable,
                 ItemRender = isEnumerable ? render : null,
                 GetValue = property.Get,

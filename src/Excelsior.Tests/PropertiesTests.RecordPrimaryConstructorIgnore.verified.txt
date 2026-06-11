@@ -5,6 +5,7 @@
     Name: Include,
     Type: string,
     IsNumber: false,
+    IsDate: false,
     IsHtml: false,
     IsNonNullable: false,
     IsRequired: false
