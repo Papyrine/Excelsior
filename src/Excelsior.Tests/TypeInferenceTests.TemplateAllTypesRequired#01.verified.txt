@@ -1,0 +1,238 @@
+﻿{
+  Sheets: [
+    {
+      Name: AllTypes,
+      Columns: [
+        {
+          Name: Text,
+          Metadata: {
+            property: Text
+          },
+          Width: 9.0,
+          ContainsRichText: false,
+          RequiredHighlight: true,
+          Validation: {
+            Type: custom,
+            Min: LEN(TRIM(A2))>0,
+            AllowBlank: false,
+            ShowInputMessage: true,
+            InputMessage: Required field,
+            ShowErrorMessage: true,
+            ErrorTitle: Invalid value,
+            ErrorMessage: This field is required.,
+            Range: 2-6
+          }
+        },
+        {
+          Name: Integer,
+          Metadata: {
+            property: Integer
+          },
+          Width: 11.0,
+          ContainsRichText: false,
+          RequiredHighlight: true,
+          Validation: {
+            Type: custom,
+            Min: ISNUMBER(B2),
+            AllowBlank: false,
+            ShowInputMessage: true,
+            InputMessage: Required field,
+            ShowErrorMessage: true,
+            ErrorTitle: Invalid value,
+            ErrorMessage: Must be a number.,
+            Range: 2-6
+          }
+        },
+        {
+          Name: Decimal,
+          Metadata: {
+            property: Decimal
+          },
+          Width: 11.0,
+          ContainsRichText: false,
+          RequiredHighlight: true,
+          Validation: {
+            Type: custom,
+            Min: ISNUMBER(C2),
+            AllowBlank: false,
+            ShowInputMessage: true,
+            InputMessage: Required field,
+            ShowErrorMessage: true,
+            ErrorTitle: Invalid value,
+            ErrorMessage: Must be a number.,
+            Range: 2-6
+          }
+        },
+        {
+          Name: Double,
+          Metadata: {
+            property: Double
+          },
+          Width: 10.0,
+          ContainsRichText: false,
+          RequiredHighlight: true,
+          Validation: {
+            Type: custom,
+            Min: ISNUMBER(D2),
+            AllowBlank: false,
+            ShowInputMessage: true,
+            InputMessage: Required field,
+            ShowErrorMessage: true,
+            ErrorTitle: Invalid value,
+            ErrorMessage: Must be a number.,
+            Range: 2-6
+          }
+        },
+        {
+          Name: Bool,
+          Metadata: {
+            property: Bool
+          },
+          Width: 9.0,
+          ContainsRichText: false,
+          RequiredHighlight: true,
+          Validation: {
+            Type: list,
+            AllowedValues: [
+              TRUE,
+              FALSE
+            ],
+            AllowBlank: false,
+            ShowInputMessage: true,
+            InputMessage: Select one of: TRUE, FALSE,
+            ShowErrorMessage: true,
+            ErrorTitle: Invalid value,
+            ErrorMessage: Must be one of: TRUE, FALSE.,
+            Range: 2-6
+          }
+        },
+        {
+          Name: Enum,
+          Metadata: {
+            property: Enum
+          },
+          Width: 9.0,
+          ContainsRichText: false,
+          RequiredHighlight: true,
+          Validation: {
+            Type: list,
+            AllowedValues: [
+              Full Time,
+              Part Time,
+              Contract,
+              Terminated
+            ],
+            AllowBlank: false,
+            ShowInputMessage: true,
+            InputMessage: Select one of: Full Time, Part Time, Contract, Terminated,
+            ShowErrorMessage: true,
+            ErrorTitle: Invalid value,
+            ErrorMessage: Must be one of: Full Time, Part Time, Contract, Terminated.,
+            Range: 2-6
+          }
+        },
+        {
+          Name: DateTime,
+          Metadata: {
+            property: DateTime
+          },
+          Width: 12.0,
+          ContainsRichText: false,
+          NumberFormat: yyyy-MM-dd HH:mm:ss,
+          RequiredHighlight: true,
+          Validation: {
+            Type: date,
+            Operator: between,
+            Min: 1900-01-01,
+            Max: 9999-12-31,
+            AllowBlank: false,
+            ShowInputMessage: true,
+            InputMessage: Required field,
+            ShowErrorMessage: true,
+            ErrorTitle: Invalid value,
+            ErrorMessage:
+Must be a valid date and time.
+yyyy-MM-dd HH:mm:ss,
+            Range: 2-6
+          }
+        },
+        {
+          Name: DateTimeOffset,
+          Metadata: {
+            property: DateTimeOffset
+          },
+          Width: 19.0,
+          ContainsRichText: false,
+          NumberFormat: yyyy-MM-dd HH:mm:ss z,
+          RequiredHighlight: true,
+          Validation: {
+            Type: date,
+            Operator: between,
+            Min: 1900-01-01,
+            Max: 9999-12-31,
+            AllowBlank: false,
+            ShowInputMessage: true,
+            InputMessage: Required field,
+            ShowErrorMessage: true,
+            ErrorTitle: Invalid value,
+            ErrorMessage:
+Must be a valid date and time.
+yyyy-MM-dd HH:mm:ss z,
+            Range: 2-6
+          }
+        },
+        {
+          Name: Date,
+          Metadata: {
+            property: Date
+          },
+          Width: 9.0,
+          ContainsRichText: false,
+          NumberFormat: yyyy-MM-dd,
+          RequiredHighlight: true,
+          Validation: {
+            Type: date,
+            Operator: between,
+            Min: 1900-01-01,
+            Max: 9999-12-31,
+            AllowBlank: false,
+            ShowInputMessage: true,
+            InputMessage: Required field,
+            ShowErrorMessage: true,
+            ErrorTitle: Invalid value,
+            ErrorMessage:
+Must be a valid date.
+yyyy-MM-dd,
+            Range: 2-6
+          }
+        },
+        {
+          Name: Time,
+          Metadata: {
+            property: Time
+          },
+          Width: 9.0,
+          ContainsRichText: false,
+          NumberFormat: HH:mm:ss,
+          RequiredHighlight: true,
+          Validation: {
+            Type: date,
+            Operator: between,
+            Min: 1900-01-01,
+            Max: 9999-12-31,
+            AllowBlank: false,
+            ShowInputMessage: true,
+            InputMessage: Required field,
+            ShowErrorMessage: true,
+            ErrorTitle: Invalid value,
+            ErrorMessage:
+Must be a valid time.
+HH:mm:ss,
+            Range: 2-6
+          }
+        }
+      ]
+    }
+  ],
+  WorksheetCount: 1
+}

@@ -90,6 +90,56 @@ public class TypeInferenceTests
     }
 
     [Test]
+    public async Task TemplateAllTypesOptional()
+    {
+        // One column per supported data type, all nullable: each still gets its type-derived
+        // validation (numeric check, temporal check, bool/enum dropdown) but none are inferred
+        // as required, so no blank-cell highlighting is emitted.
+        var builder = new BookBuilder();
+        builder.AddTemplateSheet("AllTypes", templateRowCount: 5)
+            .Column<string>("Text")
+            .Column<int?>("Integer")
+            .Column<decimal?>("Decimal")
+            .Column<double?>("Double")
+            .Column<bool?>("Bool")
+            .Column<EmployeeStatus?>("Enum")
+            .Column<DateTime?>("DateTime")
+            .Column<DateTimeOffset?>("DateTimeOffset")
+            .Column<Date?>("Date")
+            .Column<Time?>("Time");
+
+        using var book = await builder.Build();
+
+        await Verify(book);
+    }
+
+    [Test]
+    public async Task TemplateAllTypesRequired()
+    {
+        // The non-nullable counterpart: every value-typed column is inferred as required.
+        // Reference-type nullability is not reachable from a generic parameter, so the string
+        // column opts in explicitly.
+        var builder = new BookBuilder();
+        builder.AddTemplateSheet("AllTypes", templateRowCount: 5)
+            .Column<string>(
+                "Text",
+                _ => _.Required = true)
+            .Column<int>("Integer")
+            .Column<decimal>("Decimal")
+            .Column<double>("Double")
+            .Column<bool>("Bool")
+            .Column<EmployeeStatus>("Enum")
+            .Column<DateTime>("DateTime")
+            .Column<DateTimeOffset>("DateTimeOffset")
+            .Column<Date>("Date")
+            .Column<Time>("Time");
+
+        using var book = await builder.Build();
+
+        await Verify(book);
+    }
+
+    [Test]
     public async Task DataBoundInfersWhenEnabled()
     {
         #region DataBoundInferenceEnabled

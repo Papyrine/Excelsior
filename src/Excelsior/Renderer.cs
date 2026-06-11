@@ -1161,9 +1161,17 @@ class Renderer<TModel>(
                 TemporalKind.Date => "date",
                 _ => "date and time"
             };
-            return column.Format is { Length: > 0 } format
-                ? $"Must be a valid {noun} ({format})."
-                : $"Must be a valid {noun}.";
+
+            if (column.Format is {Length: > 0} format)
+            {
+                return
+                    $"""
+                     Must be a valid {noun}.
+                     {format}
+                     """;
+            }
+
+            return $"Must be a valid {noun}.";
         }
 
         if (column.HasNumericValidation)

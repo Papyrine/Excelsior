@@ -22,7 +22,9 @@
             InputMessage: Required field,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
-            ErrorMessage: Must be a valid date and time (yyyy-MM-dd HH:mm:ss).,
+            ErrorMessage:
+Must be a valid date and time.
+yyyy-MM-dd HH:mm:ss,
             Range: 2-6
           }
         },
@@ -45,7 +47,9 @@
             InputMessage: Required field,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
-            ErrorMessage: Must be a valid date and time (yyyy-MM-dd HH:mm:ss z).,
+            ErrorMessage:
+Must be a valid date and time.
+yyyy-MM-dd HH:mm:ss z,
             Range: 2-6
           }
         },
@@ -68,7 +72,9 @@
             InputMessage: Required field,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
-            ErrorMessage: Must be a valid date (yyyy-MM-dd).,
+            ErrorMessage:
+Must be a valid date.
+yyyy-MM-dd,
             Range: 2-6
           }
         },
@@ -90,7 +96,9 @@
             ShowInputMessage: false,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
-            ErrorMessage: Must be a valid date (yyyy-MM-dd).,
+            ErrorMessage:
+Must be a valid date.
+yyyy-MM-dd,
             Range: 2-6
           }
         },
@@ -113,7 +121,9 @@
             InputMessage: Required field,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
-            ErrorMessage: Must be a valid time (HH:mm:ss).,
+            ErrorMessage:
+Must be a valid time.
+HH:mm:ss,
             Range: 2-6
           }
         },

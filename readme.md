@@ -1982,7 +1982,7 @@ builder.AddSheet(
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/TypeInferenceTests.cs#L95-L116' title='Snippet source file'>snippet source</a> | <a href='#snippet-DataBoundInferenceEnabled' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/TypeInferenceTests.cs#L145-L166' title='Snippet source file'>snippet source</a> | <a href='#snippet-DataBoundInferenceEnabled' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Per-column overrides always win — set `Required = false` or `DisableAllowedValues = true` to opt out for one column.
