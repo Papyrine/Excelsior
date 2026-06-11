@@ -1154,7 +1154,8 @@ class Renderer<TModel>(
         if (column.HasDateValidation)
         {
             // Word the message for the actual temporal kind and surface the column's display
-            // format so the user sees exactly what to type.
+            // format so the user sees exactly what to type. Data-bound sheets leave Format
+            // null and fall back at render time, so apply the same fallback here.
             var noun = column.Temporal switch
             {
                 TemporalKind.Time => "time",
@@ -1162,7 +1163,7 @@ class Renderer<TModel>(
                 _ => "date and time"
             };
 
-            if (column.Format is {Length: > 0} format)
+            if (EffectiveDateFormat(column) is {Length: > 0} format)
             {
                 return
                     $"""
@@ -1240,6 +1241,20 @@ class Renderer<TModel>(
             return $"Date on or before {Day(column.DateMax.Value)}";
         }
 
+        if (column.HasDateValidation &&
+            EffectiveDateFormat(column) is {Length: > 0} format)
+        {
+            // Unlike the bare ISNUMBER check, the expected format is not self-evident,
+            // so surface it before the user trips the error popup.
+            var noun = column.Temporal switch
+            {
+                TemporalKind.Time => "Time",
+                TemporalKind.Date => "Date",
+                _ => "Date and time"
+            };
+            return $"{noun} as {format}";
+        }
+
         if (column.Required)
         {
             return "Required field";
@@ -1253,6 +1268,16 @@ class Renderer<TModel>(
         static string Day(DateTime value) =>
             value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
     }
+
+    /// <summary>
+    /// The format a temporal column's values are actually rendered with: the explicit column
+    /// <see cref="ColumnConfig{TModel}.Format"/>, or the <see cref="ValueRenderer"/> default
+    /// for the column's temporal kind.
+    /// </summary>
+    static string EffectiveDateFormat(ColumnConfig<TModel> column) =>
+        column.Format is {Length: > 0} format
+            ? format
+            : ValueRenderer.DefaultFormatFor(column.Temporal!.Value);
 
     static void ApplyRangeOperator(DataValidation validation, decimal? min, decimal? max)
     {
