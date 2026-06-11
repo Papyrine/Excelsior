@@ -91,4 +91,10 @@
                 _ => false
             };
     }
+
+    public static bool IsTemporalType(this Type type) =>
+        type == typeof(DateTime) ||
+        type == typeof(DateTimeOffset) ||
+        type == typeof(Date) ||
+        type == typeof(Time);
 }

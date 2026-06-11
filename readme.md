@@ -1921,6 +1921,7 @@ Template sheets infer common validation rules from the column's type:
 | `enum` / `enum?` | dropdown list of enum members | no — always on |
 | `bool` / `bool?` | dropdown of `TRUE` / `FALSE` (see [note](#bool-dropdown-vs-strict-boolean) below) | no — always on |
 | Numeric (`int`, `decimal`, `double`, etc.) | `ISNUMBER` constraint — manually-typed non-numeric values are blocked | no — always on |
+| Date/time (`DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly`) | date constraint across Excel's full date span — manually-typed non-dates are blocked | no — always on |
 | C# `required` modifier or `[Required]` attribute | `Required = true` | no — always on |
 | Non-nullable value type (`int`, `decimal`, `DateTime`, `bool`, enum) | `Required = true` | yes |
 | Non-nullable reference type (NRT-aware, data-bound only) | `Required = true` | yes |
@@ -1981,7 +1982,7 @@ builder.AddSheet(
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/TypeInferenceTests.cs#L72-L93' title='Snippet source file'>snippet source</a> | <a href='#snippet-DataBoundInferenceEnabled' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/TypeInferenceTests.cs#L92-L113' title='Snippet source file'>snippet source</a> | <a href='#snippet-DataBoundInferenceEnabled' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Per-column overrides always win — set `Required = false` or `DisableAllowedValues = true` to opt out for one column.

@@ -17,6 +17,7 @@ class ColumnConfig<TModel>
     public required bool? Filter { get; set; }
     public required bool Include { get; set; }
     public required bool IsNumber { get; init; }
+    public required bool IsDate { get; init; }
     public required bool IsEnumerable { get; init; }
     public required Func<object, string>? ItemRender { get; init; }
     public required string Name { get; set; }
@@ -45,6 +46,7 @@ class ColumnConfig<TModel>
         DateMin.HasValue ||
         DateMax.HasValue ||
         HasNumericValidation ||
+        HasDateValidation ||
         Required;
 
     /// <summary>
@@ -57,6 +59,20 @@ class ColumnConfig<TModel>
         Render == null &&
         Formula == null &&
         !IsHtml;
+
+    /// <summary>
+    /// True for plain date/time columns (no custom render/formula/html, not enumerable) that carry
+    /// no explicit <see cref="DateMin"/>/<see cref="DateMax"/> range. The renderer constrains them
+    /// to Excel's full date span so manually-typed text is blocked while any real date is accepted.
+    /// </summary>
+    public bool HasDateValidation =>
+        IsDate &&
+        !IsEnumerable &&
+        Render == null &&
+        Formula == null &&
+        !IsHtml &&
+        !DateMin.HasValue &&
+        !DateMax.HasValue;
 
     public bool HasInputMessage =>
         InputMessage != null || InputTitle != null;

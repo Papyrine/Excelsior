@@ -72,14 +72,16 @@
           ContainsRichText: false,
           RequiredHighlight: true,
           Validation: {
-            Type: custom,
-            Min: LEN(TRIM(D2))>0,
+            Type: date,
+            Operator: between,
+            Min: 1900-01-01,
+            Max: 9999-12-31,
             AllowBlank: false,
             ShowInputMessage: true,
             InputMessage: Required field,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
-            ErrorMessage: This field is required.,
+            ErrorMessage: Must be a valid date.,
             Range: 2-3
           }
         },
@@ -92,14 +94,16 @@
           ContainsRichText: false,
           RequiredHighlight: true,
           Validation: {
-            Type: custom,
-            Min: LEN(TRIM(E2))>0,
+            Type: date,
+            Operator: between,
+            Min: 1900-01-01,
+            Max: 9999-12-31,
             AllowBlank: false,
             ShowInputMessage: true,
             InputMessage: Required field,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
-            ErrorMessage: This field is required.,
+            ErrorMessage: Must be a valid date.,
             Range: 2-3
           }
         },

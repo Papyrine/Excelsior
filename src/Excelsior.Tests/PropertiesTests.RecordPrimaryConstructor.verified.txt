@@ -5,6 +5,7 @@
     Name: Member1,
     Type: string,
     IsNumber: false,
+    IsDate: false,
     IsHtml: false,
     IsNonNullable: true,
     IsRequired: false
@@ -15,6 +16,7 @@
     Name: Member2,
     Type: string,
     IsNumber: false,
+    IsDate: false,
     IsHtml: false,
     IsNonNullable: true,
     IsRequired: false

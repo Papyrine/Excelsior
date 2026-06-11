@@ -62,6 +62,8 @@ class TemplateSheetBuilder :
             Include = true,
             IsNumber = type.IsNumericType() ||
                        (Nullable.GetUnderlyingType(type)?.IsNumericType() ?? false),
+            IsDate = type.IsTemporalType() ||
+                     (Nullable.GetUnderlyingType(type)?.IsTemporalType() ?? false),
             IsEnumerable = false,
             ItemRender = null,
             GetValue = _ => null,
