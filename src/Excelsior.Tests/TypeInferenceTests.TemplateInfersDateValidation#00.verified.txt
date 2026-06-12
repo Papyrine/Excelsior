@@ -19,10 +19,37 @@
             Max: 9999-12-31,
             AllowBlank: false,
             ShowInputMessage: true,
-            InputMessage: Required field,
+            InputMessage: Date and time as yyyy-MM-dd HH:mm:ss,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
-            ErrorMessage: Must be a valid date.,
+            ErrorMessage:
+Must be a valid date and time.
+yyyy-MM-dd HH:mm:ss,
+            Range: 2-6
+          }
+        },
+        {
+          Name: Offset,
+          Metadata: {
+            property: Offset
+          },
+          Width: 10.0,
+          ContainsRichText: false,
+          NumberFormat: yyyy-MM-dd HH:mm:ss z,
+          RequiredHighlight: true,
+          Validation: {
+            Type: date,
+            Operator: between,
+            Min: 1900-01-01,
+            Max: 9999-12-31,
+            AllowBlank: false,
+            ShowInputMessage: true,
+            InputMessage: Date and time as yyyy-MM-dd HH:mm:ss z,
+            ShowErrorMessage: true,
+            ErrorTitle: Invalid value,
+            ErrorMessage:
+Must be a valid date and time.
+yyyy-MM-dd HH:mm:ss z,
             Range: 2-6
           }
         },
@@ -42,10 +69,12 @@
             Max: 9999-12-31,
             AllowBlank: false,
             ShowInputMessage: true,
-            InputMessage: Required field,
+            InputMessage: Date as yyyy-MM-dd,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
-            ErrorMessage: Must be a valid date.,
+            ErrorMessage:
+Must be a valid date.
+yyyy-MM-dd,
             Range: 2-6
           }
         },
@@ -64,10 +93,38 @@
             Min: 1900-01-01,
             Max: 9999-12-31,
             AllowBlank: true,
-            ShowInputMessage: false,
+            ShowInputMessage: true,
+            InputMessage: Date as yyyy-MM-dd,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
-            ErrorMessage: Must be a valid date.,
+            ErrorMessage:
+Must be a valid date.
+yyyy-MM-dd,
+            Range: 2-6
+          }
+        },
+        {
+          Name: Clock,
+          Metadata: {
+            property: Clock
+          },
+          Width: 9.0,
+          ContainsRichText: false,
+          NumberFormat: HH:mm:ss,
+          RequiredHighlight: true,
+          Validation: {
+            Type: date,
+            Operator: between,
+            Min: 1900-01-01,
+            Max: 9999-12-31,
+            AllowBlank: false,
+            ShowInputMessage: true,
+            InputMessage: Time as HH:mm:ss,
+            ShowErrorMessage: true,
+            ErrorTitle: Invalid value,
+            ErrorMessage:
+Must be a valid time.
+HH:mm:ss,
             Range: 2-6
           }
         },

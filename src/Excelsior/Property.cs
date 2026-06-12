@@ -44,7 +44,7 @@ class Property<T>
 
         Type = info.MemberValueType;
         IsNumber = Type.IsNumericType();
-        IsDate = Type.IsTemporalType();
+        Temporal = Type.GetTemporalKind();
         IsNonNullable = ResolveIsNonNullable(info);
         IsRequired = ResolveIsRequired(info, constructorParameter);
     }
@@ -193,7 +193,7 @@ class Property<T>
     public int? Order { get; }
     public Type Type { get; }
     public bool IsNumber { get; }
-    public bool IsDate { get; }
+    public TemporalKind? Temporal { get; }
     public int? Width { get; }
     public int? MinWidth { get; }
     public int? MaxWidth { get; }

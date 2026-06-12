@@ -5,7 +5,6 @@
     Name: Prop1,
     Type: string,
     IsNumber: false,
-    IsDate: false,
     IsHtml: false,
     IsNonNullable: false,
     IsRequired: false
@@ -16,7 +15,6 @@
     Name: Level1.Level2,
     Type: string,
     IsNumber: false,
-    IsDate: false,
     IsHtml: false,
     IsNonNullable: false,
     IsRequired: false

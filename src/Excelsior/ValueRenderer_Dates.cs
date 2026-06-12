@@ -45,4 +45,13 @@ public static partial class ValueRenderer
             field = value;
         }
     } = "HH:mm:ss";
+
+    internal static string DefaultFormatFor(TemporalKind kind) =>
+        kind switch
+        {
+            TemporalKind.Date => DefaultDateFormat,
+            TemporalKind.Time => DefaultTimeFormat,
+            TemporalKind.DateTimeOffset => DefaultDateTimeOffsetFormat,
+            _ => DefaultDateTimeFormat
+        };
 }

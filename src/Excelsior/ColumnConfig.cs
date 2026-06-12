@@ -17,7 +17,7 @@ class ColumnConfig<TModel>
     public required bool? Filter { get; set; }
     public required bool Include { get; set; }
     public required bool IsNumber { get; init; }
-    public required bool IsDate { get; init; }
+    public required TemporalKind? Temporal { get; init; }
     public required bool IsEnumerable { get; init; }
     public required Func<object, string>? ItemRender { get; init; }
     public required string Name { get; set; }
@@ -66,7 +66,7 @@ class ColumnConfig<TModel>
     /// to Excel's full date span so manually-typed text is blocked while any real date is accepted.
     /// </summary>
     public bool HasDateValidation =>
-        IsDate &&
+        Temporal is not null &&
         !IsEnumerable &&
         Render == null &&
         Formula == null &&

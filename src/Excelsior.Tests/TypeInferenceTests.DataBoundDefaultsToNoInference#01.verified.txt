@@ -97,10 +97,13 @@
             Min: 1900-01-01,
             Max: 9999-12-31,
             AllowBlank: true,
-            ShowInputMessage: false,
+            ShowInputMessage: true,
+            InputMessage: Date and time as yyyy-MM-dd HH:mm:ss,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
-            ErrorMessage: Must be a valid date.,
+            ErrorMessage:
+Must be a valid date and time.
+yyyy-MM-dd HH:mm:ss,
             Range: 2
           }
         }

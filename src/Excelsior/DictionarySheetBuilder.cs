@@ -54,8 +54,7 @@ class DictionarySheetBuilder :
             Include = true,
             IsNumber = type.IsNumericType() ||
                        (Nullable.GetUnderlyingType(type)?.IsNumericType() ?? false),
-            IsDate = type.IsTemporalType() ||
-                     (Nullable.GetUnderlyingType(type)?.IsTemporalType() ?? false),
+            Temporal = type.GetTemporalKind() ?? Nullable.GetUnderlyingType(type)?.GetTemporalKind(),
             IsEnumerable = isEnumerable,
             ItemRender = isEnumerable ? render : null,
             GetValue = row => row.GetValueOrDefault(keyForCapture),
