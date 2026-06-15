@@ -4,6 +4,12 @@
     <IsRoslynComponent>true</IsRoslynComponent>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IsPackable>false</IsPackable>
+    <!-- Track the package version so each release ships a distinct assembly identity;
+         otherwise Rider's analyzer host caches the frozen 1.0.0.0 generator and serves
+         stale diagnostics/generated code after a consumer upgrades. Safe for a Roslyn
+         component (never referenced at runtime), unlike the runtime assemblies which
+         stay pinned via src/Directory.Build.props. -->
+    <AssemblyVersion>$(Version)</AssemblyVersion>
     <NoWarn>$(NoWarn);RS1041</NoWarn>
   </PropertyGroup>
   <ItemGroup>

@@ -2,7 +2,7 @@
 <Project>
   <PropertyGroup>
     <NoWarn>CS1591;NU1608;NU1109;SC023</NoWarn>
-    <Version>5.0.2</Version>
+    <Version>5.0.3</Version>
     <LangVersion>14.0</LangVersion>
     <AssemblyVersion>1.0.0</AssemblyVersion>
     <Description>Excelsior is an Excel spreadsheet generation library with a distinctive data-driven approach.</Description>
