@@ -13,9 +13,9 @@
     <PackageVersion Include="Morph.Skia" Version="1.0.1" />
     <PackageVersion Include="MarkdownSnippets.MsBuild" Version="28.3.1" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.6.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
     <PackageVersion Include="Microsoft.Office.Interop.Excel" Version="16.0.18925.20022" Pinned="true" />
-    <PackageVersion Include="Polyfill" Version="10.10.0" />
+    <PackageVersion Include="Polyfill" Version="10.11.0" />
     <PackageVersion Include="ProjectDefaults" Version="1.0.174" />
     <PackageVersion Include="ProjectFiles" Version="1.4.0" />
     <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
