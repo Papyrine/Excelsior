@@ -174,20 +174,22 @@ class StyleManager
                     Val = fontKey.Size ?? 11
                 });
 
-            font.Append(
-                new FontName
-                {
-                    Val = fontKey.Name ?? "Calibri"
-                });
-
+            // CT_Font requires color before name. A colored font emitted name-first (every link
+            // cell is blue + underlined) is schema-invalid and makes Excel offer to "repair".
             if (fontKey.Color != null)
             {
                 font.Append(
                     new Color
                     {
-                        Rgb = fontKey.Color
+                        Rgb = NormaliseColor(fontKey.Color)
                     });
             }
+
+            font.Append(
+                new FontName
+                {
+                    Val = fontKey.Name ?? "Calibri"
+                });
 
             fontsEl.Append(font);
         }
@@ -217,7 +219,7 @@ class StyleManager
                     new PatternFill(
                         new ForegroundColor
                         {
-                            Rgb = fills[i]
+                            Rgb = NormaliseColor(fills[i]!)
                         })
                     {
                         PatternType = PatternValues.Solid
@@ -303,7 +305,7 @@ class StyleManager
                         new PatternFill(
                             new BackgroundColor
                             {
-                                Rgb = color
+                                Rgb = NormaliseColor(color)
                             })
                         {
                             PatternType = PatternValues.Solid
@@ -315,5 +317,17 @@ class StyleManager
         }
 
         return stylesheet;
+    }
+
+    // Excel's `rgb` attribute is an 8-digit ARGB hex string. A 6-digit RGB value (with or without a
+    // leading '#') is schema-invalid, so strip any '#' and prepend an opaque alpha when one is missing.
+    static string NormaliseColor(string color)
+    {
+        if (color.StartsWith('#'))
+        {
+            color = color[1..];
+        }
+
+        return color.Length == 6 ? $"FF{color}" : color;
     }
 }

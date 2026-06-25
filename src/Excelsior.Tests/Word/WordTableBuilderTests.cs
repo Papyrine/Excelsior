@@ -1,5 +1,6 @@
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Validation;
 using DocumentFormat.OpenXml.Wordprocessing;
 
 [TestFixture]
@@ -855,5 +856,97 @@ public class WordTableBuilderTests
 
         IsTrue(headings.Contains("Person"));
         IsFalse(headings.Contains("Full Name"));
+    }
+
+    static WordTableBuilder<Employee> RichlyStyledTable() =>
+        new(
+            SampleData.Employees(),
+            bodyStyle: _ =>
+            {
+                _.Font.Bold = true;
+                _.Font.Underline = true;
+                _.Font.Color = "FF0000";
+                _.Font.Size = 14;
+                _.Font.Name = "Arial";
+            });
+
+    [Test]
+    public void RunPropertiesFollowSchemaOrder()
+    {
+        // CT_RPr requires rFonts, b, color, sz, szCs, u in that order. Emitting them out of order
+        // (e.g. underline before colour, or rFonts last) makes Word flag the document as corrupt.
+        var runProperties = RichlyStyledTable()
+            .Build()
+            .Elements<TableRow>()
+            .Skip(1)
+            .First()
+            .GetFirstChild<TableCell>()!
+            .GetFirstChild<Paragraph>()!
+            .GetFirstChild<Run>()!
+            .RunProperties!;
+
+        var order = runProperties.ChildElements.Select(_ => _.GetType()).ToList();
+        Assert.That(
+            order,
+            Is.EqualTo(
+                new[]
+                {
+                    typeof(RunFonts),
+                    typeof(Bold),
+                    typeof(Color),
+                    typeof(FontSize),
+                    typeof(FontSizeComplexScript),
+                    typeof(Underline)
+                }));
+    }
+
+    [Test]
+    public void StandaloneTableBordersFollowSchemaOrder()
+    {
+        // CT_TblBorders requires top, left, bottom, right, insideH, insideV. The standalone
+        // (no MainDocumentPart) path emits these inline, so an out-of-order set corrupts the table.
+        var borders = new WordTableBuilder<Employee>(SampleData.Employees())
+            .Build()
+            .GetFirstChild<TableProperties>()!
+            .GetFirstChild<TableBorders>()!;
+
+        var order = borders.ChildElements.Select(_ => _.GetType()).ToList();
+        Assert.That(
+            order,
+            Is.EqualTo(
+                new[]
+                {
+                    typeof(TopBorder),
+                    typeof(LeftBorder),
+                    typeof(BottomBorder),
+                    typeof(RightBorder),
+                    typeof(InsideHorizontalBorder),
+                    typeof(InsideVerticalBorder)
+                }));
+    }
+
+    [Test]
+    public void StandaloneStyledTableIsSchemaValid()
+    {
+        // End-to-end guard over the inline tblBorders ordering and the rich run-property ordering:
+        // a standalone table (inline borders) with a body style that exercises every rPr child.
+        // OpenXmlValidator catches an ordering Word would otherwise reject as corrupt.
+        var table = RichlyStyledTable().Build();
+
+        using var stream = new MemoryStream();
+        using (var document = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document))
+        {
+            var mainPart = document.AddMainDocumentPart();
+            mainPart.Document = new(new Body(table, new SectionProperties()));
+        }
+
+        stream.Position = 0;
+        using var opened = WordprocessingDocument.Open(stream, false);
+        var validator = new OpenXmlValidator(FileFormatVersions.Office2019);
+        var errors = validator
+            .Validate(opened)
+            .Select(_ => $"{_.Part?.Uri}: {_.Description}");
+
+        Assert.That(errors, Is.Empty);
     }
 }
