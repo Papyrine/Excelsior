@@ -277,18 +277,20 @@ static class WordTableRenderer<TModel>
         var standalone = new W.TableProperties();
         standalone.Append(tblW);
         standalone.Append(
+            // CT_TblBorders schema order is top, left (start), bottom, right (end), insideH,
+            // insideV. Emitting bottom before left makes Word flag the table as corrupt.
             new W.TableBorders(
                 new W.TopBorder
                 {
                     Val = W.BorderValues.Single,
                     Size = 4
                 },
-                new W.BottomBorder
+                new W.LeftBorder
                 {
                     Val = W.BorderValues.Single,
                     Size = 4
                 },
-                new W.LeftBorder
+                new W.BottomBorder
                 {
                     Val = W.BorderValues.Single,
                     Size = 4
@@ -439,19 +441,23 @@ static class WordTableRenderer<TModel>
 
     static W.RunProperties BuildRunProperties(CellStyle style)
     {
+        // Children must follow the CT_RPr schema order: rFonts, b, color, sz, szCs, u. Word reports
+        // the document as corrupt (and offers to "repair", stripping the run formatting) when they
+        // are emitted out of order — e.g. underline before colour, or rFonts last.
         var properties = new W.RunProperties();
+        if (!string.IsNullOrEmpty(style.Font.Name))
+        {
+            properties.Append(
+                new W.RunFonts
+                {
+                    Ascii = style.Font.Name,
+                    HighAnsi = style.Font.Name
+                });
+        }
+
         if (style.Font.Bold)
         {
             properties.Append(new W.Bold());
-        }
-
-        if (style.Font.Underline)
-        {
-            properties.Append(
-                new W.Underline
-                {
-                    Val = W.UnderlineValues.Single
-                });
         }
 
         if (!string.IsNullOrEmpty(style.Font.Color))
@@ -479,13 +485,12 @@ static class WordTableRenderer<TModel>
                 });
         }
 
-        if (!string.IsNullOrEmpty(style.Font.Name))
+        if (style.Font.Underline)
         {
             properties.Append(
-                new W.RunFonts
+                new W.Underline
                 {
-                    Ascii = style.Font.Name,
-                    HighAnsi = style.Font.Name
+                    Val = W.UnderlineValues.Single
                 });
         }
 

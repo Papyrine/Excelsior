@@ -555,12 +555,13 @@ class Renderer<TModel>(
                     BuildText("● ")));
             inlineString.Append(
                 new Run(
+                    // CT_RPrElt requires color before u; the rgb must be 8-digit ARGB.
                     new RunProperties(
-                        new Underline(),
                         new Color
                         {
-                            Rgb = "0563C1"
-                        }),
+                            Rgb = "FF0563C1"
+                        },
+                        new Underline()),
                     BuildText(items[i])));
         }
 
@@ -829,7 +830,24 @@ class Renderer<TModel>(
             };
             rule.Append(new Formula($"LEN(TRIM({letter}{validationFirstRow}))=0"));
             cf.Append(rule);
-            sheet.Worksheet.Append(cf);
+            AppendBeforeHyperlinks(sheet, cf);
+        }
+    }
+
+    // conditionalFormatting and dataValidations must precede <hyperlinks> in the CT_Worksheet
+    // sequence. Link cells insert <hyperlinks> right after <sheetData> during PopulateData, so a
+    // plain Append here would land after it and make Excel flag the sheet for repair. Insert ahead
+    // of the hyperlinks element when one is present; otherwise append as before.
+    static void AppendBeforeHyperlinks(SheetContext sheet, OpenXmlElement element)
+    {
+        var hyperlinks = sheet.Worksheet.GetFirstChild<Hyperlinks>();
+        if (hyperlinks == null)
+        {
+            sheet.Worksheet.Append(element);
+        }
+        else
+        {
+            sheet.Worksheet.InsertBefore(element, hyperlinks);
         }
     }
 
@@ -880,7 +898,7 @@ class Renderer<TModel>(
         }
 
         validations.Count = count;
-        sheet.Worksheet.Append(validations);
+        AppendBeforeHyperlinks(sheet, validations);
     }
 
     // Notes are anchored to the heading cell of each column that declares one. They survive
