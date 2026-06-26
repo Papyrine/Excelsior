@@ -56,30 +56,21 @@ static class ModelActivator<T>
     {
         const BindingFlags flags = BindingFlags.Public | BindingFlags.Instance;
         var result = new Dictionary<string, Action<T, object?>>(StringComparer.Ordinal);
-        foreach (var property in type.GetProperties(flags))
+        // Dedup `new`-shadowed members to the most-derived declaration so a hidden base member of
+        // the same name doesn't clobber the setter (e.g. a base `int` shadowed by a derived `string`).
+        var members = type.GetProperties(flags)
+            .Where(_ => _.IsWritable)
+            .Cast<MemberInfo>()
+            .Concat(type.GetFields(flags).Where(_ => _.IsWritable))
+            .DistinctByMostDerived();
+        foreach (var member in members)
         {
-            if (!property.IsWritable)
+            result[member.Name] = member switch
             {
-                continue;
-            }
-
-            var setter = property.SetMethod;
-            if (setter == null)
-            {
-                continue;
-            }
-
-            result[property.Name] = BuildPropertySetter(property, setter);
-        }
-
-        foreach (var field in type.GetFields(flags))
-        {
-            if (!field.IsWritable)
-            {
-                continue;
-            }
-
-            result[field.Name] = BuildFieldSetter(field);
+                PropertyInfo property => BuildPropertySetter(property, property.SetMethod!),
+                FieldInfo field => BuildFieldSetter(field),
+                _ => throw new($"Unsupported member kind: {member.GetType()}")
+            };
         }
 
         return result;

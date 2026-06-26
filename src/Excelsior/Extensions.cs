@@ -67,6 +67,16 @@
             };
     }
 
+    // type.GetProperties/GetFields return inherited members, so a `new`-shadowed member (or one that
+    // hides a base member of the same name) appears more than once. Keep the most-derived
+    // declaration — the member a `T` reference actually binds to — so the duplicate neither crashes
+    // column registration (Dictionary.Add) nor silently resolves to the hidden base member.
+    public static IEnumerable<MemberInfo> DistinctByMostDerived(this IEnumerable<MemberInfo> members) =>
+        members
+            .GroupBy(_ => _.Name)
+            .Select(_ => _.Aggregate(
+                (most, candidate) => most.DeclaringType!.IsAssignableFrom(candidate.DeclaringType!) ? candidate : most));
+
     public static bool IsNumericType(this Type type)
     {
         if (type.IsEnum)
