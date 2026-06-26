@@ -371,4 +371,25 @@ public class BookReaderPrimitivesTests
     {
         public SampleEnum? Value { get; set; }
     }
+
+    [Test]
+    public async Task NewShadowedMember()
+    {
+        // A `new`-shadowed member surfaces twice via reflection. Writing must not crash on the
+        // duplicate name, and the most-derived declaration must win on both write and read.
+        var rows = await RoundTrip(new ShadowDerived {Kept = "k", Detail = "shadowed"});
+        Assert.That(rows[0].Kept, Is.EqualTo("k"));
+        Assert.That(rows[0].Detail, Is.EqualTo("shadowed"));
+    }
+
+    public class ShadowBase
+    {
+        public string Kept { get; set; } = "";
+        public int Detail { get; set; }
+    }
+
+    public class ShadowDerived : ShadowBase
+    {
+        public new string Detail { get; set; } = "";
+    }
 }

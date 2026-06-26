@@ -35,30 +35,12 @@ class SheetReader<TModel> :
     static IEnumerable<MemberInfo> GetReadableMembers(Type type)
     {
         const BindingFlags flags = BindingFlags.Public | BindingFlags.Instance;
-        foreach (var property in type.GetProperties(flags))
-        {
-            if (!property.IsReadable)
-            {
-                continue;
-            }
-
-            if (property.Attribute<IgnoreAttribute>() != null)
-            {
-                continue;
-            }
-
-            yield return property;
-        }
-
-        foreach (var field in type.GetFields(flags))
-        {
-            if (field.Attribute<IgnoreAttribute>() != null)
-            {
-                continue;
-            }
-
-            yield return field;
-        }
+        return type.GetProperties(flags)
+            .Where(_ => _.IsReadable)
+            .Cast<MemberInfo>()
+            .Concat(type.GetFields(flags))
+            .DistinctByMostDerived()
+            .Where(_ => _.Attribute<IgnoreAttribute>() == null);
     }
 
     static string ResolveHeading(MemberInfo info)

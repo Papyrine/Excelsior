@@ -433,4 +433,29 @@ public class PropertiesTests
     [Test]
     public Task SplitParameter() =>
         Verify(Properties<ModelWithSplitParameter>.Items);
+
+    class ShadowBase
+    {
+        public string Kept { get; set; } = "";
+        public int Detail { get; set; }
+    }
+
+    class ShadowDerived : ShadowBase
+    {
+        public new string Detail { get; set; } = "";
+    }
+
+    [Test]
+    public void Properties_NewShadowedMemberKeepsMostDerived()
+    {
+        var items = Properties<ShadowDerived>.Items;
+
+        // Reflection surfaces both the base int and the `new` string Detail; only the most-derived
+        // (string) survives, so column registration neither crashes on the duplicate name nor binds
+        // the hidden base member.
+        var detail = items.Where(_ => _.Name == "Detail").ToList();
+        Assert.That(detail, Has.Count.EqualTo(1));
+        Assert.That(detail[0].Type, Is.EqualTo(typeof(string)));
+        Assert.That(items, Has.Some.Matches<Property<ShadowDerived>>(_ => _.Name == "Kept"));
+    }
 }
