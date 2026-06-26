@@ -66,12 +66,12 @@ yyyy-MM-dd HH:mm:ss,
             Max: 9999-12-31,
             AllowBlank: true,
             ShowInputMessage: true,
-            InputMessage: Date and time as yyyy-MM-dd HH:mm:ss z,
+            InputMessage: Date and time as yyyy-MM-dd HH:mm:ss zzz,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
             ErrorMessage:
 Must be a valid date and time.
-yyyy-MM-dd HH:mm:ss z,
+yyyy-MM-dd HH:mm:ss zzz,
             Range: 2
           }
         }

@@ -33,7 +33,7 @@ public static partial class ValueRenderer
             ThrowIfBookBuilderUsed();
             field = value;
         }
-    } = "yyyy-MM-dd HH:mm:ss z";
+    } = "yyyy-MM-dd HH:mm:ss zzz";
 
     [StringSyntax(StringSyntaxAttribute.TimeOnlyFormat)]
     public static string DefaultTimeFormat
