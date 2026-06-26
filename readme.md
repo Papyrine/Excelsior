@@ -3180,7 +3180,7 @@ using (var doc = WordprocessingDocument.Create(stream, WordprocessingDocumentTyp
     var body = mainPart.Document.Body!;
     body.Append(table);
 ```
-<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L13-L27' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L14-L28' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Column configuration (headings, ordering, render, etc.) works the same as with `BookBuilder`:
@@ -3220,7 +3220,7 @@ var builder = new WordTableBuilder<Employee>(
         _.Font.Underline = true;
     });
 ```
-<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L210-L223' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableHeadingStyle' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L211-L224' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableHeadingStyle' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 A per-column `HeadingStyle` on `ColumnConfig` composes on top of the table-level style, so individual headers can override or extend the shared look:
@@ -3235,7 +3235,7 @@ var builder = new WordTableBuilder<Employee>(
         _ => _.Name,
         _ => _.HeadingStyle = cell => cell.BackgroundColor = "FF0000");
 ```
-<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L231-L240' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableColumnHeadingStyle' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L232-L241' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableColumnHeadingStyle' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Colors accept a leading `#` (e.g. `"#4472C4"`) and it will be stripped before being written to OpenXml.
@@ -3256,7 +3256,7 @@ var builder = new WordTableBuilder<Employee>(
         _.Font.Name = "Arial";
     });
 ```
-<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L597-L607' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableBodyStyle' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L598-L608' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableBodyStyle' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 A per-column `CellStyle` on `ColumnConfig` composes on top, and — because it receives the model and value — can style cells conditionally (e.g. bold a salary over a threshold, shade a status cell). Font and alignment are written to the cell's runs/paragraph; background and vertical alignment to the cell properties.
@@ -3277,7 +3277,7 @@ var builder = new WordTableBuilder<Employee>(SampleData.Employees())
     .HeadingParagraphStyle("TBLHeading")
     .BodyParagraphStyle("TBLText");
 ```
-<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L698-L704' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableParagraphStyles' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L699-L705' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableParagraphStyles' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Unlike the run-level `headingStyle`/`bodyStyle` callbacks, a paragraph style is applied to **every** cell paragraph — including `IsHtml` and `Link` cells — so the style's font, size, and spacing reach all content. The referenced style ids must exist in the host document's styles part. This is the cleanest way to brand an Excelsior table from a template: define the look once as `TBLHeading`/`TBLText` (or any names) and point the table at them.
