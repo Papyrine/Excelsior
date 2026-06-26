@@ -379,4 +379,40 @@ public class BookReaderErrorTests
         Assert.That(errors.Select(_ => _.ColumnName), Is.EqualTo(["Value", "Value", "Value"]));
         Assert.That(errors.Select(_ => _.RowIndex), Is.EqualTo([2, 3, 4]));
     }
+
+    public class ReorderSource
+    {
+        public required string Alpha { get; init; }
+        public required string Beta { get; init; }
+    }
+
+    public class ReorderTarget
+    {
+        // Declared in a different order than the file's physical columns; Beta is physically column B.
+        public int Beta { get; set; }
+        public string Alpha { get; set; } = "";
+    }
+
+    [Test]
+    public async Task ErrorCellReferenceUsesFilePositionNotDeclaredOrder()
+    {
+        // The reader resolves columns by metadata/heading, so the file's physical column order can
+        // differ from the model's declared order. A conversion error must point at the cell's real
+        // column — Beta is physically column B — not its declared ordinal (which would say A).
+        var stream = new MemoryStream();
+        var builder = new BookBuilder();
+        builder.AddSheet<ReorderSource>([new() {Alpha = "a", Beta = "not-a-number"}]);
+        await builder.ToStream(stream);
+        stream.Position = 0;
+
+        var reader = new BookReader();
+        reader.AddSheet<ReorderTarget>();
+        var result = reader.TryConvert(stream);
+
+        Assert.That((bool)result, Is.False);
+        Assert.That(result.Errors, Has.Count.EqualTo(1));
+        var error = result.Errors[0];
+        Assert.That(error.ColumnName, Is.EqualTo("Beta"));
+        Assert.That(error.CellReference, Is.EqualTo("B2"));
+    }
 }

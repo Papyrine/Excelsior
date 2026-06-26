@@ -179,9 +179,17 @@ static class SheetParser
                 }
 
                 fileIndexToSlot = new(columnByIndex.Count);
+                // Inverse map (slot -> file column index). The file's physical column order can
+                // differ from the model's declared order, so an error's cell reference must use the
+                // column's real position in the file, not its declared ordinal. Every slot is
+                // guaranteed a file index here: the loop above aborts if any declared column is
+                // unmatched, so the int[] zero-default is never observed.
+                var slotToFileIndex = new int[columns.Count];
                 foreach (var (fileIndex, column) in columnByIndex)
                 {
-                    fileIndexToSlot[fileIndex] = slotByName[column.Name];
+                    var slot = slotByName[column.Name];
+                    fileIndexToSlot[fileIndex] = slot;
+                    slotToFileIndex[slot] = fileIndex;
                 }
 
                 cellsBySlot = new Cell?[columns.Count];
@@ -193,7 +201,7 @@ static class SheetParser
                 {
                     var col = slotColumns[slot];
                     var rowIndex = currentRow?.RowIndex?.Value ?? 0;
-                    var cellRef = $"{SheetContext.GetColumnLetter(slot)}{rowIndex}";
+                    var cellRef = $"{SheetContext.GetColumnLetter(slotToFileIndex[slot])}{rowIndex}";
                     errors.Add(new(resolvedSheetName, (int)rowIndex, col.Name, cellRef, message));
                 };
 
