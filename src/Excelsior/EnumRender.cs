@@ -39,7 +39,7 @@ public static class EnumRender<TEnum>
             return c(value);
         }
 
-        return value.Humanize();
+        return EnumExtensions.Humanize(value);
     }
 }
 

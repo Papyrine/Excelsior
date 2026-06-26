@@ -1,38 +1,52 @@
 ﻿public static class EnumExtensions
 {
-    static ConcurrentDictionary<Enum, string> cache = new();
+    static readonly ConcurrentDictionary<Enum, string> boxedCache = new();
 
+    // Boxed entry point — for callers that already hold an Enum reference (the global
+    // Func<Enum,string> render default and the boxed dispatcher). The boxing is the caller's.
     public static string Humanize(this Enum value) =>
-        cache.GetOrAdd(
-            value,
-            static value =>
+        boxedCache.GetOrAdd(value, static boxed => Compute(boxed.GetType(), boxed.ToString()));
+
+    // Non-boxing entry point for the per-cell hot path (EnumRender<TEnum>). The cache is keyed by
+    // the value type, and Enum.GetName<TEnum> avoids the boxing that value.ToString() would incur.
+    internal static string Humanize<TEnum>(TEnum value)
+        where TEnum : struct, Enum =>
+        TypedCache<TEnum>.Get(value);
+
+    static class TypedCache<TEnum>
+        where TEnum : struct, Enum
+    {
+        static readonly ConcurrentDictionary<TEnum, string> cache = new();
+
+        public static string Get(TEnum value) =>
+            cache.GetOrAdd(value, static keyed => Compute(typeof(TEnum), Enum.GetName(keyed) ?? keyed.ToString()));
+    }
+
+    static string Compute(Type type, string name)
+    {
+        var field = type.GetField(name);
+        if (field is null)
         {
-            var type = value.GetType();
-            var memberInfo = type.GetField(value.ToString());
+            return name;
+        }
 
-            if (memberInfo is null)
+        // DisplayAttribute Description takes priority over Name.
+        var displayAttribute = field.GetCustomAttribute<DisplayAttribute>();
+        if (displayAttribute is not null)
+        {
+            if (displayAttribute.Description is not null)
             {
-                return value.ToString();
+                return displayAttribute.Description;
             }
 
-            // Check for DisplayAttribute - Description takes priority over Name
-            var displayAttribute = memberInfo.GetCustomAttribute<DisplayAttribute>();
-            if (displayAttribute is not null)
+            if (displayAttribute.Name is not null)
             {
-                if (displayAttribute.Description is not null)
-                {
-                    return displayAttribute.Description;
-                }
-
-                if (displayAttribute.Name is not null)
-                {
-                    return displayAttribute.Name;
-                }
+                return displayAttribute.Name;
             }
+        }
 
-            // Humanize the enum name
-            return HumanizeName(value.ToString());
-        });
+        return HumanizeName(name);
+    }
 
     static string HumanizeName(string name)
     {

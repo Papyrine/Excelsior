@@ -3,6 +3,7 @@ namespace Excelsior;
 public class SheetContext
 {
     Dictionary<int, Row> rows = [];
+    Dictionary<(int Row, int Column), Cell> cells = [];
 
     internal WorksheetPart WorksheetPart { get; }
     internal Worksheet Worksheet => WorksheetPart.Worksheet!;
@@ -17,6 +18,14 @@ public class SheetContext
 
     internal Cell GetCell(int rowIndex, int columnIndex)
     {
+        // Return the existing cell for a coordinate rather than appending a second one: two cells
+        // sharing a CellReference is a malformed worksheet that Excel rejects. The renderer writes
+        // each coordinate once today, so this is a guard against an accidental repeat call.
+        if (cells.TryGetValue((rowIndex, columnIndex), out var existing))
+        {
+            return existing;
+        }
+
         if (!rows.TryGetValue(rowIndex, out var row))
         {
             row = new()
@@ -37,6 +46,7 @@ public class SheetContext
             CellReference = cellRef
         };
         row.Append(cell);
+        cells[(rowIndex, columnIndex)] = cell;
         return cell;
     }
 
