@@ -52,4 +52,22 @@ public class SheetContext
 
         return result;
     }
+
+    // Inverse of GetColumnLetter: reads the leading column letters of a cell reference (e.g. "AB12")
+    // and returns the 0-based column index. Stops at the first non-letter (the row digits).
+    internal static int GetColumnIndex(string cellReference)
+    {
+        var index = 0;
+        foreach (var character in cellReference)
+        {
+            if (character is < 'A' or > 'Z')
+            {
+                break;
+            }
+
+            index = index * 26 + (character - 'A' + 1);
+        }
+
+        return index - 1;
+    }
 }

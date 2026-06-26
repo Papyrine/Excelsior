@@ -272,15 +272,14 @@ class Renderer<TModel>(
         column.HeadingStyle?.Invoke(style);
     }
 
-    void ResizeColumn(SheetContext sheet, int index, ColumnConfig<TModel> columnConfig)
+    void ResizeColumn(int index, ColumnConfig<TModel> columnConfig, double autoWidth)
     {
         var resultMinColumnWidth = minColumnWidth ?? bookBuilder.DefaultMinColumnWidth;
         var resultMaxColumnWidth = maxColumnWidth ?? bookBuilder.DefaultMaxColumnWidth;
         int width;
         if (columnConfig.Width == null)
         {
-            var doubleWidth = AdjustColumnWidth(sheet, index);
-            width = (int)Math.Round(doubleWidth);
+            width = (int)Math.Round(autoWidth);
             width += 1;
 
             if (columnConfig.IsEnumerable)
@@ -314,11 +313,53 @@ class Renderer<TModel>(
 
     void AutoSizeColumns(SheetContext sheet)
     {
+        var autoWidths = ComputeAutoWidths(sheet);
         for (var index = 0; index < columns.Count; index++)
         {
-            var column = columns[index];
-            ResizeColumn(sheet, index, column);
+            ResizeColumn(index, columns[index], autoWidths.GetValueOrDefault(index, 8d));
         }
+    }
+
+    // One pass over the sheet accumulating the widest rendered content per column. Replaces a
+    // per-column rescan that located each column's cell with a linear FirstOrDefault over the row
+    // (O(rows x columns^2)) with a single O(rows x columns) walk.
+    Dictionary<int, double> ComputeAutoWidths(SheetContext sheet)
+    {
+        var widths = new Dictionary<int, double>();
+        if (columns.All(_ => _.Width != null))
+        {
+            // Every column has an explicit width; there is nothing to measure.
+            return widths;
+        }
+
+        foreach (var row in sheet.SheetData.Elements<Row>())
+        {
+            if (Banner != null &&
+                row.RowIndex?.Value == 1)
+            {
+                // The banner spans every column (merged), so its text must not drive any single
+                // column's width.
+                continue;
+            }
+
+            foreach (var cell in row.Elements<Cell>())
+            {
+                var reference = cell.CellReference?.Value;
+                if (reference == null)
+                {
+                    continue;
+                }
+
+                var estimated = GetCellContentLength(cell) * CharWidthFactor(cell) + 2;
+                var columnIndex = SheetContext.GetColumnIndex(reference);
+                if (estimated > widths.GetValueOrDefault(columnIndex, 8d))
+                {
+                    widths[columnIndex] = estimated;
+                }
+            }
+        }
+
+        return widths;
     }
 
     async Task PopulateData(SheetContext sheet, Cancel cancel)
@@ -614,40 +655,6 @@ class Renderer<TModel>(
                     Reference = reference
                 },
                 sheet.SheetData);
-    }
-
-    double AdjustColumnWidth(SheetContext sheet, int columnIndex)
-    {
-        double maxWidth = 8;
-        var colLetter = SheetContext.GetColumnLetter(columnIndex);
-
-        foreach (var row in sheet.SheetData.Elements<Row>())
-        {
-            if (Banner != null &&
-                row.RowIndex?.Value == 1)
-            {
-                // The banner spans every column (merged), so its text must not drive any single
-                // column's width.
-                continue;
-            }
-
-            var cellRef = colLetter + row.RowIndex;
-            var cell = row.Elements<Cell>()
-                .FirstOrDefault(_ => _.CellReference?.Value == cellRef);
-            if (cell == null)
-            {
-                continue;
-            }
-
-            var length = GetCellContentLength(cell);
-            var estimated = length * CharWidthFactor(cell) + 2;
-            if (estimated > maxWidth)
-            {
-                maxWidth = estimated;
-            }
-        }
-
-        return maxWidth;
     }
 
     double CharWidthFactor(Cell cell)
@@ -1345,18 +1352,16 @@ class Renderer<TModel>(
             }
 
             double maxLines = 1;
-            for (var i = 0; i < columns.Count; i++)
+            foreach (var cell in row.Elements<Cell>())
             {
-                var colLetter = SheetContext.GetColumnLetter(i);
-                var cellRef = colLetter + row.RowIndex;
-                var cell = row.Elements<Cell>()
-                    .FirstOrDefault(_ => _.CellReference?.Value == cellRef);
-                if (cell == null)
+                var reference = cell.CellReference?.Value;
+                if (reference == null)
                 {
                     continue;
                 }
 
-                var width = finalColumnWidths.GetValueOrDefault(i, 8d);
+                var columnIndex = SheetContext.GetColumnIndex(reference);
+                var width = finalColumnWidths.GetValueOrDefault(columnIndex, 8d);
                 var lines = EstimateVisualLines(cell, width);
                 if (lines > maxLines)
                 {
