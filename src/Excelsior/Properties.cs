@@ -1,7 +1,12 @@
 static class Properties<T>
 {
-    static Properties() =>
-        Items = GetPropertiesRecursive(typeof(T), [], false).ToList();
+    // Built lazily rather than in a static constructor: a validation or expression-compile failure
+    // then surfaces as the original exception on first access, instead of a TypeInitializationException
+    // that buries the real message and is cached on the type for the process lifetime.
+    static readonly Lazy<IReadOnlyList<Property<T>>> items =
+        new(() => GetPropertiesRecursive(typeof(T), [], false).ToList());
+
+    public static IReadOnlyList<Property<T>> Items => items.Value;
 
     static IEnumerable<Property<T>> GetPropertiesRecursive(Type type, List<(MemberInfo member, ParameterInfo? parameter)> path, bool useHierachyForName)
     {
@@ -110,6 +115,4 @@ static class Properties<T>
 
         return current;
     }
-
-    public static IReadOnlyList<Property<T>> Items { get; }
 }
