@@ -226,7 +226,7 @@ public static partial class ValueRenderer
         boolDisplay = null;
         DefaultDateFormat = "yyyy-MM-dd";
         DefaultDateTimeFormat = "yyyy-MM-dd HH:mm:ss";
-        DefaultDateTimeOffsetFormat = "yyyy-MM-dd HH:mm:ss z";
+        DefaultDateTimeOffsetFormat = "yyyy-MM-dd HH:mm:ss zzz";
         DefaultTimeFormat = "HH:mm:ss";
         Culture = CultureInfo.CurrentCulture;
         CellConverter.ResetEnumCache();

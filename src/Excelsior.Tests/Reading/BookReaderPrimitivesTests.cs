@@ -215,6 +215,28 @@ public class BookReaderPrimitivesTests
         Assert.That(rows[0].Value, Is.EqualTo(dto));
     }
 
+    [Test]
+    public async Task DateTimeOffsetsWithSubHourOffset()
+    {
+        // Half- and three-quarter-hour zones (India +05:30, Nepal +05:45) must round-trip without
+        // the offset being truncated to whole hours.
+        var india = new DateTimeOffset(2020, 5, 1, 12, 0, 0, new(5, 30, 0));
+        var nepal = new DateTimeOffset(2020, 5, 1, 12, 0, 0, new(5, 45, 0));
+        var negativeHalf = new DateTimeOffset(2020, 5, 1, 12, 0, 0, new(-3, -30, 0));
+
+        var rows = await RoundTrip(
+            new DateTimeOffsetRow {Value = india},
+            new DateTimeOffsetRow {Value = nepal},
+            new DateTimeOffsetRow {Value = negativeHalf});
+
+        Assert.That(rows[0].Value, Is.EqualTo(india));
+        Assert.That(rows[0].Value.Offset, Is.EqualTo(new TimeSpan(5, 30, 0)));
+        Assert.That(rows[1].Value, Is.EqualTo(nepal));
+        Assert.That(rows[1].Value.Offset, Is.EqualTo(new TimeSpan(5, 45, 0)));
+        Assert.That(rows[2].Value, Is.EqualTo(negativeHalf));
+        Assert.That(rows[2].Value.Offset, Is.EqualTo(new TimeSpan(-3, -30, 0)));
+    }
+
     public class DateTimeOffsetRow
     {
         public DateTimeOffset Value { get; set; }

@@ -163,7 +163,7 @@ yyyy-MM-dd HH:mm:ss,
           },
           Width: 19.0,
           ContainsRichText: false,
-          NumberFormat: yyyy-MM-dd HH:mm:ss z,
+          NumberFormat: yyyy-MM-dd HH:mm:ss zzz,
           RequiredHighlight: true,
           Validation: {
             Type: date,
@@ -172,12 +172,12 @@ yyyy-MM-dd HH:mm:ss,
             Max: 9999-12-31,
             AllowBlank: false,
             ShowInputMessage: true,
-            InputMessage: Date and time as yyyy-MM-dd HH:mm:ss z,
+            InputMessage: Date and time as yyyy-MM-dd HH:mm:ss zzz,
             ShowErrorMessage: true,
             ErrorTitle: Invalid value,
             ErrorMessage:
 Must be a valid date and time.
-yyyy-MM-dd HH:mm:ss z,
+yyyy-MM-dd HH:mm:ss zzz,
             Range: 2-6
           }
         },
