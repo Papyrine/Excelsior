@@ -12,8 +12,7 @@ static class Properties<T>
     {
         var defaultConstructor = type.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
             .Select(_ => _.GetParameters())
-            .OrderByDescending(_ => _.Length)
-            .FirstOrDefault();
+            .MaxBy(_ => _.Length);
         foreach (var member in GetReadableMembers(type))
         {
             if (member.Attribute<IgnoreAttribute>() != null)

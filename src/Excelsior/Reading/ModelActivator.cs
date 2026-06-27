@@ -38,8 +38,7 @@ static class ModelActivator<T>
 
         matchingCtor = type
             .GetConstructors(BindingFlags.Public | BindingFlags.Instance)
-            .OrderByDescending(_ => _.GetParameters().Length)
-            .FirstOrDefault();
+            .MaxBy(_ => _.GetParameters().Length);
 
         ctorParamNames = matchingCtor
             ?.GetParameters()
