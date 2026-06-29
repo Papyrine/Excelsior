@@ -40,8 +40,8 @@ public class BookBuilder
     // Custom XML part that maps each sheet's column index to the originating C# property name.
     // Any OOXML reader that walks <sheet name="..."><column index="N" property="..."/></sheet>
     // can pick this up — Verify.OpenXml does so automatically and surfaces it on ColumnInfo.Metadata.
-    internal const string MetadataNamespace = "https://github.com/SimonCropp/Excelsior/columnMetadata/v1";
-    internal const string UserMetadataNamespace = "https://github.com/SimonCropp/Excelsior/userMetadata/v1";
+    internal const string MetadataNamespace = "https://github.com/Papyrine/Excelsior/columnMetadata/v1";
+    internal const string UserMetadataNamespace = "https://github.com/Papyrine/Excelsior/userMetadata/v1";
 
     record SheetMetadata(string SheetName, IReadOnlyList<(int Index, string PropertyName)> Columns, bool HasBanner);
     List<SheetMetadata> sheetMetadata = [];

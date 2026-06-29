@@ -25,7 +25,7 @@ public class WorkbookSchemaTests
             {
                 Name = "Test",
                 Score = 50,
-                Home = new("https://github.com/SimonCropp/Excelsior", "Home"),
+                Home = new("https://github.com/Papyrine/Excelsior", "Home"),
                 Status = EmployeeStatus.FullTime
             }
         ];
@@ -103,7 +103,7 @@ public class WorkbookSchemaTests
                 Name = "Test",
                 Sites =
                 [
-                    new("https://github.com/SimonCropp/Excelsior", "Repo"),
+                    new("https://github.com/Papyrine/Excelsior", "Repo"),
                     new("https://nuget.org", "NuGet")
                 ]
             }

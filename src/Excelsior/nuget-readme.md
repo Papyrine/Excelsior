@@ -1,6 +1,6 @@
 # Excelsior
 
-Excelsior is an Excel spreadsheet generation library with a distinctive data-driven approach. Uses [DocumentFormat.OpenXml](https://github.com/dotnet/Open-XML-SDK) for spreadsheet creation and [OpenXmlHtml](https://github.com/SimonCropp/OpenXmlHtml) for HTML cell rendering.
+Excelsior is an Excel spreadsheet generation library with a distinctive data-driven approach. Uses [DocumentFormat.OpenXml](https://github.com/dotnet/Open-XML-SDK) for spreadsheet creation and [OpenXmlHtml](https://github.com/Papyrine/OpenXmlHtml) for HTML cell rendering.
 
 ## Usage
 
@@ -76,4 +76,4 @@ using var book = await builder.Build();
 
 ## Documentation
 
-See the [readme](https://github.com/SimonCropp/Excelsior#readme) for full documentation.
+See the [readme](https://github.com/Papyrine/Excelsior#readme) for full documentation.

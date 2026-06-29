@@ -3,7 +3,7 @@
 [![Build status](https://img.shields.io/appveyor/build/SimonCropp/Excelsior)](https://ci.appveyor.com/project/SimonCropp/Excelsior)
 [![NuGet Status](https://img.shields.io/nuget/v/Excelsior.svg?label=Excelsior)](https://www.nuget.org/packages/Excelsior/)
 
-Excelsior is a Excel spreadsheet generation library with a distinctive data-driven approach. Uses [DocumentFormat.OpenXml](https://github.com/dotnet/Open-XML-SDK) for spreadsheet creation and [OpenXmlHtml](https://github.com/SimonCropp/OpenXmlHtml) for HTML cell rendering.
+Excelsior is a Excel spreadsheet generation library with a distinctive data-driven approach. Uses [DocumentFormat.OpenXml](https://github.com/dotnet/Open-XML-SDK) for spreadsheet creation and [OpenXmlHtml](https://github.com/Papyrine/OpenXmlHtml) for HTML cell rendering.
 
 **See [Milestones](../../milestones?state=closed) for release notes.**
 

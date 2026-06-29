@@ -104,7 +104,7 @@ public class WordTableBuilderTests
             new LinkRow
             {
                 Label = "Excelsior",
-                Site = new("http://github.com/SimonCropp/Excelsior", "Home")
+                Site = new("http://github.com/Papyrine/Excelsior", "Home")
             }
         };
 
@@ -127,7 +127,7 @@ public class WordTableBuilderTests
         IsNotNull(hyperlink);
 
         var rel = mainPart.HyperlinkRelationships.Single();
-        AreEqual("http://github.com/SimonCropp/Excelsior", rel.Uri.ToString());
+        AreEqual("http://github.com/Papyrine/Excelsior", rel.Uri.ToString());
         AreEqual(rel.Id, hyperlink!.Id?.Value);
 
         var run = hyperlink.GetFirstChild<Run>()!;
@@ -144,7 +144,7 @@ public class WordTableBuilderTests
             new LinkRow
             {
                 Label = "Excelsior",
-                Site = new("http://github.com/SimonCropp/Excelsior", "Home")
+                Site = new("http://github.com/Papyrine/Excelsior", "Home")
             }
         };
 
