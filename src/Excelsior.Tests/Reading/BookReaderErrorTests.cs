@@ -327,7 +327,7 @@ public class BookReaderErrorTests
         // Metadata XML maps two file column indices to the same property "A".
         // The header cells themselves have different text so the metadata path
         // is what triggers the duplicate detection.
-        XNamespace ns = "https://github.com/SimonCropp/Papyrine/columnMetadata/v1";
+        XNamespace ns = BookBuilder.MetadataNamespace;
         var metadata = new XDocument(
             new XElement(
                 ns + "columnMetadata",
