@@ -82,7 +82,9 @@ public class TypeInferenceTests
             .Column<Time>("Clock")
             .Column<DateTime>(
                 "Bounded",
+                // ReSharper disable ArrangeObjectCreationWhenTypeNotEvident
                 _ => _.Range(new DateTime(2020, 1, 1), new DateTime(2020, 12, 31)));
+        // ReSharper restore ArrangeObjectCreationWhenTypeNotEvident
 
         using var book = await builder.Build();
 

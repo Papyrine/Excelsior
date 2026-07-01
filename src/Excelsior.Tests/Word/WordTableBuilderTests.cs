@@ -515,7 +515,8 @@ public class WordTableBuilderTests
                         new InsideHorizontalBorder
                         {
                             Val = BorderValues.Single,
-                            Size = 4, Color = "1F4E79"
+                            Size = 4,
+                            Color = "1F4E79"
                         },
                         new InsideVerticalBorder
                         {
@@ -889,15 +890,14 @@ public class WordTableBuilderTests
         Assert.That(
             order,
             Is.EqualTo(
-                new[]
-                {
-                    typeof(RunFonts),
-                    typeof(Bold),
-                    typeof(Color),
-                    typeof(FontSize),
-                    typeof(FontSizeComplexScript),
-                    typeof(Underline)
-                }));
+            [
+                typeof(RunFonts),
+                typeof(Bold),
+                typeof(Color),
+                typeof(FontSize),
+                typeof(FontSizeComplexScript),
+                typeof(Underline)
+            ]));
     }
 
     [Test]
@@ -914,15 +914,14 @@ public class WordTableBuilderTests
         Assert.That(
             order,
             Is.EqualTo(
-                new[]
-                {
-                    typeof(TopBorder),
-                    typeof(LeftBorder),
-                    typeof(BottomBorder),
-                    typeof(RightBorder),
-                    typeof(InsideHorizontalBorder),
-                    typeof(InsideVerticalBorder)
-                }));
+            [
+                typeof(TopBorder),
+                typeof(LeftBorder),
+                typeof(BottomBorder),
+                typeof(RightBorder),
+                typeof(InsideHorizontalBorder),
+                typeof(InsideVerticalBorder)
+            ]));
     }
 
     [Test]

@@ -75,7 +75,7 @@ public class SheetContext
                 break;
             }
 
-            index = index * 26 + (character - 'A' + 1);
+            index = index * 26 + (character - 'A') + 1;
         }
 
         return index - 1;

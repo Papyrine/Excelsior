@@ -1982,7 +1982,7 @@ builder.AddSheet(
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/TypeInferenceTests.cs#L145-L166' title='Snippet source file'>snippet source</a> | <a href='#snippet-DataBoundInferenceEnabled' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/TypeInferenceTests.cs#L147-L168' title='Snippet source file'>snippet source</a> | <a href='#snippet-DataBoundInferenceEnabled' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Per-column overrides always win — set `Required = false` or `DisableAllowedValues = true` to opt out for one column.
@@ -3256,7 +3256,7 @@ var builder = new WordTableBuilder<Employee>(
         _.Font.Name = "Arial";
     });
 ```
-<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L598-L608' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableBodyStyle' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L599-L609' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableBodyStyle' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 A per-column `CellStyle` on `ColumnConfig` composes on top, and — because it receives the model and value — can style cells conditionally (e.g. bold a salary over a threshold, shade a status cell). Font and alignment are written to the cell's runs/paragraph; background and vertical alignment to the cell properties.
@@ -3277,7 +3277,7 @@ var builder = new WordTableBuilder<Employee>(SampleData.Employees())
     .HeadingParagraphStyle("TBLHeading")
     .BodyParagraphStyle("TBLText");
 ```
-<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L699-L705' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableParagraphStyles' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L700-L706' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableParagraphStyles' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Unlike the run-level `headingStyle`/`bodyStyle` callbacks, a paragraph style is applied to **every** cell paragraph — including `IsHtml` and `Link` cells — so the style's font, size, and spacing reach all content. The referenced style ids must exist in the host document's styles part. This is the cleanest way to brand an Excelsior table from a template: define the look once as `TBLHeading`/`TBLText` (or any names) and point the table at them.

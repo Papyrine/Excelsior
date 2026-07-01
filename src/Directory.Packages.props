@@ -9,8 +9,8 @@
     <SponsorExemption Include="MaintainerConsulting" Message="Organizations that have engaged any of the core maintainers of Papyrine in consulting work could be exempt from the Maintenance Fee for 6 months from the final date of that work." />
     <SponsorExemption Include="SmallRevenue" Message="Consumers under US$10,000 annual gross revenue are exempt." />
     <PackageVersion Include="Humanizer.Core" Version="3.0.10" />
-    <PackageVersion Include="Verify.OpenXML" Version="1.18.1" />
-    <PackageVersion Include="Morph.Skia" Version="1.0.1" />
+    <PackageVersion Include="Verify.OpenXML" Version="1.19.0" />
+    <PackageVersion Include="Morph.Skia" Version="1.0.2" />
     <PackageVersion Include="MarkdownSnippets.MsBuild" Version="28.3.1" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
