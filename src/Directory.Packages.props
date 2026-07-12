@@ -9,7 +9,7 @@
     <SponsorExemption Include="MaintainerConsulting" Message="Organizations that have engaged any of the core maintainers of Papyrine in consulting work could be exempt from the Maintenance Fee for 6 months from the final date of that work." />
     <SponsorExemption Include="SmallRevenue" Message="Consumers under US$10,000 annual gross revenue are exempt." />
     <PackageVersion Include="Humanizer.Core" Version="3.0.10" />
-    <PackageVersion Include="Verify.OpenXML" Version="1.21.0" />
+    <PackageVersion Include="Verify.OpenXML" Version="1.23.0" />
     <PackageVersion Include="Morph.Skia" Version="1.1.4" />
     <PackageVersion Include="MarkdownSnippets.MsBuild" Version="28.4.1" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
@@ -19,16 +19,16 @@
     <PackageVersion Include="ProjectDefaults" Version="1.0.174" />
     <PackageVersion Include="ProjectFiles" Version="1.4.0" />
     <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
-    <PackageVersion Include="Verify" Version="31.22.0" />
+    <PackageVersion Include="Verify" Version="31.24.0" />
     <PackageVersion Include="Verify.DiffPlex" Version="3.3.0" />
-    <PackageVersion Include="Verify.NUnit" Version="31.22.0" />
+    <PackageVersion Include="Verify.NUnit" Version="31.24.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="6.2.0" />
-    <PackageVersion Include="OpenXmlHtml" Version="1.0.6" />
+    <PackageVersion Include="OpenXmlHtml" Version="1.1.1" />
     <PackageVersion Include="NUnit" Version="4.6.1" />
     <PackageVersion Include="Microsoft.Sbom.Targets" Version="4.1.5" />
     <PackageVersion Include="Argon" Version="0.35.0" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
-    <PackageVersion Include="DiffEngine" Version="19.3.1" />
+    <PackageVersion Include="DiffEngine" Version="19.3.2" />
     <PackageVersion Include="EmptyFiles" Version="8.18.2" />
     <PackageVersion Include="SimpleInfoName" Version="3.2.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />
