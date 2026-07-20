@@ -385,6 +385,12 @@ static class WordTableRenderer<TModel>
     static W.TableRow BuildHeaderRow(List<ColumnConfig<TModel>> columns, Action<CellStyle>? tableHeadingStyle, string? headingParagraphStyle)
     {
         var row = new W.TableRow();
+
+        // Repeat the heading at the top of each page the table spans. A table long enough to break
+        // is exactly the one that needs it — without this every page after the first is unlabelled
+        // columns of data. trPr leads the row, ahead of any cell.
+        row.Append(new W.TableRowProperties(new W.TableHeader()));
+
         foreach (var column in columns)
         {
             row.Append(BuildHeaderCell(column, tableHeadingStyle, headingParagraphStyle));

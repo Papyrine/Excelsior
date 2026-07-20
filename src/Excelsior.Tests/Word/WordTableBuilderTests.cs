@@ -65,6 +65,21 @@ public class WordTableBuilderTests
     }
 
     [Test]
+    public void HeaderRowRepeatsAcrossPages()
+    {
+        var table = new WordTableBuilder<Employee>(SampleData.Employees()).Build();
+
+        var rows = table.Elements<TableRow>().ToList();
+        IsNotNull(rows[0].GetFirstChild<TableRowProperties>()?.GetFirstChild<TableHeader>());
+
+        // Only the heading repeats. Marking a data row would repeat it on every page too.
+        foreach (var row in rows.Skip(1))
+        {
+            IsNull(row.GetFirstChild<TableRowProperties>()?.GetFirstChild<TableHeader>());
+        }
+    }
+
+    [Test]
     public void DataRowsMatchEmployeeCount()
     {
         var employees = SampleData.Employees();
