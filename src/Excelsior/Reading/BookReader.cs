@@ -76,7 +76,7 @@ public class BookReader
 
     /// <summary>
     /// Reads a user-defined custom document property (one set via
-    /// <see cref="DocumentProperties.Custom"/>) and converts its value to
+    /// <see cref="BookProperties.Custom"/>) and converts its value to
     /// <typeparamref name="T"/> — the inverse of <see cref="BookBuilder.SetProperties"/>.
     /// Throws if no property named <paramref name="name"/> is present, or if its value
     /// cannot be converted to <typeparamref name="T"/>. Use
@@ -106,7 +106,7 @@ public class BookReader
 
     /// <summary>
     /// Attempts to read a user-defined custom document property (one set via
-    /// <see cref="DocumentProperties.Custom"/>) and convert its value to
+    /// <see cref="BookProperties.Custom"/>) and convert its value to
     /// <typeparamref name="T"/>. Returns <c>false</c> when no property named
     /// <paramref name="name"/> is present or its value cannot be converted. Names are
     /// matched case-insensitively. Must be called after <see cref="Convert(Stream)"/> or

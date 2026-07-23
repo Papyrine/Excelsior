@@ -7,7 +7,7 @@ namespace Excelsior;
 /// are set get written, so a property left at its default leaves that part of the workbook
 /// untouched.
 /// </summary>
-public class DocumentProperties
+public class BookProperties
 {
     /// <summary>Maps to the core property <c>Title</c>.</summary>
     public string? Title { get; init; }
