@@ -75,6 +75,24 @@ public class BookReader
     }
 
     /// <summary>
+    /// Reads the workbook's user-defined custom document properties without parsing its sheets.
+    /// Values are the raw variant text, as stored.
+    /// </summary>
+    /// <remarks>
+    /// The instance members below need a <see cref="Convert(Stream)"/> first, and that reads every
+    /// sheet. Where a caller only wants a property — routing an upload by an embedded id, say —
+    /// that is a lot of work to reach one string, and the alternative is walking
+    /// <c>docProps/custom.xml</c> by hand. This opens the one part and nothing else.
+    ///
+    /// Names are matched case-insensitively, as they are elsewhere here.
+    /// </remarks>
+    public static Dictionary<string, string?> ReadCustomProperties(Stream stream)
+    {
+        using var document = SpreadsheetDocument.Open(stream, false);
+        return DocumentPropertiesReader.ReadCustom(document);
+    }
+
+    /// <summary>
     /// Reads a user-defined custom document property (one set via
     /// <see cref="BookProperties.Custom"/>) and converts its value to
     /// <typeparamref name="T"/> — the inverse of <see cref="BookBuilder.SetProperties"/>.

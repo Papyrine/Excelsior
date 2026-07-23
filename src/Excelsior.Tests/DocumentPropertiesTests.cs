@@ -77,6 +77,53 @@ public class DocumentPropertiesTests
         Assert.That(exception!.Message, Does.Contain("Bad").And.Contain("System.Object"));
     }
 
+    // Reading a property without a Convert: the sheets are never parsed, so an upload can be routed
+    // by an embedded id without paying for the whole workbook.
+    [Test]
+    public async Task ReadCustomPropertiesWithoutParsingSheets()
+    {
+        var datasetId = new Guid("9b8a7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d");
+
+        var builder = new BookBuilder();
+        builder.AddSheet(SampleData.Employees());
+        builder.SetProperties(
+            new()
+            {
+                Custom =
+                {
+                    ["DatasetId"] = datasetId,
+                    ["Project"] = "Excelsior"
+                }
+            });
+
+        using var stream = await builder.ToMemoryStream();
+
+        #region ReadCustomPropertiesStandalone
+
+        var properties = BookReader.ReadCustomProperties(stream);
+
+        #endregion
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(properties["DatasetId"], Is.EqualTo(datasetId.ToString()));
+            Assert.That(properties["Project"], Is.EqualTo("Excelsior"));
+            // Case-insensitive, matching the instance members.
+            Assert.That(properties["datasetid"], Is.EqualTo(datasetId.ToString()));
+        });
+    }
+
+    // A workbook with no custom part reads as empty rather than throwing.
+    [Test]
+    public async Task ReadCustomPropertiesWhenNoneWereSet()
+    {
+        var builder = new BookBuilder();
+        builder.AddSheet(SampleData.Employees());
+        using var stream = await builder.ToMemoryStream();
+
+        Assert.That(BookReader.ReadCustomProperties(stream), Is.Empty);
+    }
+
     [Test]
     public async Task ReadCustomProperties()
     {

@@ -1260,8 +1260,20 @@ reader.Convert(stream);
 var id = reader.GetCustomProperty<Guid>("DatasetId");
 var revision = reader.GetCustomProperty<int>("Revision");
 ```
-<sup><a href='/src/Excelsior.Tests/DocumentPropertiesTests.cs#L83-L112' title='Snippet source file'>snippet source</a> | <a href='#snippet-ReadCustomProperties' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/DocumentPropertiesTests.cs#L130-L159' title='Snippet source file'>snippet source</a> | <a href='#snippet-ReadCustomProperties' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
+
+Reading a property this way needs a `Convert` first, which parses every sheet. Where only a property is wanted — routing an upload by an embedded id, say — read it on its own:
+
+<!-- snippet: ReadCustomPropertiesStandalone -->
+<a id='snippet-ReadCustomPropertiesStandalone'></a>
+```cs
+var properties = BookReader.ReadCustomProperties(stream);
+```
+<sup><a href='/src/Excelsior.Tests/DocumentPropertiesTests.cs#L101-L105' title='Snippet source file'>snippet source</a> | <a href='#snippet-ReadCustomPropertiesStandalone' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+That opens `docProps/custom.xml` and nothing else. Values come back as the raw stored text, so a `Guid` or a number is converted by the caller. The instance members above do that conversion, at the cost of reading the workbook.
 
 
 ### Cell Notes
