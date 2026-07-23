@@ -1213,7 +1213,7 @@ using var stream = await builder.ToMemoryStream();
 
 The standard fields map onto the workbook's core and extended (app) property parts:
 
-| `DocumentProperties` member | Written to |
+| `BookProperties` member | Written to |
 | --- | --- |
 | `Title`, `Subject`, `Keywords`, `Category`, `Status` | Core properties |
 | `Author` | Core `Creator` |
@@ -1224,7 +1224,7 @@ The standard fields map onto the workbook's core and extended (app) property par
 
 Custom values may be a `string`, `bool`, an integral or floating-point number, `DateTime`, `DateOnly` (`Date`), or `Guid`. Any other value type throws an `ArgumentException` when the workbook is built, so convert it to a supported type first. A `null` value is written as empty text.
 
-The last call to `SetProperties` wins; pass a fresh `DocumentProperties` to replace previously set values.
+The last call to `SetProperties` wins; pass a fresh `BookProperties` to replace previously set values.
 
 #### Reading custom properties
 
