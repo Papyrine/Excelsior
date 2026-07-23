@@ -3,7 +3,7 @@ using CustomProps = DocumentFormat.OpenXml.CustomProperties;
 using ExtendedProps = DocumentFormat.OpenXml.ExtendedProperties;
 
 /// <summary>
-/// Applies a <see cref="DocumentProperties"/> to a <see cref="SpreadsheetDocument"/>:
+/// Applies a <see cref="BookProperties"/> to a <see cref="SpreadsheetDocument"/>:
 /// core properties go to <c>docProps/core.xml</c> via <see cref="OpenXmlPackage.PackageProperties"/>,
 /// company/manager to the extended part (<c>docProps/app.xml</c>), and the user-defined entries
 /// to the custom part (<c>docProps/custom.xml</c>). The namespace aliasing is isolated here because
@@ -15,7 +15,7 @@ static class DocumentPropertiesWriter
     // The fixed FMTID required on every custom document property by the OOXML spec.
     const string customFormatId = "{D5CDD505-2E9C-101B-9397-08002B2CF9AE}";
 
-    public static void Apply(SpreadsheetDocument document, DocumentProperties properties)
+    public static void Apply(SpreadsheetDocument document, BookProperties properties)
     {
         ApplyCore(document, properties);
         ApplyExtended(document, properties);
@@ -29,7 +29,7 @@ static class DocumentPropertiesWriter
     // OpenXmlPackage.PackageProperties: the latter is backed by the OPC package's intrinsic
     // core-property store, which SpreadsheetDocument.Clone (used by every ToStream/ToFile/ToBytes
     // path) does not copy. A real part is enumerated and cloned like any other.
-    static void ApplyCore(SpreadsheetDocument document, DocumentProperties properties)
+    static void ApplyCore(SpreadsheetDocument document, BookProperties properties)
     {
         if (properties is
             {
@@ -73,7 +73,7 @@ static class DocumentPropertiesWriter
         new XDocument(root).Save(stream);
     }
 
-    static void ApplyExtended(SpreadsheetDocument document, DocumentProperties properties)
+    static void ApplyExtended(SpreadsheetDocument document, BookProperties properties)
     {
         if (properties.Company == null &&
             properties.Manager == null)
@@ -96,7 +96,7 @@ static class DocumentPropertiesWriter
         part.Properties = extended;
     }
 
-    static void ApplyCustom(SpreadsheetDocument document, DocumentProperties properties)
+    static void ApplyCustom(SpreadsheetDocument document, BookProperties properties)
     {
         if (properties.Custom.Count == 0)
         {

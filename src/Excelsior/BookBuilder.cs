@@ -46,7 +46,7 @@ public class BookBuilder
     record SheetMetadata(string SheetName, IReadOnlyList<(int Index, string PropertyName)> Columns, bool HasBanner);
     List<SheetMetadata> sheetMetadata = [];
     string? userMetadataJson;
-    DocumentProperties? documentProperties;
+    BookProperties? documentProperties;
 
     internal void RegisterSheetMetadata(string sheetName, IReadOnlyList<(int Index, string PropertyName)> columns, bool hasBanner) =>
         sheetMetadata.Add(new(sheetName, columns, hasBanner));
@@ -83,10 +83,10 @@ public class BookBuilder
     /// <summary>
     /// Sets the workbook's document properties — the standard fields (title, author, subject, …)
     /// shown in Excel's File &gt; Info pane, plus any user-defined entries in
-    /// <see cref="DocumentProperties.Custom"/>. The last call wins; pass a fresh
-    /// <see cref="DocumentProperties"/> to replace previously set values.
+    /// <see cref="BookProperties.Custom"/>. The last call wins; pass a fresh
+    /// <see cref="BookProperties"/> to replace previously set values.
     /// </summary>
-    public void SetProperties(DocumentProperties properties) =>
+    public void SetProperties(BookProperties properties) =>
         documentProperties = properties;
 
     public ISheetBuilder<TModel> AddSheet<TModel>(
