@@ -355,6 +355,47 @@ public class WordTableBuilderTests
     }
 
     [Test]
+    public void NamedTableStyleReplacesTableGrid()
+    {
+        using var stream = new MemoryStream();
+        using var doc = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document);
+        var mainPart = doc.AddMainDocumentPart();
+        mainPart.Document = new(new Body());
+
+        #region WordTableStyle
+
+        var table = new WordTableBuilder<Employee>([])
+            .TableStyle("PMClinedcolumns")
+            .Build(mainPart);
+
+        #endregion
+
+        var props = table.GetFirstChild<TableProperties>()!;
+        AreEqual("PMClinedcolumns", props.GetFirstChild<TableStyle>()!.Val?.Value);
+
+        // The style belongs to the host document. TableGrid is inserted when missing because it is
+        // a Word built-in with a known definition; inventing one for a template's own style would
+        // style the table as something other than what the template says.
+        var styles = mainPart.StyleDefinitionsPart?.Styles?.Elements<Style>().ToList() ?? [];
+        IsFalse(styles.Any(_ => _.StyleId?.Value == "PMClinedcolumns"));
+        IsFalse(styles.Any(_ => _.StyleId?.Value == "TableGrid"));
+    }
+
+    [Test]
+    public void NamedTableStyleKeepsColumnWidths()
+    {
+        // The style drives borders and margins; widths stay the caller's, so the two compose.
+        var table = new WordTableBuilder<Employee>(SampleData.Employees())
+            .TableStyle("PMClinedcolumns")
+            .Column(_ => _.Name, _ => _.Width = 40)
+            .Build();
+
+        var props = table.GetFirstChild<TableProperties>()!;
+        AreEqual(TableLayoutValues.Fixed, props.GetFirstChild<TableLayout>()!.Type?.Value);
+        IsTrue(table.GetFirstChild<TableGrid>()!.Elements<GridColumn>().Any(_ => _.Width != null));
+    }
+
+    [Test]
     public void EnsureTableGridStyleIsIdempotent_AcrossMultipleBuilds()
     {
         // Building two tables against the same host must not duplicate the TableGrid definition.

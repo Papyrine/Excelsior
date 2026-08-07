@@ -34,6 +34,24 @@ public class WordTableBuilder<TModel>(
     readonly Columns<TModel> columns = new();
     string? headingParagraphStyle;
     string? bodyParagraphStyle;
+    string? tableStyle;
+
+    /// <summary>
+    /// Apply a named Word table style (by style id) in place of the built-in <c>TableGrid</c>.
+    /// Useful for taking borders, banding, and cell margins from a branded template rather than
+    /// the stock single-line grid.
+    /// </summary>
+    /// <remarks>
+    /// The style must already be defined in the host document's styles part. <c>TableGrid</c> is
+    /// inserted when a host lacks it because it is a Word built-in with a known definition;
+    /// a template's own style has no stock definition to fall back on, so a missing one renders
+    /// as an unstyled table rather than as something invented here.
+    /// </remarks>
+    public WordTableBuilder<TModel> TableStyle(string styleId)
+    {
+        tableStyle = styleId;
+        return this;
+    }
 
     /// <summary>
     /// Apply a named Word paragraph style (by style id) to every header cell paragraph. The style
@@ -87,5 +105,6 @@ public class WordTableBuilder<TModel>(
             bodyStyle,
             headingParagraphStyle,
             bodyParagraphStyle,
+            tableStyle,
             mainPart);
 }

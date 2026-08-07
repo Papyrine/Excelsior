@@ -13,6 +13,7 @@ static class WordTableRenderer<TModel>
         Action<CellStyle>? tableBodyStyle,
         string? headingParagraphStyle,
         string? bodyParagraphStyle,
+        string? tableStyle,
         MainDocumentPart? mainPart)
     {
         // Materialised so column widths can be measured (a pass over the data) before the rows are
@@ -21,7 +22,7 @@ static class WordTableRenderer<TModel>
         var columnWidths = ResolveColumnWidths(columns, rows);
 
         var table = new W.Table();
-        table.Append(BuildTableProperties(mainPart, columnWidths));
+        table.Append(BuildTableProperties(mainPart, columnWidths, tableStyle));
         table.Append(BuildGrid(columns.Count, columnWidths));
         table.Append(BuildHeaderRow(columns, tableHeadingStyle, headingParagraphStyle));
 
@@ -207,7 +208,7 @@ static class WordTableRenderer<TModel>
     /// the supported way to rebrand Excelsior tables. The standalone path (no host) emits inline
     /// borders instead, since there's no styles part to add to.
     /// </summary>
-    static W.TableProperties BuildTableProperties(MainDocumentPart? mainPart, int[]? columnWidths)
+    static W.TableProperties BuildTableProperties(MainDocumentPart? mainPart, int[]? columnWidths, string? tableStyle)
     {
         W.TableWidth tblW;
         W.TableLayout? layout;
@@ -256,11 +257,18 @@ static class WordTableRenderer<TModel>
 
         if (mainPart != null)
         {
-            TableGridStyle.EnsurePresent(mainPart);
+            // Only the built-in is inserted when missing: a caller's own style belongs to the host
+            // document, and inventing a definition for it would style the table as something other
+            // than what the template says.
+            if (tableStyle == null)
+            {
+                TableGridStyle.EnsurePresent(mainPart);
+            }
+
             var properties = new W.TableProperties(
                 new W.TableStyle
                 {
-                    Val = TableGridStyle.StyleId
+                    Val = tableStyle ?? TableGridStyle.StyleId
                 },
                 tblW);
             if (layout != null)
