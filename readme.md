@@ -3270,7 +3270,7 @@ var builder = new WordTableBuilder<Employee>(
         _.Font.Name = "Arial";
     });
 ```
-<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L743-L753' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableBodyStyle' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L745-L755' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableBodyStyle' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 A per-column `CellStyle` on `ColumnConfig` composes on top, and — because it receives the model and value — can style cells conditionally (e.g. bold a salary over a threshold, shade a status cell). Font and alignment are written to the cell's runs/paragraph; background and vertical alignment to the cell properties.
@@ -3291,7 +3291,7 @@ var builder = new WordTableBuilder<Employee>(SampleData.Employees())
     .HeadingParagraphStyle("TBLHeading")
     .BodyParagraphStyle("TBLText");
 ```
-<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L844-L850' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableParagraphStyles' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L846-L852' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableParagraphStyles' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Unlike the run-level `headingStyle`/`bodyStyle` callbacks, a paragraph style is applied to **every** cell paragraph — including `IsHtml` and `Link` cells — so the style's font, size, and spacing reach all content. The referenced style ids must exist in the host document's styles part. This is the cleanest way to brand an Excelsior table from a template: define the look once as `TBLHeading`/`TBLText` (or any names) and point the table at them.
@@ -3305,10 +3305,10 @@ The table itself references Word's built-in `TableGrid` — single-line borders 
 <a id='snippet-WordTableStyle'></a>
 ```cs
 var table = new WordTableBuilder<Employee>([])
-    .TableStyle("PMClinedcolumns")
+    .TableStyle("LinedColumns")
     .Build(mainPart);
 ```
-<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L365-L371' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableStyle' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L367-L373' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableStyle' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 `TableGrid` is inserted into the host's styles part when it is missing, because it is a Word built-in with a known definition. A template's own style is not: it must already be defined there, since inventing a definition for it would style the table as something other than what the template says. Column widths are unaffected — the style drives borders and margins, the columns drive layout, and the two compose.

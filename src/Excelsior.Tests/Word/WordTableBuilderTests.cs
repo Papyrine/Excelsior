@@ -362,22 +362,24 @@ public class WordTableBuilderTests
         var mainPart = doc.AddMainDocumentPart();
         mainPart.Document = new(new Body());
 
+        // Literal rather than the constant below: this is the readme's snippet, and a style id is
+        // the one thing a reader needs to see spelled out.
         #region WordTableStyle
 
         var table = new WordTableBuilder<Employee>([])
-            .TableStyle("PMClinedcolumns")
+            .TableStyle("LinedColumns")
             .Build(mainPart);
 
         #endregion
 
         var props = table.GetFirstChild<TableProperties>()!;
-        AreEqual("PMClinedcolumns", props.GetFirstChild<TableStyle>()!.Val?.Value);
+        AreEqual(linedColumnsStyleId, props.GetFirstChild<TableStyle>()!.Val?.Value);
 
         // The style belongs to the host document. TableGrid is inserted when missing because it is
         // a Word built-in with a known definition; inventing one for a template's own style would
         // style the table as something other than what the template says.
         var styles = mainPart.StyleDefinitionsPart?.Styles?.Elements<Style>().ToList() ?? [];
-        IsFalse(styles.Any(_ => _.StyleId?.Value == "PMClinedcolumns"));
+        IsFalse(styles.Any(_ => _.StyleId?.Value == linedColumnsStyleId));
         IsFalse(styles.Any(_ => _.StyleId?.Value == "TableGrid"));
     }
 
@@ -474,7 +476,7 @@ public class WordTableBuilderTests
     {
         // The style drives borders and margins; widths stay the caller's, so the two compose.
         var table = new WordTableBuilder<Employee>(SampleData.Employees())
-            .TableStyle("PMClinedcolumns")
+            .TableStyle(linedColumnsStyleId)
             .Column(_ => _.Name, _ => _.Width = 40)
             .Build();
 
