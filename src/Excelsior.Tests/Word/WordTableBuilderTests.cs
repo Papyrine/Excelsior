@@ -355,6 +355,137 @@ public class WordTableBuilderTests
     }
 
     [Test]
+    public void NamedTableStyleReplacesTableGrid()
+    {
+        using var stream = new MemoryStream();
+        using var doc = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document);
+        var mainPart = doc.AddMainDocumentPart();
+        mainPart.Document = new(new Body());
+
+        // Literal rather than the constant below: this is the readme's snippet, and a style id is
+        // the one thing a reader needs to see spelled out.
+        #region WordTableStyle
+
+        var table = new WordTableBuilder<Employee>([])
+            .TableStyle("LinedColumns")
+            .Build(mainPart);
+
+        #endregion
+
+        var props = table.GetFirstChild<TableProperties>()!;
+        AreEqual(linedColumnsStyleId, props.GetFirstChild<TableStyle>()!.Val?.Value);
+
+        // The style belongs to the host document. TableGrid is inserted when missing because it is
+        // a Word built-in with a known definition; inventing one for a template's own style would
+        // style the table as something other than what the template says.
+        var styles = mainPart.StyleDefinitionsPart?.Styles?.Elements<Style>().ToList() ?? [];
+        IsFalse(styles.Any(_ => _.StyleId?.Value == linedColumnsStyleId));
+        IsFalse(styles.Any(_ => _.StyleId?.Value == "TableGrid"));
+    }
+
+    // The rendered file, so the style's effect is visible rather than inferred from a tblStyle
+    // reference: column rules only, no row rules, which is what a lined-columns look is and what a
+    // TableGrid table is not.
+    [Test]
+    public async Task NamedTableStyleRendersTheTemplatesLook()
+    {
+        var builder = new WordTableBuilder<Employee>(SampleData.Employees())
+            .TableStyle(linedColumnsStyleId);
+
+        using var stream = new MemoryStream();
+        using (var doc = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document))
+        {
+            var mainPart = doc.AddMainDocumentPart();
+            mainPart.Document = new(new Body());
+
+            AddLinedColumnsStyle(mainPart);
+
+            var body = mainPart.Document.Body!;
+            body.Append(builder.Build(mainPart));
+            body.Append(
+                new SectionProperties(
+                    new PageSize
+                    {
+                        Width = 12240,
+                        Height = 15840
+                    },
+                    new PageMargin
+                    {
+                        Top = 1440,
+                        Right = 1440,
+                        Bottom = 1440,
+                        Left = 1440,
+                        Header = 720,
+                        Footer = 720
+                    }));
+        }
+
+        stream.Position = 0;
+        await Verify(stream, "docx");
+    }
+
+    const string linedColumnsStyleId = "LinedColumns";
+
+    /// <summary>
+    /// A table style a template might define: vertical rules between columns, a rule under the
+    /// header, and nothing else. Deliberately unlike <c>TableGrid</c>, so a render that ignored
+    /// the style would be obvious on sight.
+    /// </summary>
+    static void AddLinedColumnsStyle(MainDocumentPart mainPart)
+    {
+        var stylesPart = mainPart.AddNewPart<StyleDefinitionsPart>();
+        stylesPart.Styles = new(
+            new Style(
+                new StyleName
+                {
+                    Val = "Lined Columns"
+                },
+                new TableProperties(
+                    new TableBorders(
+                        new InsideVerticalBorder
+                        {
+                            Val = BorderValues.Single,
+                            Size = 8,
+                            Color = "C00000"
+                        },
+                        new BottomBorder
+                        {
+                            Val = BorderValues.Single,
+                            Size = 8,
+                            Color = "C00000"
+                        }),
+                    new TableCellMarginDefault(
+                        new TopMargin
+                        {
+                            Width = "60",
+                            Type = TableWidthUnitValues.Dxa
+                        },
+                        new BottomMargin
+                        {
+                            Width = "60",
+                            Type = TableWidthUnitValues.Dxa
+                        })))
+            {
+                Type = StyleValues.Table,
+                StyleId = linedColumnsStyleId
+            });
+    }
+
+    [Test]
+    public void NamedTableStyleKeepsColumnWidths()
+    {
+        // The style drives borders and margins; widths stay the caller's, so the two compose.
+        var table = new WordTableBuilder<Employee>(SampleData.Employees())
+            .TableStyle(linedColumnsStyleId)
+            .Column(_ => _.Name, _ => _.Width = 40)
+            .Build();
+
+        var props = table.GetFirstChild<TableProperties>()!;
+        AreEqual(TableLayoutValues.Fixed, props.GetFirstChild<TableLayout>()!.Type?.Value);
+        IsTrue(table.GetFirstChild<TableGrid>()!.Elements<GridColumn>().Any(_ => _.Width != null));
+    }
+
+    [Test]
     public void EnsureTableGridStyleIsIdempotent_AcrossMultipleBuilds()
     {
         // Building two tables against the same host must not duplicate the TableGrid definition.
