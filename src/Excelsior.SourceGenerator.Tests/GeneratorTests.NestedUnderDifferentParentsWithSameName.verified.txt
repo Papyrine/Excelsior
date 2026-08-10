@@ -5,6 +5,7 @@
 namespace Excelsior;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 file static class GroupARowActivatorRegistration
 {
   [ModuleInitializer]
@@ -24,6 +25,7 @@ file static class GroupARowActivatorRegistration
 namespace Excelsior;
 using System;
 using System.Runtime.CompilerServices;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 file static class GroupARowRowReaderRegistration
 {
   [ModuleInitializer]
@@ -40,6 +42,7 @@ file static class GroupARowRowReaderRegistration
 #nullable enable
 namespace Excelsior;
 using System;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public static class GroupARowSheetBuilderExtensions
 {
   public static ISheetBuilder<global::GroupA.Row> NameColumn(
@@ -155,6 +158,7 @@ public static class GroupARowSheetBuilderExtensions
 namespace Excelsior;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 file static class GroupBRowActivatorRegistration
 {
   [ModuleInitializer]
@@ -174,6 +178,7 @@ file static class GroupBRowActivatorRegistration
 namespace Excelsior;
 using System;
 using System.Runtime.CompilerServices;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 file static class GroupBRowRowReaderRegistration
 {
   [ModuleInitializer]
@@ -190,6 +195,7 @@ file static class GroupBRowRowReaderRegistration
 #nullable enable
 namespace Excelsior;
 using System;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public static class GroupBRowSheetBuilderExtensions
 {
   public static ISheetBuilder<global::GroupB.Row> EmailColumn(
