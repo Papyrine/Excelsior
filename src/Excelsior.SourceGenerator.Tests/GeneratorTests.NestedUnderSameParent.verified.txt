@@ -5,6 +5,7 @@
 namespace Excelsior;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 file static class ModelsEmployeeActivatorRegistration
 {
   [ModuleInitializer]
@@ -24,6 +25,7 @@ file static class ModelsEmployeeActivatorRegistration
 namespace Excelsior;
 using System;
 using System.Runtime.CompilerServices;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 file static class ModelsEmployeeRowReaderRegistration
 {
   [ModuleInitializer]
@@ -40,6 +42,7 @@ file static class ModelsEmployeeRowReaderRegistration
 #nullable enable
 namespace Excelsior;
 using System;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public static class ModelsEmployeeSheetBuilderExtensions
 {
   public static ISheetBuilder<global::Models.Employee> EmailColumn(
@@ -155,6 +158,7 @@ public static class ModelsEmployeeSheetBuilderExtensions
 namespace Excelsior;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 file static class ModelsProductActivatorRegistration
 {
   [ModuleInitializer]
@@ -174,6 +178,7 @@ file static class ModelsProductActivatorRegistration
 namespace Excelsior;
 using System;
 using System.Runtime.CompilerServices;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 file static class ModelsProductRowReaderRegistration
 {
   [ModuleInitializer]
@@ -190,6 +195,7 @@ file static class ModelsProductRowReaderRegistration
 #nullable enable
 namespace Excelsior;
 using System;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public static class ModelsProductSheetBuilderExtensions
 {
   public static ISheetBuilder<global::Models.Product> NameColumn(

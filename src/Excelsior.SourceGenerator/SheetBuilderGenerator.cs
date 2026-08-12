@@ -13,6 +13,15 @@ public class SheetBuilderGenerator :
                 (node, _) => node is TypeDeclarationSyntax,
                 (context, _) => GetModelResult(context));
 
+        // Everything emitted below carries [ExcludeFromCodeCoverage]. A [SheetModel] generates an
+        // extension method per column plus an activator, a row reader and an enum renderer, and a
+        // consumer's tests exercise whichever subset their sheets happen to use — so counted as
+        // covered code the total measures the shape of the model rather than how well the consumer
+        // is tested. In one repo this was 2034 lines, and generated code overall made up 39% of
+        // everything instrumented, reporting 67% where the hand-written code was at 91%.
+        //
+        // Safe on all five because each is a standalone type in the Excelsior namespace: none is a
+        // partial of a consumer type, so the attribute can never reach the consumer's own members.
         context.RegisterSourceOutput(
             results,
             (productionContext, result) =>
@@ -611,6 +620,7 @@ public class SheetBuilderGenerator :
               #nullable enable
               namespace Excelsior;
               using System;
+              [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
               public static class {{model.TypeName}}SheetBuilderExtensions
               {
 
@@ -697,6 +707,7 @@ public class SheetBuilderGenerator :
               #nullable enable
               namespace Excelsior;
               using System.Runtime.CompilerServices;
+              [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
               file static class {{model.TypeName}}ColumnAttributesRegistration
               {
                 [ModuleInitializer]
@@ -790,6 +801,7 @@ public class SheetBuilderGenerator :
               namespace Excelsior;
               using System.Collections.Generic;
               using System.Runtime.CompilerServices;
+              [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
               file static class {{model.TypeName}}ActivatorRegistration
               {
                 [ModuleInitializer]
@@ -863,6 +875,7 @@ public class SheetBuilderGenerator :
               namespace Excelsior;
               using System;
               using System.Runtime.CompilerServices;
+              [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
               file static class {{model.TypeName}}RowReaderRegistration
               {
                 [ModuleInitializer]
@@ -1190,6 +1203,7 @@ public class SheetBuilderGenerator :
               #nullable enable
               namespace Excelsior;
               using System.Runtime.CompilerServices;
+              [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
               file static class {{model.TypeName}}EnumRenderRegistration
               {
                 [ModuleInitializer]
