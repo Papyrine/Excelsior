@@ -1,4 +1,4 @@
-using W = DocumentFormat.OpenXml.Wordprocessing;
+﻿using W = DocumentFormat.OpenXml.Wordprocessing;
 
 /// <summary>
 /// Internal worker that turns a sequence of model rows + column configs into a Word
@@ -14,12 +14,16 @@ static class WordTableRenderer<TModel>
         string? headingParagraphStyle,
         string? bodyParagraphStyle,
         string? tableStyle,
+        RemainderMerge<TModel>? merge,
         MainDocumentPart? mainPart)
     {
         // Materialised so column widths can be measured (a pass over the data) before the rows are
         // rendered. The measuring pass only runs when a column declares a Width/MinWidth/MaxWidth.
         var rows = data as IReadOnlyList<TModel> ?? data.ToList();
-        var columnWidths = ResolveColumnWidths(columns, rows);
+        // Resolved against the final column order, so the boundary a caller anchored to a property
+        // stays on that property whatever Order the columns end up in.
+        var keep = merge?.ResolveKeep(columns) ?? columns.Count;
+        var columnWidths = ResolveColumnWidths(columns, rows, merge, keep);
 
         var table = new W.Table();
         table.Append(BuildTableProperties(mainPart, columnWidths, tableStyle));
@@ -28,7 +32,7 @@ static class WordTableRenderer<TModel>
 
         foreach (var item in rows)
         {
-            table.Append(BuildDataRow(columns, item, tableBodyStyle, bodyParagraphStyle, mainPart));
+            table.Append(BuildDataRow(columns, item, tableBodyStyle, bodyParagraphStyle, merge, keep, mainPart));
         }
 
         return table;
@@ -39,7 +43,7 @@ static class WordTableRenderer<TModel>
     /// <c>MinWidth</c>, or <c>MaxWidth</c>. Returns <c>null</c> when no column sets a width hint, so
     /// the table keeps its default 100%-page-width auto-layout and existing output is unchanged.
     /// </summary>
-    static int[]? ResolveColumnWidths(List<ColumnConfig<TModel>> columns, IReadOnlyList<TModel> rows)
+    static int[]? ResolveColumnWidths(List<ColumnConfig<TModel>> columns, IReadOnlyList<TModel> rows, RemainderMerge<TModel>? merge, int keep)
     {
         var anyHint = false;
         foreach (var column in columns)
@@ -61,7 +65,13 @@ static class WordTableRenderer<TModel>
         var widths = new int[columns.Count];
         for (var index = 0; index < columns.Count; index++)
         {
-            widths[index] = CharsToTwips(ResolveColumnChars(columns[index], rows));
+            // Columns past the merge boundary are only measured over the rows that show text in
+            // them: a merged row's cell spans these columns rather than sitting in one, so what it
+            // says cannot widen them.
+            var measured = index < keep || merge == null
+                ? rows
+                : rows.Where(_ => !merge.When(_)).ToList();
+            widths[index] = CharsToTwips(ResolveColumnChars(columns[index], measured));
         }
 
         return widths;
@@ -587,10 +597,18 @@ static class WordTableRenderer<TModel>
     static string NormaliseColor(string color) =>
         color.StartsWith('#') ? color[1..] : color;
 
-    static W.TableRow BuildDataRow(List<ColumnConfig<TModel>> columns, TModel item, Action<CellStyle>? tableBodyStyle, string? bodyParagraphStyle, MainDocumentPart? mainPart)
+    static W.TableRow BuildDataRow(
+        List<ColumnConfig<TModel>> columns,
+        TModel item,
+        Action<CellStyle>? tableBodyStyle,
+        string? bodyParagraphStyle,
+        RemainderMerge<TModel>? merge,
+        int keep,
+        MainDocumentPart? mainPart)
     {
+        var merged = merge != null && merge.When(item);
         var row = new W.TableRow();
-        foreach (var column in columns)
+        foreach (var column in merged ? columns.Take(keep) : columns)
         {
             var value = column.GetValue(item);
             var style = ResolveBodyStyle(column, item, value, tableBodyStyle);
@@ -619,7 +637,89 @@ static class WordTableRenderer<TModel>
             row.Append(cell);
         }
 
+        if (merged)
+        {
+            row.Append(BuildMergedCell(merge!, item, columns.Count - keep, tableBodyStyle, bodyParagraphStyle, mainPart));
+        }
+
         return row;
+    }
+
+    static W.TableCell BuildMergedCell(
+        RemainderMerge<TModel> merge,
+        TModel item,
+        int span,
+        Action<CellStyle>? tableBodyStyle,
+        string? bodyParagraphStyle,
+        MainDocumentPart? mainPart)
+    {
+        var cell = new W.TableCell();
+        if (span > 1)
+        {
+            // One column left to cover is a plain cell; gridSpan starts to mean something at two.
+            cell.Append(
+                new W.TableCellProperties(
+                    new W.GridSpan
+                    {
+                        Val = span
+                    }));
+        }
+
+        var content = merge.Content(item);
+        List<W.Paragraph> paragraphs;
+        if (merge.IsHtml)
+        {
+            paragraphs = WordHtmlConverter.ToParagraphs(content, mainPart).ToList();
+        }
+        else
+        {
+            // The plain path mirrors an ordinary cell: the table-wide body style shapes the run,
+            // and a newline is a line break. Only the table-wide style applies - the cell spans
+            // columns rather than sitting in one, so there is no per-column style to layer on.
+            CellStyle? style = null;
+            if (tableBodyStyle != null)
+            {
+                style = new()
+                {
+                    Alignment =
+                    {
+                        Horizontal = HorizontalAlignmentValues.Left
+                    }
+                };
+                tableBodyStyle(style);
+            }
+
+            var run = new W.Run();
+            if (style != null)
+            {
+                var runProperties = BuildRunProperties(style);
+                if (runProperties.HasChildren)
+                {
+                    run.AppendChild(runProperties);
+                }
+            }
+
+            AppendTextWithLineBreaks(run, content);
+            paragraphs = [new(run)];
+        }
+
+        foreach (var paragraph in paragraphs)
+        {
+            if (bodyParagraphStyle != null)
+            {
+                ApplyParagraphStyle(paragraph, bodyParagraphStyle);
+            }
+
+            cell.Append(paragraph);
+        }
+
+        // A Word cell has to end in a paragraph, and html that renders to nothing leaves none.
+        if (paragraphs.Count == 0)
+        {
+            cell.Append(new W.Paragraph());
+        }
+
+        return cell;
     }
 
     /// <summary>

@@ -1,0 +1,3 @@
+﻿Name	Scope	State	Note
+Measured	Full	Underway	on track
+Unmeasured	nothing recorded
