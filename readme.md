@@ -3330,6 +3330,33 @@ To customize `TableGrid` on the host document in Word itself, see Microsoft's gu
 - [Set or change table properties](https://support.microsoft.com/en-us/office/set-or-change-table-properties-3237de89-b287-4379-8e0c-86d94873b2e0) — borders, cell margins, alignment.
 
 
+### Merged rows
+
+A row with nothing to report across most of its columns reads better as a single cell saying so than as a line of blanks. `MergeRemainder` decides that per row, on the builder:
+
+<!-- snippet: WordRowMerge -->
+<a id='snippet-WordRowMerge'></a>
+```cs
+var table = new WordTableBuilder<Reading>(readings)
+    .MergeRemainder(
+        when: _ => _.Scope == null,
+        after: _ => _.Name,
+        content: _ => "<i>nothing recorded</i>",
+        isHtml: true)
+    .Build(mainPart);
+```
+<sup><a href='/src/Excelsior.Tests/Word/WordRowMergeTests.cs#L163-L173' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordRowMerge' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+`when` picks the rows that merge; every other row is untouched. `after` names the last column that keeps its own cell on a merged row — the one that identifies it, typically — anchored to the property rather than a position, so reordering columns cannot quietly move the boundary. Every column after it becomes one cell spanning the rest of the row, saying whatever `content` returns for that row.
+
+`content` is plain text unless `isHtml` — the same contract as a column's `IsHtml` — so `1 < 2 & counting` needs no escaping, and markup like the italics above is an opt-in.
+
+A merged cell spans the remaining columns rather than sitting in any of them, so what it says cannot widen those columns: merged rows are left out of the width measuring.
+
+Word tables only. `BookBuilder` has nothing like it, because a spreadsheet cell is something the reader sorts and filters on, and merging those away costs more than the blanks do.
+
+
 ### Limitations
 
 Formula columns are not supported in Word tables. Word has no equivalent of Excel cell formulas, so configuring a `Formula` on a column used with `WordTableBuilder` will throw when `Build()` is called. Use `Render` or a computed property instead.

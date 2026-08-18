@@ -1,4 +1,4 @@
-namespace Excelsior;
+﻿namespace Excelsior;
 
 /// <summary>
 /// Builds a Word table from a sequence of model instances, reusing the same property discovery,
@@ -35,6 +35,7 @@ public class WordTableBuilder<TModel>(
     string? headingParagraphStyle;
     string? bodyParagraphStyle;
     string? tableStyle;
+    RemainderMerge<TModel>? remainderMerge;
 
     /// <summary>
     /// Apply a named Word table style (by style id) in place of the built-in <c>TableGrid</c>.
@@ -93,6 +94,51 @@ public class WordTableBuilder<TModel>(
     }
 
     /// <summary>
+    /// Draw the trailing cells of some rows as one. A row with nothing to report across most of
+    /// its columns reads better as a single cell saying so than as a line of blanks.
+    /// </summary>
+    /// <param name="when">
+    /// Which rows merge. Every other row keeps a cell per column, untouched.
+    /// </param>
+    /// <param name="after">
+    /// The last column that keeps its own cell on a merged row - the one that identifies the row,
+    /// typically. Every column after it is drawn as a single cell spanning the rest of the row.
+    /// Anchored to the property rather than a position, so reordering columns cannot quietly move
+    /// the boundary.
+    /// </param>
+    /// <param name="content">
+    /// What the merged cell says for that row.
+    /// </param>
+    /// <param name="isHtml">
+    /// Whether <paramref name="content"/> is html - the same contract as a column's <c>IsHtml</c>,
+    /// so markup like <c>&lt;i&gt;none&lt;/i&gt;</c> is an opt-in rather than an escaping
+    /// obligation on plain text.
+    /// </param>
+    /// <remarks>
+    /// A merged cell spans the remaining columns rather than sitting in any of them, so what it
+    /// says cannot widen those columns: merged rows are left out of their width measuring.
+    /// <para>
+    /// Word tables only. <see cref="BookBuilder"/> has nothing like it, because a spreadsheet cell
+    /// is something the reader sorts and filters on, and merging those away costs more than the
+    /// blanks do.
+    /// </para>
+    /// </remarks>
+    public WordTableBuilder<TModel> MergeRemainder<TProperty>(
+        Func<TModel, bool> when,
+        Expression<Func<TModel, TProperty>> after,
+        Func<TModel, string> content,
+        bool isHtml = false)
+    {
+        if (remainderMerge != null)
+        {
+            throw new("MergeRemainder is already configured for this table.");
+        }
+
+        remainderMerge = new(when, after.PropertyName(), content, isHtml);
+        return this;
+    }
+
+    /// <summary>
     /// Render the table. When <paramref name="mainPart"/> is supplied, <see cref="Link"/>-typed
     /// values produce real <c>&lt;w:hyperlink&gt;</c> elements with relationships registered on
     /// the host part. When omitted, link cells fall back to their display text only.
@@ -106,5 +152,6 @@ public class WordTableBuilder<TModel>(
             headingParagraphStyle,
             bodyParagraphStyle,
             tableStyle,
+            remainderMerge,
             mainPart);
 }
