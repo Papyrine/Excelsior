@@ -8,6 +8,8 @@ public static class ModuleInitializer
         VerifyDiffPlex.Initialize(OutputType.Compact);
         VerifierSettings.DontScrubDateTimes();
         VerifierSettings.DontScrubGuids();
+        VerifierSettings.UseSsimForPng();
+        VerifyOpenXml.UseLetterPageSize = false;
         VerifierSettings.InitializePlugins();
     }
 }
