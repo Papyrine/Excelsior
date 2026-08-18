@@ -1,4 +1,4 @@
-using DocumentFormat.OpenXml;
+﻿using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using DocumentFormat.OpenXml.Wordprocessing;
@@ -442,13 +442,13 @@ public class WordTableBuilderTests
                 },
                 new TableProperties(
                     new TableBorders(
-                        new InsideVerticalBorder
+                        new BottomBorder
                         {
                             Val = BorderValues.Single,
                             Size = 8,
                             Color = "C00000"
                         },
-                        new BottomBorder
+                        new InsideVerticalBorder
                         {
                             Val = BorderValues.Single,
                             Size = 8,
@@ -640,13 +640,13 @@ public class WordTableBuilderTests
                             Size = 12,
                             Color = "1F4E79"
                         },
-                        new BottomBorder
+                        new LeftBorder
                         {
                             Val = BorderValues.Double,
                             Size = 12,
                             Color = "1F4E79"
                         },
-                        new LeftBorder
+                        new BottomBorder
                         {
                             Val = BorderValues.Double,
                             Size = 12,
