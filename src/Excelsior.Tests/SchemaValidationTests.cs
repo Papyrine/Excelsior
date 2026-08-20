@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
@@ -24,7 +23,7 @@ public class SchemaValidationTests
     {
         var errors = Validate(Path.Combine(ProjectDirectory, snapshot));
 
-        Assert.That(errors, Is.Empty, () => string.Join("\n", errors));
+        Assert.That(errors, Is.Empty, () => string.Join('\n', errors));
     }
 
     // A sweep that stops matching leaves nothing to run and nothing to report, which reads exactly
