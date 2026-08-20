@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="DocumentFormat.OpenXml" />
+    <PackageReference Include="OpenXmlKit" />
     <PackageReference Include="OpenXmlHtml" />
     <PackageReference Include="Polyfill" PrivateAssets="all" />
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />

@@ -1,4 +1,4 @@
-﻿global using System.Collections.Concurrent;
+global using System.Collections.Concurrent;
 global using System.ComponentModel;
 global using System.ComponentModel.DataAnnotations;
 global using System.Diagnostics.CodeAnalysis;
@@ -12,6 +12,7 @@ global using DocumentFormat.OpenXml;
 global using DocumentFormat.OpenXml.Packaging;
 global using DocumentFormat.OpenXml.Spreadsheet;
 global using Excelsior;
+global using OpenXmlKit;
 global using OpenXmlHtml;
 global using Cell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 global using CellStyle = Excelsior.CellStyle;
