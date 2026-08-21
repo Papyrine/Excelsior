@@ -1,4 +1,4 @@
-﻿using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using DocumentFormat.OpenXml.Wordprocessing;
@@ -1068,6 +1068,45 @@ public class WordTableBuilderTests
                 typeof(InsideHorizontalBorder),
                 typeof(InsideVerticalBorder)
             ]));
+    }
+
+    [Test]
+    public void EightDigitArgbIsSchemaValidInWord()
+    {
+        // CellStyle accepts AARRGGBB — StyleManager prepends the alpha only when it is missing, and
+        // the readme's own TemplateSheetFullFeatured sample passes FFEFEFEF. Word has nowhere to
+        // put the alpha: w:shd/@w:fill and w:color/@w:val are both ST_HexColor, six digits or
+        // "auto". Before the colour went through a parser this reached the file unchanged and
+        // produced fourteen validation errors.
+        var builder = new WordTableBuilder<Employee>(
+            SampleData.Employees(),
+            _ =>
+            {
+                _.BackgroundColor = "FFEFEFEF";
+                _.Font.Color = "FF0563C1";
+            });
+
+        var table = builder.Build();
+
+        var fills = table.Descendants<Shading>().Select(_ => _.Fill?.Value).Where(_ => _ != null);
+        var colors = table.Descendants<Color>().Select(_ => _.Val?.Value).Where(_ => _ != "auto");
+        Assert.That(fills, Is.All.EqualTo("EFEFEF"));
+        Assert.That(colors, Is.All.EqualTo("0563C1"));
+
+        using var stream = new MemoryStream();
+        using (var document = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document))
+        {
+            var mainPart = document.AddMainDocumentPart();
+            mainPart.Document = new(new Body(table, new SectionProperties()));
+        }
+
+        stream.Position = 0;
+        using var opened = WordprocessingDocument.Open(stream, false);
+        var errors = new OpenXmlValidator(FileFormatVersions.Office2019)
+            .Validate(opened)
+            .Select(_ => _.Description);
+
+        Assert.That(errors, Is.Empty);
     }
 
     [Test]

@@ -319,9 +319,16 @@ class StyleManager
         return stylesheet;
     }
 
-    // Excel's `rgb` attribute is an 8-digit ARGB hex string. A 6-digit RGB value (with or without a
-    // leading '#') is schema-invalid, so strip any '#' and prepend an opaque alpha when one is missing.
-    static string NormaliseColor(string color)
+    // Excel's `rgb` attribute is an 8-digit ARGB hex string, alpha first. Parsing rather than
+    // poking at the string means #RGB shorthand expands and an already-8-digit value is understood
+    // rather than passed through on faith. Anything unreadable falls back to what this did before,
+    // so a value that used to reach the file still does.
+    static string NormaliseColor(string color) =>
+        KitColor.TryParseArgb(color, out var parsed) && parsed.ToArgbHex() is { } argb
+            ? argb
+            : Fallback(color);
+
+    static string Fallback(string color)
     {
         if (color.StartsWith('#'))
         {

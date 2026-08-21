@@ -1,4 +1,4 @@
-﻿using W = DocumentFormat.OpenXml.Wordprocessing;
+using W = DocumentFormat.OpenXml.Wordprocessing;
 
 /// <summary>
 /// Internal worker that turns a sequence of model rows + column configs into a Word
@@ -489,7 +489,7 @@ static class WordTableRenderer<TModel>
             properties.Append(
                 new W.Color
                 {
-                    Val = style.Font.Color
+                    Val = NormaliseColor(style.Font.Color)
                 });
         }
 
@@ -594,8 +594,14 @@ static class WordTableRenderer<TModel>
         return hasAny ? properties : null;
     }
 
+    // w:shd/@w:fill and w:color/@w:val are both ST_HexColor - six digits, or "auto". An
+    // eight-digit ARGB value is neither, and CellStyle accepts one: the readme's own sample uses
+    // FFEFEFEF. Stripping a '#' was all this used to do, so such a value reached the file
+    // unchanged and failed validation. Parsing drops the alpha Word has no place for.
     static string NormaliseColor(string color) =>
-        color.StartsWith('#') ? color[1..] : color;
+        KitColor.TryParseArgb(color, out var parsed)
+            ? parsed.ToHex()
+            : color.StartsWith('#') ? color[1..] : color;
 
     static W.TableRow BuildDataRow(
         List<ColumnConfig<TModel>> columns,

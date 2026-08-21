@@ -13,6 +13,9 @@ global using DocumentFormat.OpenXml.Packaging;
 global using DocumentFormat.OpenXml.Spreadsheet;
 global using Excelsior;
 global using OpenXmlKit;
+// Colour is the one thing wanted out of OpenXmlKit.Word, and Color here is already the
+// spreadsheet one.
+global using KitColor = OpenXmlKit.Word.Color;
 global using OpenXmlHtml;
 global using Cell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 global using CellStyle = Excelsior.CellStyle;
