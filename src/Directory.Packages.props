@@ -17,7 +17,7 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
     <PackageVersion Include="Microsoft.Office.Interop.Excel" Version="16.0.18925.20022" Pinned="true" />
     <PackageVersion Include="Polyfill" Version="11.2.0" />
-    <PackageVersion Include="ProjectDefaults" Version="1.0.176" />
+    <PackageVersion Include="ProjectDefaults" Version="1.0.180" />
     <PackageVersion Include="ProjectFiles" Version="1.4.0" />
     <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageVersion Include="Verify" Version="31.28.0" />
@@ -29,7 +29,7 @@
     <PackageVersion Include="Microsoft.Sbom.Targets" Version="4.1.5" />
     <PackageVersion Include="Argon" Version="0.35.2" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
-    <PackageVersion Include="DiffEngine" Version="20.0.0-beta.29" />
+    <PackageVersion Include="DiffEngine" Version="20.0.0-beta.30" />
     <PackageVersion Include="EmptyFiles" Version="8.18.2" />
     <PackageVersion Include="SimpleInfoName" Version="3.2.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
