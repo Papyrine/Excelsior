@@ -154,7 +154,16 @@ public class FieldSupportTests
         var sheet = reader.AddSheet<RequiredFieldModel>();
         reader.Convert(stream);
 
-        await Verify(sheet.Rows);
+        await Verify(sheet.Rows)
+            .Snapshot(
+                """
+                [
+                  {
+                    Name: Alice,
+                    Age: 30
+                  }
+                ]
+                """);
     }
 
     [Test]

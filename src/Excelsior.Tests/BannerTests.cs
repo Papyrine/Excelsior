@@ -251,7 +251,20 @@ public class BannerTests
         sheet.Column<string>("Team");
         reader.Convert(stream);
 
-        await Verify(sheet.Rows);
+        await Verify(sheet.Rows)
+            .Snapshot(
+                """
+                [
+                  {
+                    Name: John,
+                    Team: Sales
+                  },
+                  {
+                    Name: Jane,
+                    Team: Eng
+                  }
+                ]
+                """);
     }
 
     [Test]

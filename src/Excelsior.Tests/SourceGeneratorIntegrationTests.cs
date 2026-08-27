@@ -178,7 +178,20 @@ public class SourceGeneratorFieldIntegrationTests
         var sheet = reader.AddSheet<GeneratedFieldModel>();
         reader.Convert(stream);
 
-        await Verify(sheet.Rows);
+        await Verify(sheet.Rows)
+            .Snapshot(
+                """
+                [
+                  {
+                    Name: Alice,
+                    Age: 30
+                  },
+                  {
+                    Name: Bob,
+                    Age: 25
+                  }
+                ]
+                """);
     }
 }
 

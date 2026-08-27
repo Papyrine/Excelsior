@@ -545,7 +545,7 @@ reader.Convert(stream);
 
 var json = reader.GetMetadata();
 ```
-<sup><a href='/src/Excelsior.Tests/Reading/BookReaderTests.cs#L165-L187' title='Snippet source file'>snippet source</a> | <a href='#snippet-RawMetadataUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Reading/BookReaderTests.cs#L173-L195' title='Snippet source file'>snippet source</a> | <a href='#snippet-RawMetadataUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 

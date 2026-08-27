@@ -139,7 +139,15 @@ public class BookReaderTests
 
         #endregion
 
-        await Verify(header);
+        await Verify(header)
+            .Snapshot(
+                """
+                {
+                  Title: Q1 staff snapshot,
+                  Version: 3,
+                  GeneratedAt: 2026-01-15 09:30 Utc
+                }
+                """);
     }
 
     [Test]
