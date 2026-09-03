@@ -11,3 +11,4 @@ nugets/
 nul
 BenchmarkDotNet.Artifacts/
 CTemptest-*.txt
+*.lnk
