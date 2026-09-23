@@ -24,7 +24,7 @@ dotnet test src/Excelsior.Tests
 dotnet test src/Excelsior.Tests --filter "FullyQualifiedName~UsageTests"
 ```
 
-CI uses AppVeyor (config at `src/appveyor.yml`).
+CI uses GitHub Actions (workflow at `.github/workflows/build.yml`).
 
 ### Approving Verify snapshots
 

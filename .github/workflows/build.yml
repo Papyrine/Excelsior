@@ -1,0 +1,61 @@
+name: build
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+      # SponsorCheck bundles the sponsor list during pack on non-PR builds and needs a
+      # classic PAT (org secret). PR builds skip it.
+      GitHubToken: ${{ secrets.SPONSOR_CHECK_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        run: dotnet build src --configuration Release
+
+      - name: Build integration tests
+        run: dotnet build IntegrationTests --configuration Release
+
+      - name: Test
+        run: dotnet test src --configuration Release --no-build --no-restore --logger:trx --results-directory TestResults
+
+      - name: Run integration tests
+        run: dotnet test IntegrationTests --configuration Release --no-build --no-restore --logger:trx --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults/*.trx
+          if-no-files-found: ignore
+
+      - name: Upload snapshot diffs
+        # Verify writes .received.* beside the .verified.* baseline when a snapshot differs.
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: received
+          path: '**/*.received.*'
+          if-no-files-found: ignore
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: nugets
+          path: nugets/*.nupkg
