@@ -5,6 +5,7 @@
 namespace Excelsior;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 file static class OuterActivatorRegistration
 {
   [ModuleInitializer]
@@ -24,6 +25,7 @@ file static class OuterActivatorRegistration
 #nullable enable
 namespace Excelsior;
 using System;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public static class OuterSheetBuilderExtensions
 {
   public static ISheetBuilder<global::Outer> NameColumn(

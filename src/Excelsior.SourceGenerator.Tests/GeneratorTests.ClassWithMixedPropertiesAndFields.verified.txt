@@ -5,6 +5,7 @@
 namespace Excelsior;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 file static class ProductActivatorRegistration
 {
   [ModuleInitializer]
@@ -29,6 +30,7 @@ file static class ProductActivatorRegistration
 namespace Excelsior;
 using System;
 using System.Runtime.CompilerServices;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 file static class ProductRowReaderRegistration
 {
   [ModuleInitializer]
@@ -52,6 +54,7 @@ file static class ProductRowReaderRegistration
 #nullable enable
 namespace Excelsior;
 using System;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public static class ProductSheetBuilderExtensions
 {
   public static ISheetBuilder<global::Product> IdColumn(

@@ -5,6 +5,7 @@
 namespace Excelsior;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 file static class EmployeeActivatorRegistration
 {
   [ModuleInitializer]
@@ -23,6 +24,7 @@ file static class EmployeeActivatorRegistration
 #nullable enable
 namespace Excelsior;
 using System;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public static class EmployeeSheetBuilderExtensions
 {
   public static ISheetBuilder<global::Employee> EmailColumn(

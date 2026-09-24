@@ -5,6 +5,7 @@
 namespace Excelsior;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 file static class DocActivatorRegistration
 {
   [ModuleInitializer]
@@ -24,6 +25,7 @@ file static class DocActivatorRegistration
 namespace Excelsior;
 using System;
 using System.Runtime.CompilerServices;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 file static class DocRowReaderRegistration
 {
   [ModuleInitializer]
@@ -40,6 +42,7 @@ file static class DocRowReaderRegistration
 #nullable enable
 namespace Excelsior;
 using System;
+[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public static class DocSheetBuilderExtensions
 {
   public static ISheetBuilder<global::Doc> NameColumn(
