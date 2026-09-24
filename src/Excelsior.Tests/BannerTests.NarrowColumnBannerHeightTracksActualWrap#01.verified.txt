@@ -1,0 +1,22 @@
+﻿{
+  Sheets: [
+    {
+      Name: Solo,
+      Metadata: {
+        banner: true
+      },
+      Columns: [
+        {
+          Name: name,
+          Metadata: {
+            property: name
+          },
+          Width: 10.0,
+          ContainsRichText: false,
+          RequiredHighlight: false
+        }
+      ]
+    }
+  ],
+  WorksheetCount: 1
+}

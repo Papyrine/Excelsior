@@ -1,0 +1,3 @@
+﻿Name,Link,Nullable Link,Links,Nullable Links,Links With Nulls
+Test,https://google.com,https://github.com,"● https://google.com
+● https://github.com",,● https://google.com

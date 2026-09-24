@@ -1,0 +1,5 @@
+﻿Employee ID,Full Name,Email Address,Hire Date,Annual Salary,Is Active,Status
+1,JOHN DOE,john@company.com,2020-01-15,75000,Active,Full Time
+2,JANE SMITH,jane@company.com,2019-03-22,120000,Active,Full Time
+3,BOB JOHNSON,bob@company.com,2021-07-10,45000,Inactive,Part Time
+4,ALICE BROWN,alice@company.com,2018-11-05,95000,Active,Contract

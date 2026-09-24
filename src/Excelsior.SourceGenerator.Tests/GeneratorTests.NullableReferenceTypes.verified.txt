@@ -5,7 +5,6 @@
 namespace Excelsior;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 file static class EmployeeActivatorRegistration
 {
   [ModuleInitializer]
@@ -27,7 +26,6 @@ file static class EmployeeActivatorRegistration
 namespace Excelsior;
 using System;
 using System.Runtime.CompilerServices;
-[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 file static class EmployeeRowReaderRegistration
 {
   [ModuleInitializer]
@@ -48,7 +46,6 @@ file static class EmployeeRowReaderRegistration
 #nullable enable
 namespace Excelsior;
 using System;
-[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public static class EmployeeSheetBuilderExtensions
 {
   public static ISheetBuilder<global::Employee> NameColumn(

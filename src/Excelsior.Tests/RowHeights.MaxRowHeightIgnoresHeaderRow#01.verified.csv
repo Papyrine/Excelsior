@@ -1,0 +1,10 @@
+﻿Title,A very very very very very very long header that would wrap many times in a narrow column
+Short,A brief note.
+Long,"This is a much longer note that contains a lot of text and is expected to wrap across many visual lines when rendered in a narrow column, which means the row would otherwise grow very tall."
+Multiline,"Line one.
+Line two.
+Line three.
+Line four.
+Line five.
+Line six.
+Line seven."

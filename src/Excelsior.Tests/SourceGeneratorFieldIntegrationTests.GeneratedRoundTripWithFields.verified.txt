@@ -1,0 +1,10 @@
+﻿[
+  {
+    Name: Alice,
+    Age: 30
+  },
+  {
+    Name: Bob,
+    Age: 25
+  }
+]
