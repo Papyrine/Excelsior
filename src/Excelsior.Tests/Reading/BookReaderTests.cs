@@ -1,4 +1,3 @@
-[TestFixture]
 public class BookReaderTests
 {
     [Test]
@@ -63,7 +62,7 @@ public class BookReaderTests
         var sheet = reader.AddSheet<Employee>("staff");
         reader.Convert(stream);
 
-        Assert.That(sheet.Rows, Is.Not.Empty);
+        await Assert.That(sheet.Rows).IsNotEmpty();
     }
 
     [Test]
@@ -101,8 +100,8 @@ public class BookReaderTests
 
         #endregion
 
-        Assert.That(employees, Is.Not.Empty);
-        Assert.That(depts.Select(_ => _.Name), Is.EqualTo(["Eng", "Sales"]));
+        await Assert.That(employees).IsNotEmpty();
+        await Assert.That(depts.Select(_ => _.Name)).IsEquivalentTo(["Eng", "Sales"], CollectionOrdering.Matching);
     }
 
     public class BookHeader
@@ -163,8 +162,8 @@ public class BookReaderTests
         reader.AddSheet<Employee>();
         reader.Convert(stream);
 
-        Assert.That(reader.TryGetMetadata<BookHeader>(out var _), Is.False);
-        Assert.Throws<Exception>(() => reader.GetMetadata<BookHeader>());
+        await Assert.That(reader.TryGetMetadata<BookHeader>(out var _)).IsFalse();
+        await Assert.That(() => reader.GetMetadata<BookHeader>()).ThrowsExactly<Exception>();
     }
 
     [Test]
@@ -194,25 +193,25 @@ public class BookReaderTests
 
         #endregion
 
-        Assert.That(json, Is.EqualTo(
+        await Assert.That(json).IsEqualTo(
             """
             {
               "title": "raw",
               "version": 7
             }
-            """));
-        Assert.That(reader.TryGetMetadata(out var raw), Is.True);
-        Assert.That(raw, Is.EqualTo(
+            """);
+        await Assert.That(reader.TryGetMetadata(out var raw)).IsTrue();
+        await Assert.That(raw).IsEqualTo(
             """
             {
               "title": "raw",
               "version": 7
             }
-            """));
+            """);
     }
 
     [Test]
-    public void SetMetadata_Throws_WhenCalledTwice()
+    public async Task SetMetadata_Throws_WhenCalledTwice()
     {
         var builder = new BookBuilder();
         builder.SetMetadata(new BookHeader
@@ -222,16 +221,16 @@ public class BookReaderTests
             GeneratedAt = DateTime.UtcNow
         });
 
-        Assert.Throws<Exception>(() => builder.SetMetadata(new BookHeader
+        await Assert.That(() => builder.SetMetadata(new BookHeader
         {
             Title = "second",
             Version = 2,
             GeneratedAt = DateTime.UtcNow
-        }));
+        })).ThrowsExactly<Exception>();
 
         // Clearing first allows a subsequent set.
         builder.SetMetadata(null);
-        Assert.DoesNotThrow(() => builder.SetMetadata("""{"ok":true}"""));
+        await Assert.That(() => builder.SetMetadata("""{"ok":true}""")).ThrowsNothing();
     }
 
     [Test]
@@ -254,7 +253,7 @@ public class BookReaderTests
         reader.AddSheet<Employee>();
         reader.Convert(stream);
 
-        Assert.That(reader.TryGetMetadata<BookHeader>(out var header), Is.True);
-        Assert.That(header!.Title, Is.EqualTo("Q1 staff snapshot"));
+        await Assert.That(reader.TryGetMetadata<BookHeader>(out var header)).IsTrue();
+        await Assert.That(header!.Title).IsEqualTo("Q1 staff snapshot");
     }
 }

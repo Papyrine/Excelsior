@@ -1,5 +1,4 @@
-﻿[TestFixture]
-public class ComplexTypeWithInheritedCustomRender
+﻿public class ComplexTypeWithInheritedCustomRender
 {
     public enum State
     {

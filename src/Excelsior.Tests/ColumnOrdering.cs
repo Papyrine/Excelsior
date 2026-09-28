@@ -1,5 +1,4 @@
-﻿[TestFixture]
-public class ColumnOrdering
+﻿public class ColumnOrdering
 {
     [Test]
     public async Task Fluent()

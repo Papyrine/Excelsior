@@ -3,10 +3,10 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using XlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
 using XlRow = DocumentFormat.OpenXml.Spreadsheet.Row;
 
-[TestFixture]
+[NotInParallel]
 public class CultureFormatting
 {
-    [TearDown]
+    [After(HookType.Test)]
     public void Teardown() =>
         ValueRenderer.Reset();
 
@@ -21,7 +21,7 @@ public class CultureFormatting
     static readonly Item[] sample = [new() { Name = "Widget", Price = 1234m }];
 
     [Test]
-    public void WordCurrencyFormattingDefaultsToLocalCulture()
+    public async Task WordCurrencyFormattingDefaultsToLocalCulture()
     {
         ValueRenderer.Culture = CultureInfo.GetCultureInfo("en-US");
 
@@ -29,28 +29,28 @@ public class CultureFormatting
         var priceText = ExtractPriceCellText(table);
 
         // en-US should produce "$1,234"; we assert on $ to avoid coupling to thousand-sep details.
-        IsTrue(priceText.StartsWith('$'), $"expected en-US currency symbol, got '{priceText}'");
-        AreEqual("$1,234", priceText);
+        await Assert.That(priceText.StartsWith('$')).IsTrue().Because($"expected en-US currency symbol, got '{priceText}'");
+        await Assert.That(priceText).IsEqualTo("$1,234");
     }
 
     [Test]
-    public void WordCurrencyFormattingHonorsCultureOverride()
+    public async Task WordCurrencyFormattingHonorsCultureOverride()
     {
         ValueRenderer.Culture = CultureInfo.GetCultureInfo("en-GB");
 
         var table = new WordTableBuilder<Item>(sample).Build();
         var priceText = ExtractPriceCellText(table);
 
-        AreEqual("£1,234", priceText);
+        await Assert.That(priceText).IsEqualTo("£1,234");
     }
 
     [Test]
-    public void ResetRestoresCurrentCulture()
+    public async Task ResetRestoresCurrentCulture()
     {
         ValueRenderer.Culture = CultureInfo.GetCultureInfo("en-GB");
         ValueRenderer.Reset();
 
-        AreEqual(CultureInfo.CurrentCulture, ValueRenderer.Culture);
+        await Assert.That(ValueRenderer.Culture).IsEqualTo(CultureInfo.CurrentCulture);
     }
 
     public class TimestampedItem
@@ -88,7 +88,7 @@ public class CultureFormatting
         var cell = dataRow.Elements<XlCell>().Single(c => c.CellReference?.Value == "B2");
         var rendered = cell.InlineString!.Text!.Text;
 
-        AreEqual("janvier 15, 2026", rendered);
+        await Assert.That(rendered).IsEqualTo("janvier 15, 2026");
     }
 
     static string ExtractPriceCellText(Table table)

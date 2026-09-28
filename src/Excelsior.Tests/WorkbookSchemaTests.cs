@@ -3,7 +3,6 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Validation;
 
-[TestFixture]
 public class WorkbookSchemaTests
 {
     public class LinkedRow
@@ -68,11 +67,11 @@ public class WorkbookSchemaTests
         var dataValidations = children.FindIndex(_ => _ is DataValidations);
         var hyperlinks = children.FindIndex(_ => _ is Hyperlinks);
 
-        Assert.That(conditionalFormatting, Is.GreaterThanOrEqualTo(0), "expected a conditionalFormatting element");
-        Assert.That(dataValidations, Is.GreaterThanOrEqualTo(0), "expected a dataValidations element");
-        Assert.That(hyperlinks, Is.GreaterThanOrEqualTo(0), "expected a hyperlinks element");
-        Assert.That(conditionalFormatting, Is.LessThan(hyperlinks));
-        Assert.That(dataValidations, Is.LessThan(hyperlinks));
+        await Assert.That(conditionalFormatting).IsGreaterThanOrEqualTo(0).Because("expected a conditionalFormatting element");
+        await Assert.That(dataValidations).IsGreaterThanOrEqualTo(0).Because("expected a dataValidations element");
+        await Assert.That(hyperlinks).IsGreaterThanOrEqualTo(0).Because("expected a hyperlinks element");
+        await Assert.That(conditionalFormatting).IsLessThan(hyperlinks);
+        await Assert.That(dataValidations).IsLessThan(hyperlinks);
     }
 
     [Test]
@@ -82,7 +81,7 @@ public class WorkbookSchemaTests
         // precede <name> in CT_Font and its rgb must be 8-digit ARGB, or the workbook is invalid.
         var errors = await ValidationErrors(BuildLinkedSheet());
 
-        Assert.That(errors, Is.Empty);
+        await Assert.That(errors).IsEmpty();
     }
 
     public class LinkListRow
@@ -114,6 +113,6 @@ public class WorkbookSchemaTests
 
         var errors = await ValidationErrors(builder);
 
-        Assert.That(errors, Is.Empty);
+        await Assert.That(errors).IsEmpty();
     }
 }

@@ -1,6 +1,5 @@
 using Excelsior;
 
-[TestFixture]
 public class ConsumeTests
 {
     [Test]

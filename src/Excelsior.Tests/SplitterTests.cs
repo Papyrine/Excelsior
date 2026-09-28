@@ -1,5 +1,4 @@
 ﻿// ReSharper disable ArrangeObjectCreationWhenTypeNotEvident
-[TestFixture]
 public class SplitterTests
 {
     public record Target(

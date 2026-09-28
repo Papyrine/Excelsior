@@ -1,21 +1,21 @@
-[TestFixture]
 public class SheetContextTests
 {
-    [TestCase(0, "A")]
-    [TestCase(1, "B")]
-    [TestCase(25, "Z")]
-    [TestCase(26, "AA")]
-    [TestCase(27, "AB")]
-    [TestCase(51, "AZ")]
-    [TestCase(52, "BA")]
-    [TestCase(701, "ZZ")]
-    [TestCase(702, "AAA")]
-    [TestCase(16383, "XFD")] // Excel's last column
-    public void ColumnLetterAndIndexRoundTrip(int index, string letter)
+    [Test]
+    [Arguments(0, "A")]
+    [Arguments(1, "B")]
+    [Arguments(25, "Z")]
+    [Arguments(26, "AA")]
+    [Arguments(27, "AB")]
+    [Arguments(51, "AZ")]
+    [Arguments(52, "BA")]
+    [Arguments(701, "ZZ")]
+    [Arguments(702, "AAA")]
+    [Arguments(16383, "XFD")] // Excel's last column
+    public async Task ColumnLetterAndIndexRoundTrip(int index, string letter)
     {
-        Assert.That(SheetContext.GetColumnLetter(index), Is.EqualTo(letter));
-        Assert.That(SheetContext.GetColumnIndex(letter), Is.EqualTo(index));
+        await Assert.That(SheetContext.GetColumnLetter(index)).IsEqualTo(letter);
+        await Assert.That(SheetContext.GetColumnIndex(letter)).IsEqualTo(index);
         // GetColumnIndex must read only the leading letters of a full cell reference.
-        Assert.That(SheetContext.GetColumnIndex($"{letter}42"), Is.EqualTo(index));
+        await Assert.That(SheetContext.GetColumnIndex($"{letter}42")).IsEqualTo(index);
     }
 }

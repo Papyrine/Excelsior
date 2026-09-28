@@ -1,5 +1,4 @@
 // ReSharper disable NotAccessedPositionalProperty.Local
-[TestFixture]
 public class NaughtyStringsTests
 {
     record Row(string Value, string Html);

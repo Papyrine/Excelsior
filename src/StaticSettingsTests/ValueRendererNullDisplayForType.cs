@@ -1,14 +1,14 @@
-[TestFixture]
+[NotInParallel]
 public class ValueRendererNullDisplayForType
 {
-    [SetUp]
+    [Before(HookType.Test)]
     public void Setup()
     {
         ValueRenderer.For<Address>(_ => $"{_.Street}, {_.City}");
         ValueRenderer.NullDisplayFor<Address>("No address on file");
     }
 
-    [TearDown]
+    [After(HookType.Test)]
     public void Teardown() =>
         ValueRenderer.Reset();
 

@@ -1,5 +1,4 @@
 ﻿// ReSharper disable ArrangeObjectCreationWhenTypeNotEvident
-[TestFixture]
 public class ComplexTypeWithCustomEnumerableRender
 {
     public enum State

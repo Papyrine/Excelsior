@@ -1,8 +1,8 @@
 // ReSharper disable UseSymbolAlias
-[TestFixture]
+[NotInParallel]
 public class DateFormats
 {
-    [SetUp]
+    [Before(HookType.Test)]
     public void Setup()
     {
         ValueRenderer.DefaultDateFormat = "yyyy/MM/dd";
@@ -11,7 +11,7 @@ public class DateFormats
         ValueRenderer.DefaultTimeFormat = "HH:mm:ss";
     }
 
-    [TearDown]
+    [After(HookType.Test)]
     public void Teardown() =>
         ValueRenderer.Reset();
 

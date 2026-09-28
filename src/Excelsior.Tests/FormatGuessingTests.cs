@@ -1,5 +1,4 @@
-﻿[TestFixture]
-public class FormatGuessingTests
+﻿public class FormatGuessingTests
 {
     public record Model(string Date, string Number, string Bool);
 

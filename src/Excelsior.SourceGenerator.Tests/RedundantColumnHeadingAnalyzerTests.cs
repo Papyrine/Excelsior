@@ -1,11 +1,10 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-[TestFixture]
 public class RedundantColumnHeadingAnalyzerTests
 {
     [Test]
-    public void RedundantHeading_OnProperty()
+    public async Task RedundantHeading_OnProperty()
     {
         var source = """
             using Excelsior;
@@ -19,13 +18,13 @@ public class RedundantColumnHeadingAnalyzerTests
 
         var diagnostics = GetDiagnostics(source);
 
-        AreEqual(1, diagnostics.Length);
-        AreEqual("EXCEL001", diagnostics[0].Id);
-        IsTrue(diagnostics[0].GetMessage().Contains("ReferenceNumber"));
+        await Assert.That(diagnostics.Length).IsEqualTo(1);
+        await Assert.That(diagnostics[0].Id).IsEqualTo("EXCEL001");
+        await Assert.That(diagnostics[0].GetMessage().Contains("ReferenceNumber")).IsTrue();
     }
 
     [Test]
-    public void RedundantHeading_OnRecordParameter()
+    public async Task RedundantHeading_OnRecordParameter()
     {
         var source = """
             using Excelsior;
@@ -35,12 +34,12 @@ public class RedundantColumnHeadingAnalyzerTests
 
         var diagnostics = GetDiagnostics(source);
 
-        AreEqual(1, diagnostics.Length);
-        AreEqual("EXCEL001", diagnostics[0].Id);
+        await Assert.That(diagnostics.Length).IsEqualTo(1);
+        await Assert.That(diagnostics[0].Id).IsEqualTo("EXCEL001");
     }
 
     [Test]
-    public void RedundantHeading_OnField()
+    public async Task RedundantHeading_OnField()
     {
         var source = """
             using Excelsior;
@@ -54,13 +53,13 @@ public class RedundantColumnHeadingAnalyzerTests
 
         var diagnostics = GetDiagnostics(source);
 
-        AreEqual(1, diagnostics.Length);
-        AreEqual("EXCEL001", diagnostics[0].Id);
-        IsTrue(diagnostics[0].GetMessage().Contains("ReferenceNumber"));
+        await Assert.That(diagnostics.Length).IsEqualTo(1);
+        await Assert.That(diagnostics[0].Id).IsEqualTo("EXCEL001");
+        await Assert.That(diagnostics[0].GetMessage().Contains("ReferenceNumber")).IsTrue();
     }
 
     [Test]
-    public void RedundantHeading_CamelCaseSplit()
+    public async Task RedundantHeading_CamelCaseSplit()
     {
         var source = """
             using Excelsior;
@@ -74,12 +73,12 @@ public class RedundantColumnHeadingAnalyzerTests
 
         var diagnostics = GetDiagnostics(source);
 
-        AreEqual(1, diagnostics.Length);
-        AreEqual("EXCEL001", diagnostics[0].Id);
+        await Assert.That(diagnostics.Length).IsEqualTo(1);
+        await Assert.That(diagnostics[0].Id).IsEqualTo("EXCEL001");
     }
 
     [Test]
-    public void DifferentHeading_NoDiagnostic()
+    public async Task DifferentHeading_NoDiagnostic()
     {
         var source = """
             using Excelsior;
@@ -93,11 +92,11 @@ public class RedundantColumnHeadingAnalyzerTests
 
         var diagnostics = GetDiagnostics(source);
 
-        AreEqual(0, diagnostics.Length);
+        await Assert.That(diagnostics.Length).IsEqualTo(0);
     }
 
     [Test]
-    public void NoHeading_NoDiagnostic()
+    public async Task NoHeading_NoDiagnostic()
     {
         var source = """
             using Excelsior;
@@ -111,11 +110,11 @@ public class RedundantColumnHeadingAnalyzerTests
 
         var diagnostics = GetDiagnostics(source);
 
-        AreEqual(0, diagnostics.Length);
+        await Assert.That(diagnostics.Length).IsEqualTo(0);
     }
 
     [Test]
-    public void ColumnAttributeInDifferentNamespace_NoDiagnostic()
+    public async Task ColumnAttributeInDifferentNamespace_NoDiagnostic()
     {
         var source = """
             namespace Other;
@@ -135,11 +134,11 @@ public class RedundantColumnHeadingAnalyzerTests
 
         var diagnostics = GetDiagnostics(source);
 
-        AreEqual(0, diagnostics.Length);
+        await Assert.That(diagnostics.Length).IsEqualTo(0);
     }
 
     [Test]
-    public void NoColumnAttribute_NoDiagnostic()
+    public async Task NoColumnAttribute_NoDiagnostic()
     {
         var source = """
             public class Order
@@ -150,7 +149,7 @@ public class RedundantColumnHeadingAnalyzerTests
 
         var diagnostics = GetDiagnostics(source);
 
-        AreEqual(0, diagnostics.Length);
+        await Assert.That(diagnostics.Length).IsEqualTo(0);
     }
 
     static ImmutableArray<Diagnostic> GetDiagnostics(string source)

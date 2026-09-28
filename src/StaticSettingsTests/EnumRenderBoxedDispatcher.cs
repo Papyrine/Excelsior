@@ -1,22 +1,22 @@
-[TestFixture]
+[NotInParallel]
 public class EnumRenderBoxedDispatcher
 {
-    [TearDown]
+    [After(HookType.Test)]
     public void Teardown() =>
         ValueRenderer.Reset();
 
     [Test]
-    public void GlobalOverride_WinsOverHumanize()
+    public async Task GlobalOverride_WinsOverHumanize()
     {
         ValueRenderer.ForEnums(_ => "global:" + _);
 
         var result = EnumRender.Render(Color.AntiqueWhite);
 
-        Assert.That(result, Is.EqualTo("global:AntiqueWhite"));
+        await Assert.That(result).IsEqualTo("global:AntiqueWhite");
     }
 
     [Test]
-    public void GlobalOverride_WinsOverTypedSet()
+    public async Task GlobalOverride_WinsOverTypedSet()
     {
         // Resolution order on the typed render path is:
         //   1. ValueRenderer.ForEnums (global)
@@ -29,7 +29,7 @@ public class EnumRenderBoxedDispatcher
 
         var result = EnumRender.Render(Color.AntiqueWhite);
 
-        Assert.That(result, Is.EqualTo("global:AntiqueWhite"));
+        await Assert.That(result).IsEqualTo("global:AntiqueWhite");
     }
 
     enum Color

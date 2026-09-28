@@ -1,14 +1,14 @@
-[TestFixture]
+[NotInParallel]
 public class ValueRendererForSpecificType
 {
-    [SetUp]
+    [Before(HookType.Test)]
     public void Setup()
     {
         ValueRenderer.For<Enum>(_ => _.ToString().ToUpper());
         ValueRenderer.For<Color>(_ => _ == Color.AntiqueWhite ? "White-ish" : _.ToString());
     }
 
-    [TearDown]
+    [After(HookType.Test)]
     public void Teardown() =>
         ValueRenderer.Reset();
 

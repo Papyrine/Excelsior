@@ -2,7 +2,6 @@ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 
-[TestFixture]
 public class NoteTests
 {
     [Test]
@@ -62,7 +61,7 @@ public class NoteTests
             .Validate(document)
             .Select(_ => $"{_.Part?.Uri}: {_.Description}");
 
-        Assert.That(errors, Is.Empty);
+        await Assert.That(errors).IsEmpty();
     }
 
     [Test]
@@ -83,7 +82,7 @@ public class NoteTests
         using var reader = new StreamReader(vmlPart.GetStream());
         var vml = await reader.ReadToEndAsync();
 
-        Assert.That(vml, Does.Contain("_x0000_s1025"));
-        Assert.That(vml, Does.Contain("_x0000_s1026"));
+        await Assert.That(vml).Contains("_x0000_s1025");
+        await Assert.That(vml).Contains("_x0000_s1026");
     }
 }

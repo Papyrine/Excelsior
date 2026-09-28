@@ -1,5 +1,4 @@
-﻿[TestFixture]
-public class DateFormats
+﻿public class DateFormats
 {
     [Test]
     public async Task Test()

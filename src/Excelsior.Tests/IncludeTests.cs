@@ -1,5 +1,4 @@
 // ReSharper disable NotAccessedPositionalProperty.Local
-[TestFixture]
 public class IncludeTests
 {
     record Target(string Name, int Age, string Email);
@@ -83,16 +82,15 @@ public class IncludeTests
     }
 
     [Test]
-    public void ExcludeCombinedWithOtherSettingsThrows()
+    public async Task ExcludeCombinedWithOtherSettingsThrows()
     {
         var builder = new BookBuilder();
 
-        var exception = Assert.Catch(
-            () => builder.AddSheet(new List<ExcludeWithOtherSettingsTarget>()));
+        var exception = await Assert.That(() => builder.AddSheet(new List<ExcludeWithOtherSettingsTarget>())).Throws<Exception>();
 
         var inner = exception is TypeInitializationException tie ? tie.InnerException! : exception;
-        Assert.That(inner!.Message, Does.Contain("Include = false"));
-        Assert.That(inner.Message, Does.Contain("Width"));
+        await Assert.That(inner!.Message).Contains("Include = false");
+        await Assert.That(inner.Message).Contains("Width");
     }
 
     [Test]

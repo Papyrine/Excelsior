@@ -2,7 +2,6 @@ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 
-[TestFixture]
 public class BookReaderSharedStringTests
 {
     public class TextRow
@@ -83,7 +82,7 @@ public class BookReaderSharedStringTests
     }
 
     [Test]
-    public void ReadsSharedStrings()
+    public async Task ReadsSharedStrings()
     {
         var stream = WriteWithSharedStrings(
         [
@@ -96,12 +95,12 @@ public class BookReaderSharedStringTests
         var sheet = reader.AddSheet<TextRow>();
         reader.Convert(stream);
 
-        Assert.That(sheet.Rows.Select(_ => _.A), Is.EqualTo(["alpha", "beta", "alpha"]));
-        Assert.That(sheet.Rows.Select(_ => _.B), Is.EqualTo(["one", "two", "three"]));
+        await Assert.That(sheet.Rows.Select(_ => _.A)).IsEquivalentTo(["alpha", "beta", "alpha"], CollectionOrdering.Matching);
+        await Assert.That(sheet.Rows.Select(_ => _.B)).IsEquivalentTo(["one", "two", "three"], CollectionOrdering.Matching);
     }
 
     [Test]
-    public void ManySharedStringsCompletesQuickly()
+    public async Task ManySharedStringsCompletesQuickly()
     {
         // Prior to caching the shared-string table, ElementAtOrDefault walked
         // the full child list per cell. Total work was O(rows*sharedCount).
@@ -123,15 +122,12 @@ public class BookReaderSharedStringTests
         reader.Convert(stream);
         stopwatch.Stop();
 
-        Assert.That(sheet.Rows, Has.Count.EqualTo(rowCount));
-        Assert.That(
-            stopwatch.Elapsed,
-            Is.LessThan(TimeSpan.FromSeconds(5)),
-            $"Reading {rowCount} rows with {rowCount * 2} shared strings took {stopwatch.Elapsed}; the lookup is likely O(N^2) again.");
+        await Assert.That(sheet.Rows).Count().IsEqualTo(rowCount);
+        await Assert.That(stopwatch.Elapsed).IsLessThan(TimeSpan.FromSeconds(5)).Because($"Reading {rowCount} rows with {rowCount * 2} shared strings took {stopwatch.Elapsed}; the lookup is likely O(N^2) again.");
     }
 
     [Test]
-    public void ReadsMultiRunSharedString()
+    public async Task ReadsMultiRunSharedString()
     {
         var stream = new MemoryStream();
         using (var document = SpreadsheetDocument.Create(stream, SpreadsheetDocumentType.Workbook))
@@ -182,6 +178,6 @@ public class BookReaderSharedStringTests
         sheet.Column<string>("A");
         reader.Convert(stream);
 
-        Assert.That(sheet.Rows[0]["A"], Is.EqualTo("Hello World"));
+        await Assert.That(sheet.Rows[0]["A"]).IsEqualTo("Hello World");
     }
 }

@@ -1,4 +1,3 @@
-[TestFixture]
 public class BookReaderPrimitivesTests
 {
     public enum SampleEnum
@@ -38,7 +37,7 @@ public class BookReaderPrimitivesTests
             {
                 Value = ""
             });
-        Assert.That(rows.Select(_ => _.Value), Is.EqualTo(["alpha", "beta", ""]));
+        await Assert.That(rows.Select(_ => _.Value)).IsEquivalentTo(["alpha", "beta", ""], CollectionOrdering.Matching);
     }
 
     public class StringRow
@@ -65,8 +64,8 @@ public class BookReaderPrimitivesTests
                 Value = true,
                 Nullable = null
             });
-        Assert.That(rows.Select(_ => _.Value), Is.EqualTo([true, false, true]));
-        Assert.That(rows.Select(_ => _.Nullable), Is.EqualTo(new bool?[] {true, false, null}));
+        await Assert.That(rows.Select(_ => _.Value)).IsEquivalentTo([true, false, true], CollectionOrdering.Matching);
+        await Assert.That(rows.Select(_ => _.Nullable)).IsEquivalentTo(new bool?[] {true, false, null}, CollectionOrdering.Matching);
     }
 
     public class BoolRow
@@ -82,23 +81,23 @@ public class BookReaderPrimitivesTests
             new() {Byte = 1, SByte = -1, Short = 2, UShort = 3, Int = 4, UInt = 5, Long = 6, ULong = 7},
             new() {Byte = 250, SByte = 100, Short = -32000, UShort = 60000, Int = -1000, UInt = 4_000_000_000, Long = -50_000_000_000, ULong = 9_000_000_000});
 
-        Assert.That(rows[0].Byte, Is.EqualTo(1));
-        Assert.That(rows[0].SByte, Is.EqualTo(-1));
-        Assert.That(rows[0].Short, Is.EqualTo(2));
-        Assert.That(rows[0].UShort, Is.EqualTo(3));
-        Assert.That(rows[0].Int, Is.EqualTo(4));
-        Assert.That(rows[0].UInt, Is.EqualTo(5));
-        Assert.That(rows[0].Long, Is.EqualTo(6));
-        Assert.That(rows[0].ULong, Is.EqualTo(7));
+        await Assert.That(rows[0].Byte).IsEqualTo((byte)1);
+        await Assert.That(rows[0].SByte).IsEqualTo((sbyte)(-1));
+        await Assert.That(rows[0].Short).IsEqualTo((short)2);
+        await Assert.That(rows[0].UShort).IsEqualTo((ushort)3);
+        await Assert.That(rows[0].Int).IsEqualTo(4);
+        await Assert.That(rows[0].UInt).IsEqualTo((uint)5);
+        await Assert.That(rows[0].Long).IsEqualTo((long)6);
+        await Assert.That(rows[0].ULong).IsEqualTo((ulong)7);
 
-        Assert.That(rows[1].Byte, Is.EqualTo(250));
-        Assert.That(rows[1].SByte, Is.EqualTo(100));
-        Assert.That(rows[1].Short, Is.EqualTo(-32000));
-        Assert.That(rows[1].UShort, Is.EqualTo(60000));
-        Assert.That(rows[1].Int, Is.EqualTo(-1000));
-        Assert.That(rows[1].UInt, Is.EqualTo(4_000_000_000));
-        Assert.That(rows[1].Long, Is.EqualTo(-50_000_000_000));
-        Assert.That(rows[1].ULong, Is.EqualTo(9_000_000_000));
+        await Assert.That(rows[1].Byte).IsEqualTo((byte)250);
+        await Assert.That(rows[1].SByte).IsEqualTo((sbyte)100);
+        await Assert.That(rows[1].Short).IsEqualTo((short)(-32000));
+        await Assert.That(rows[1].UShort).IsEqualTo((ushort)60000);
+        await Assert.That(rows[1].Int).IsEqualTo(-1000);
+        await Assert.That(rows[1].UInt).IsEqualTo((uint)4_000_000_000);
+        await Assert.That(rows[1].Long).IsEqualTo((long)(-50_000_000_000));
+        await Assert.That(rows[1].ULong).IsEqualTo((ulong)9_000_000_000);
     }
 
     public class IntRow
@@ -130,12 +129,12 @@ public class BookReaderPrimitivesTests
                 Decimal = -100m
             });
 
-        Assert.That(rows[0].Float, Is.EqualTo(1.5f));
-        Assert.That(rows[0].Double, Is.EqualTo(2.25));
-        Assert.That(rows[0].Decimal, Is.EqualTo(3.125m));
-        Assert.That(rows[1].Float, Is.EqualTo(-0.25f));
-        Assert.That(rows[1].Double, Is.EqualTo(0d));
-        Assert.That(rows[1].Decimal, Is.EqualTo(-100m));
+        await Assert.That(rows[0].Float).IsEqualTo(1.5f);
+        await Assert.That(rows[0].Double).IsEqualTo(2.25);
+        await Assert.That(rows[0].Decimal).IsEqualTo(3.125m);
+        await Assert.That(rows[1].Float).IsEqualTo(-0.25f);
+        await Assert.That(rows[1].Double).IsEqualTo(0d);
+        await Assert.That(rows[1].Decimal).IsEqualTo(-100m);
     }
 
     public class FloatRow
@@ -157,7 +156,7 @@ public class BookReaderPrimitivesTests
             {
                 Value = null
             });
-        Assert.That(rows.Select(_ => _.Value), Is.EqualTo(new int?[] {42, null}));
+        await Assert.That(rows.Select(_ => _.Value)).IsEquivalentTo(new int?[] {42, null}, CollectionOrdering.Matching);
     }
 
     public class NullableIntRow
@@ -177,8 +176,8 @@ public class BookReaderPrimitivesTests
             {
                 Value = new(1999, 12, 31, 23, 59, 59)
             });
-        Assert.That(rows[0].Value, Is.EqualTo(new DateTime(2020, 1, 15, 10, 30, 45)));
-        Assert.That(rows[1].Value, Is.EqualTo(new DateTime(1999, 12, 31, 23, 59, 59)));
+        await Assert.That(rows[0].Value).IsEqualTo(new DateTime(2020, 1, 15, 10, 30, 45));
+        await Assert.That(rows[1].Value).IsEqualTo(new DateTime(1999, 12, 31, 23, 59, 59));
     }
 
     public class DateTimeRow
@@ -198,8 +197,8 @@ public class BookReaderPrimitivesTests
             {
                 Value = new(2021, 7, 4)
             });
-        Assert.That(rows[0].Value, Is.EqualTo(new Date(2020, 1, 15)));
-        Assert.That(rows[1].Value, Is.EqualTo(new Date(2021, 7, 4)));
+        await Assert.That(rows[0].Value).IsEqualTo(new Date(2020, 1, 15));
+        await Assert.That(rows[1].Value).IsEqualTo(new Date(2021, 7, 4));
     }
 
     public class DateRow
@@ -212,7 +211,7 @@ public class BookReaderPrimitivesTests
     {
         var dto = new DateTimeOffset(2020, 5, 1, 12, 0, 0, TimeSpan.FromHours(0));
         var rows = await RoundTrip(new DateTimeOffsetRow {Value = dto});
-        Assert.That(rows[0].Value, Is.EqualTo(dto));
+        await Assert.That(rows[0].Value).IsEqualTo(dto);
     }
 
     [Test]
@@ -229,12 +228,12 @@ public class BookReaderPrimitivesTests
             new DateTimeOffsetRow {Value = nepal},
             new DateTimeOffsetRow {Value = negativeHalf});
 
-        Assert.That(rows[0].Value, Is.EqualTo(india));
-        Assert.That(rows[0].Value.Offset, Is.EqualTo(new TimeSpan(5, 30, 0)));
-        Assert.That(rows[1].Value, Is.EqualTo(nepal));
-        Assert.That(rows[1].Value.Offset, Is.EqualTo(new TimeSpan(5, 45, 0)));
-        Assert.That(rows[2].Value, Is.EqualTo(negativeHalf));
-        Assert.That(rows[2].Value.Offset, Is.EqualTo(new TimeSpan(-3, -30, 0)));
+        await Assert.That(rows[0].Value).IsEqualTo(india);
+        await Assert.That(rows[0].Value.Offset).IsEqualTo(new TimeSpan(5, 30, 0));
+        await Assert.That(rows[1].Value).IsEqualTo(nepal);
+        await Assert.That(rows[1].Value.Offset).IsEqualTo(new TimeSpan(5, 45, 0));
+        await Assert.That(rows[2].Value).IsEqualTo(negativeHalf);
+        await Assert.That(rows[2].Value.Offset).IsEqualTo(new TimeSpan(-3, -30, 0));
     }
 
     public class DateTimeOffsetRow
@@ -258,9 +257,9 @@ public class BookReaderPrimitivesTests
             {
                 Value = new(23, 59, 59)
             });
-        Assert.That(rows[0].Value, Is.EqualTo(new Time(10, 30, 45)));
-        Assert.That(rows[1].Value, Is.EqualTo(new Time(0, 0, 0)));
-        Assert.That(rows[2].Value, Is.EqualTo(new Time(23, 59, 59)));
+        await Assert.That(rows[0].Value).IsEqualTo(new Time(10, 30, 45));
+        await Assert.That(rows[1].Value).IsEqualTo(new Time(0, 0, 0));
+        await Assert.That(rows[2].Value).IsEqualTo(new Time(23, 59, 59));
     }
 
     public class TimeRow
@@ -284,9 +283,9 @@ public class BookReaderPrimitivesTests
             {
                 Value = new(0, 0, 5, 30)
             });
-        Assert.That(rows[0].Value, Is.EqualTo(new TimeSpan(1, 2, 30, 45)));
-        Assert.That(rows[1].Value, Is.EqualTo(TimeSpan.Zero));
-        Assert.That(rows[2].Value, Is.EqualTo(new TimeSpan(0, 0, 5, 30)));
+        await Assert.That(rows[0].Value).IsEqualTo(new TimeSpan(1, 2, 30, 45));
+        await Assert.That(rows[1].Value).IsEqualTo(TimeSpan.Zero);
+        await Assert.That(rows[2].Value).IsEqualTo(new TimeSpan(0, 0, 5, 30));
     }
 
     public class TimeSpanRow
@@ -299,7 +298,7 @@ public class BookReaderPrimitivesTests
     {
         var guid = Guid.Parse("11111111-2222-3333-4444-555555555555");
         var rows = await RoundTrip(new GuidRow {Value = guid});
-        Assert.That(rows[0].Value, Is.EqualTo(guid));
+        await Assert.That(rows[0].Value).IsEqualTo(guid);
     }
 
     public class GuidRow
@@ -319,8 +318,8 @@ public class BookReaderPrimitivesTests
             {
                 Value = 'z'
             });
-        Assert.That(rows[0].Value, Is.EqualTo('A'));
-        Assert.That(rows[1].Value, Is.EqualTo('z'));
+        await Assert.That(rows[0].Value).IsEqualTo('A');
+        await Assert.That(rows[1].Value).IsEqualTo('z');
     }
 
     public class CharRow
@@ -344,7 +343,7 @@ public class BookReaderPrimitivesTests
             {
                 Value = SampleEnum.Gamma
             });
-        Assert.That(rows.Select(_ => _.Value), Is.EqualTo([SampleEnum.Alpha, SampleEnum.Beta, SampleEnum.Gamma]));
+        await Assert.That(rows.Select(_ => _.Value)).IsEquivalentTo([SampleEnum.Alpha, SampleEnum.Beta, SampleEnum.Gamma], CollectionOrdering.Matching);
     }
 
     public class EnumRow
@@ -364,7 +363,7 @@ public class BookReaderPrimitivesTests
             {
                 Value = null
             });
-        Assert.That(rows.Select(_ => _.Value), Is.EqualTo(new SampleEnum?[] {SampleEnum.Beta, null}));
+        await Assert.That(rows.Select(_ => _.Value)).IsEquivalentTo(new SampleEnum?[] {SampleEnum.Beta, null}, CollectionOrdering.Matching);
     }
 
     public class NullableEnumRow
@@ -378,8 +377,8 @@ public class BookReaderPrimitivesTests
         // A `new`-shadowed member surfaces twice via reflection. Writing must not crash on the
         // duplicate name, and the most-derived declaration must win on both write and read.
         var rows = await RoundTrip(new ShadowDerived {Kept = "k", Detail = "shadowed"});
-        Assert.That(rows[0].Kept, Is.EqualTo("k"));
-        Assert.That(rows[0].Detail, Is.EqualTo("shadowed"));
+        await Assert.That(rows[0].Kept).IsEqualTo("k");
+        await Assert.That(rows[0].Detail).IsEqualTo("shadowed");
     }
 
     public class ShadowBase

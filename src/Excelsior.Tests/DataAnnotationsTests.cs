@@ -1,4 +1,5 @@
-﻿[TestFixture]
+﻿using DisplayNameAttribute = System.ComponentModel.DisplayNameAttribute;
+
 public class DataAnnotationsTests
 {
     [Test]

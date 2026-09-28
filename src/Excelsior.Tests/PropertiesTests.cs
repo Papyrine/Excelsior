@@ -1,10 +1,10 @@
-﻿// ReSharper disable UnusedAutoPropertyAccessor.Local
+﻿using DisplayNameAttribute = System.ComponentModel.DisplayNameAttribute;
+// ReSharper disable UnusedAutoPropertyAccessor.Local
 // ReSharper disable UnusedMember.Local
 // ReSharper disable ClassNeverInstantiated.Local
 // ReSharper disable NotAccessedPositionalProperty.Local
 #pragma warning disable CS9113 // Parameter is unread.
 #pragma warning disable CA1822
-[TestFixture]
 public class PropertiesTests
 {
     [ModuleInitializer]
@@ -37,27 +37,27 @@ public class PropertiesTests
     }
 
     [Test]
-    public void Properties_OnlyIncludesReadablePublicInstanceProperties()
+    public async Task Properties_OnlyIncludesReadablePublicInstanceProperties()
     {
         var items = Properties<SimpleModel>.Items;
 
-        Assert.That(items, Has.Count.EqualTo(2));
-        Assert.That(items, Has.Some.Matches<Property<SimpleModel>>(_ => _.Name == "Id"));
-        Assert.That(items, Has.Some.Matches<Property<SimpleModel>>(_ => _.Name == "Name"));
-        Assert.That(items, Has.None.Matches<Property<SimpleModel>>(_ => _.Name == "WriteOnly"));
+        await Assert.That(items).Count().IsEqualTo(2);
+        await Assert.That(items).Contains(_ => _.Name == "Id");
+        await Assert.That(items).Contains(_ => _.Name == "Name");
+        await Assert.That(items).DoesNotContain(_ => _.Name == "WriteOnly");
     }
 
     [Test]
-    public void Properties_CachesResultsAcrossInstances()
+    public async Task Properties_CachesResultsAcrossInstances()
     {
         var items1 = Properties<SimpleModel>.Items;
         var items2 = Properties<SimpleModel>.Items;
 
-        Assert.That(items1, Is.SameAs(items2));
+        await Assert.That(items1).IsSameReferenceAs(items2);
     }
 
     [Test]
-    public void Property_Get_ReturnsPropertyValue()
+    public async Task Property_Get_ReturnsPropertyValue()
     {
         var model = new SimpleModel
         {
@@ -67,12 +67,12 @@ public class PropertiesTests
         var idProp = Properties<SimpleModel>.Items.First(_ => _.Name == "Id");
         var nameProp = Properties<SimpleModel>.Items.First(_ => _.Name == "Name");
 
-        Assert.That(idProp.Get(model), Is.EqualTo(42));
-        Assert.That(nameProp.Get(model), Is.EqualTo("Test"));
+        await Assert.That(idProp.Get(model)).IsEqualTo(42);
+        await Assert.That(nameProp.Get(model)).IsEqualTo("Test");
     }
 
     [Test]
-    public void Property_Get_HandlesNullValues()
+    public async Task Property_Get_HandlesNullValues()
     {
         var model = new AttributedModel
         {
@@ -80,45 +80,45 @@ public class PropertiesTests
         };
         var prop = Properties<AttributedModel>.Items.First(_ => _.Name == "Name");
 
-        Assert.That(prop.Get(model), Is.Null);
+        await Assert.That(prop.Get(model)).IsNull();
     }
 
     [Test]
-    public void Property_ColumnAttribute_AllPropertiesRead()
+    public async Task Property_ColumnAttribute_AllPropertiesRead()
     {
         var prop = Properties<AttributedModel>.Items.First(_ => _.Name == "Price");
 
-        Assert.That(prop.DisplayName, Is.EqualTo("Custom Heading"));
-        Assert.That(prop.Order, Is.EqualTo(1));
-        Assert.That(prop.Width, Is.EqualTo(150));
-        Assert.That(prop.Format, Is.EqualTo("N2"));
-        Assert.That(prop.NullDisplay, Is.EqualTo("N/A"));
-        Assert.That(prop.IsHtml, Is.True);
+        await Assert.That(prop.DisplayName).IsEqualTo("Custom Heading");
+        await Assert.That(prop.Order).IsEqualTo(1);
+        await Assert.That(prop.Width).IsEqualTo(150);
+        await Assert.That(prop.Format).IsEqualTo("N2");
+        await Assert.That(prop.NullDisplay).IsEqualTo("N/A");
+        await Assert.That(prop.IsHtml).IsTrue();
     }
 
     [Test]
-    public void Property_DisplayAttribute_UsedForHeadingAndOrder()
+    public async Task Property_DisplayAttribute_UsedForHeadingAndOrder()
     {
         var prop = Properties<AttributedModel>.Items.First(_ => _.Name == "Name");
 
-        Assert.That(prop.DisplayName, Is.EqualTo("Display Name"));
-        Assert.That(prop.Order, Is.EqualTo(2));
+        await Assert.That(prop.DisplayName).IsEqualTo("Display Name");
+        await Assert.That(prop.Order).IsEqualTo(2);
     }
 
     [Test]
-    public void Property_DisplayNameAttribute_UsedForHeading()
+    public async Task Property_DisplayNameAttribute_UsedForHeading()
     {
         var prop = Properties<AttributedModel>.Items.First(_ => _.Name == "Description");
 
-        Assert.That(prop.DisplayName, Is.EqualTo("DisplayName Attribute"));
+        await Assert.That(prop.DisplayName).IsEqualTo("DisplayName Attribute");
     }
 
     [Test]
-    public void Property_NoAttributes_UsesCamelCaseSplit()
+    public async Task Property_NoAttributes_UsesCamelCaseSplit()
     {
         var prop = Properties<AttributedModel>.Items.First(_ => _.Name == "NoAttributes");
 
-        Assert.That(prop.DisplayName, Is.EqualTo("No Attributes"));
+        await Assert.That(prop.DisplayName).IsEqualTo("No Attributes");
     }
 
     class OrderTestModel
@@ -137,69 +137,69 @@ public class PropertiesTests
     }
 
     [Test]
-    public void Property_Order_ColumnAttributeTakesPrecedenceOverDisplay()
+    public async Task Property_Order_ColumnAttributeTakesPrecedenceOverDisplay()
     {
         var prop = Properties<OrderTestModel>.Items.First(_ => _.Name == "Third");
 
-        Assert.That(prop.Order, Is.EqualTo(3));
+        await Assert.That(prop.Order).IsEqualTo(3);
     }
 
     [Test]
-    public void Property_Order_NegativeColumnOrderIgnored()
+    public async Task Property_Order_NegativeColumnOrderIgnored()
     {
         var prop = Properties<AttributedModel>.Items.First(_ => _.Name == "NoAttributes");
 
-        Assert.That(prop.Order, Is.Null);
+        await Assert.That(prop.Order).IsNull();
     }
 
     [Test]
-    public void Property_Width_NegativeValueReturnsNull()
+    public async Task Property_Width_NegativeValueReturnsNull()
     {
         var prop = Properties<AttributedModel>.Items.First(_ => _.Name == "Name");
 
-        Assert.That(prop.Width, Is.Null);
+        await Assert.That(prop.Width).IsNull();
     }
 
     [Test]
-    public void Property_Width_PositiveValueReturned()
+    public async Task Property_Width_PositiveValueReturned()
     {
         var prop = Properties<AttributedModel>.Items.First(_ => _.Name == "Price");
 
-        Assert.That(prop.Width, Is.EqualTo(150));
+        await Assert.That(prop.Width).IsEqualTo(150);
     }
 
     [Test]
-    public void Property_Format_ReturnsNullWhenNotSet()
+    public async Task Property_Format_ReturnsNullWhenNotSet()
     {
         var prop = Properties<AttributedModel>.Items.First(_ => _.Name == "Name");
 
-        Assert.That(prop.Format, Is.Null);
+        await Assert.That(prop.Format).IsNull();
     }
 
     [Test]
-    public void Property_NullDisplay_ReturnsNullWhenNotSet()
+    public async Task Property_NullDisplay_ReturnsNullWhenNotSet()
     {
         var prop = Properties<AttributedModel>.Items.First(_ => _.Name == "Name");
 
-        Assert.That(prop.NullDisplay, Is.Null);
+        await Assert.That(prop.NullDisplay).IsNull();
     }
 
     [Test]
-    public void Property_IsHtml_DefaultsToFalse()
+    public async Task Property_IsHtml_DefaultsToFalse()
     {
         var prop = Properties<AttributedModel>.Items.First(_ => _.Name == "Name");
 
-        Assert.That(prop.IsHtml, Is.False);
+        await Assert.That(prop.IsHtml).IsFalse();
     }
 
     [Test]
-    public void Property_Type_ReflectsPropertyType()
+    public async Task Property_Type_ReflectsPropertyType()
     {
         var idProp = Properties<SimpleModel>.Items.First(_ => _.Name == "Id");
         var nameProp = Properties<SimpleModel>.Items.First(_ => _.Name == "Name");
 
-        Assert.That(idProp.Type, Is.EqualTo(typeof(int)));
-        Assert.That(nameProp.Type, Is.EqualTo(typeof(string)));
+        await Assert.That(idProp.Type).IsEqualTo(typeof(int));
+        await Assert.That(nameProp.Type).IsEqualTo(typeof(string));
     }
 
     class NumericModel
@@ -214,25 +214,25 @@ public class PropertiesTests
     }
 
     [Test]
-    public void Property_IsNumber_DetectsNumericTypes()
+    public async Task Property_IsNumber_DetectsNumericTypes()
     {
         var props = Properties<NumericModel>.Items;
 
-        Assert.That(props.First(_ => _.Name == "Integer").IsNumber, Is.True);
-        Assert.That(props.First(_ => _.Name == "Long").IsNumber, Is.True);
-        Assert.That(props.First(_ => _.Name == "Decimal").IsNumber, Is.True);
-        Assert.That(props.First(_ => _.Name == "Double").IsNumber, Is.True);
-        Assert.That(props.First(_ => _.Name == "Float").IsNumber, Is.True);
-        Assert.That(props.First(_ => _.Name == "Byte").IsNumber, Is.True);
-        Assert.That(props.First(_ => _.Name == "NotNumeric").IsNumber, Is.False);
+        await Assert.That(props.First(_ => _.Name == "Integer").IsNumber).IsTrue();
+        await Assert.That(props.First(_ => _.Name == "Long").IsNumber).IsTrue();
+        await Assert.That(props.First(_ => _.Name == "Decimal").IsNumber).IsTrue();
+        await Assert.That(props.First(_ => _.Name == "Double").IsNumber).IsTrue();
+        await Assert.That(props.First(_ => _.Name == "Float").IsNumber).IsTrue();
+        await Assert.That(props.First(_ => _.Name == "Byte").IsNumber).IsTrue();
+        await Assert.That(props.First(_ => _.Name == "NotNumeric").IsNumber).IsFalse();
     }
 
     [Test]
-    public void Property_Name_MatchesPropertyName()
+    public async Task Property_Name_MatchesPropertyName()
     {
         var prop = Properties<SimpleModel>.Items.First(_ => _.Name == "Id");
 
-        Assert.That(prop.Name, Is.EqualTo("Id"));
+        await Assert.That(prop.Name).IsEqualTo("Id");
     }
 
     class ComplexModel
@@ -255,28 +255,28 @@ public class PropertiesTests
     }
 
     [Test]
-    public void Property_ComplexScenario_AllAttributesCombine()
+    public async Task Property_ComplexScenario_AllAttributesCombine()
     {
         var nameProp = Properties<ComplexModel>.Items.First(_ => _.Name == "Name");
 
-        Assert.That(nameProp.DisplayName, Is.EqualTo("Full Name"));
-        Assert.That(nameProp.Order, Is.EqualTo(1));
-        Assert.That(nameProp.Width, Is.EqualTo(200));
-        Assert.That(nameProp.Format, Is.Null);
-        Assert.That(nameProp.IsHtml, Is.False);
+        await Assert.That(nameProp.DisplayName).IsEqualTo("Full Name");
+        await Assert.That(nameProp.Order).IsEqualTo(1);
+        await Assert.That(nameProp.Width).IsEqualTo(200);
+        await Assert.That(nameProp.Format).IsNull();
+        await Assert.That(nameProp.IsHtml).IsFalse();
     }
 
     [Test]
-    public void Properties_ExcludesNonPublicProperties()
+    public async Task Properties_ExcludesNonPublicProperties()
     {
         var items = Properties<ComplexModel>.Items;
 
-        Assert.That(items, Has.None.Matches<Property<ComplexModel>>(_ => _.Name == "Secret"));
-        Assert.That(items, Has.None.Matches<Property<ComplexModel>>(_ => _.Name == "ProtectedInternal"));
+        await Assert.That(items).DoesNotContain(_ => _.Name == "Secret");
+        await Assert.That(items).DoesNotContain(_ => _.Name == "ProtectedInternal");
     }
 
     [Test]
-    public void Property_Get_WorksWithNullableTypes()
+    public async Task Property_Get_WorksWithNullableTypes()
     {
         var model = new ComplexModel
         {
@@ -284,11 +284,11 @@ public class PropertiesTests
         };
         var prop = Properties<ComplexModel>.Items.First(_ => _.Name == "Amount");
 
-        Assert.That(prop.Get(model), Is.EqualTo(123.45m));
+        await Assert.That(prop.Get(model)).IsEqualTo(123.45m);
     }
 
     [Test]
-    public void Property_Get_ReturnsNullForNullableWithNoValue()
+    public async Task Property_Get_ReturnsNullForNullableWithNoValue()
     {
         var model = new ComplexModel
         {
@@ -296,7 +296,7 @@ public class PropertiesTests
         };
         var prop = Properties<ComplexModel>.Items.First(_ => _.Name == "Amount");
 
-        Assert.That(prop.Get(model), Is.Null);
+        await Assert.That(prop.Get(model)).IsNull();
     }
 
     record RecordPrimaryConstructorModel(
@@ -446,7 +446,7 @@ public class PropertiesTests
     }
 
     [Test]
-    public void Properties_NewShadowedMemberKeepsMostDerived()
+    public async Task Properties_NewShadowedMemberKeepsMostDerived()
     {
         var items = Properties<ShadowDerived>.Items;
 
@@ -454,8 +454,8 @@ public class PropertiesTests
         // (string) survives, so column registration neither crashes on the duplicate name nor binds
         // the hidden base member.
         var detail = items.Where(_ => _.Name == "Detail").ToList();
-        Assert.That(detail, Has.Count.EqualTo(1));
-        Assert.That(detail[0].Type, Is.EqualTo(typeof(string)));
-        Assert.That(items, Has.Some.Matches<Property<ShadowDerived>>(_ => _.Name == "Kept"));
+        await Assert.That(detail).Count().IsEqualTo(1);
+        await Assert.That(detail[0].Type).IsEqualTo(typeof(string));
+        await Assert.That(items).Contains(_ => _.Name == "Kept");
     }
 }

@@ -1,4 +1,3 @@
-[TestFixture]
 public class DictionarySheetTests
 {
     [Test]
@@ -187,42 +186,43 @@ public class DictionarySheetTests
 
         #endregion
 
-        Assert.That(first["Name"], Is.EqualTo("Alice"));
-        Assert.That(first["HireDate"], Is.EqualTo(new Date(2020, 1, 15)));
-        Assert.That(first["Status"], Is.EqualTo(EmployeeStatus.FullTime));
+        await Assert.That(first["Name"]).IsEqualTo("Alice");
+        await Assert.That(first["HireDate"]).IsEqualTo(new Date(2020, 1, 15));
+        await Assert.That(first["Status"]).IsEqualTo(EmployeeStatus.FullTime);
     }
 
     [Test]
-    public void DuplicateKeyThrows()
+    public async Task DuplicateKeyThrows()
     {
         var builder = new BookBuilder();
         var sheet = builder.AddDictionarySheet([])
             .Column<string>("Name");
 
-        var ex = Assert.Throws<Exception>(() => sheet.Column<string>("Name"));
-        Assert.That(ex!.Message, Does.Contain("already contains a column"));
+        var ex = await Assert.That(() => sheet.Column<string>("Name")).ThrowsExactly<Exception>();
+        await Assert.That(ex!.Message).Contains("already contains a column");
     }
 
     [Test]
-    public void CaseInsensitiveDuplicateKeyThrows()
+    public async Task CaseInsensitiveDuplicateKeyThrows()
     {
         var builder = new BookBuilder();
         var sheet = builder.AddDictionarySheet([])
             .Column<string>("Name");
 
-        var ex = Assert.Throws<Exception>(() => sheet.Column<string>("NAME"));
-        Assert.That(ex!.Message, Does.Contain("already contains a column named 'Name'"));
+        var ex = await Assert.That(() => sheet.Column<string>("NAME")).ThrowsExactly<Exception>();
+        await Assert.That(ex!.Message).Contains("already contains a column named 'Name'");
     }
 
-    [TestCase(" Name")]
-    [TestCase("Name ")]
-    [TestCase("\tName")]
-    public void WhitespaceKeyThrows(string key)
+    [Test]
+    [Arguments(" Name")]
+    [Arguments("Name ")]
+    [Arguments("\tName")]
+    public async Task WhitespaceKeyThrows(string key)
     {
         var builder = new BookBuilder();
         var sheet = builder.AddDictionarySheet([]);
 
-        var ex = Assert.Throws<ArgumentException>(() => sheet.Column<string>(key));
-        Assert.That(ex!.Message, Does.Contain("must not have leading or trailing whitespace"));
+        var ex = await Assert.That(() => sheet.Column<string>(key)).ThrowsExactly<ArgumentException>();
+        await Assert.That(ex!.Message).Contains("must not have leading or trailing whitespace");
     }
 }

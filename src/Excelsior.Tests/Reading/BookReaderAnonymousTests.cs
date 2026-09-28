@@ -1,4 +1,3 @@
-[TestFixture]
 public class BookReaderAnonymousTests
 {
     [Test]
@@ -29,13 +28,13 @@ public class BookReaderAnonymousTests
 
         #endregion
 
-        Assert.That(first["Employee ID"], Is.EqualTo(1));
-        Assert.That(first["Full Name"], Is.EqualTo("John Doe"));
-        Assert.That(first["Email Address"], Is.EqualTo("john@company.com"));
-        Assert.That(first["Hire Date"], Is.EqualTo(new Date(2020, 1, 15)));
-        Assert.That(first["Annual Salary"], Is.EqualTo(75000));
-        Assert.That(first["IsActive"], Is.EqualTo(true));
-        Assert.That(first["Status"], Is.EqualTo(EmployeeStatus.FullTime));
+        await Assert.That(first["Employee ID"]).IsEqualTo(1);
+        await Assert.That(first["Full Name"]).IsEqualTo("John Doe");
+        await Assert.That(first["Email Address"]).IsEqualTo("john@company.com");
+        await Assert.That(first["Hire Date"]).IsEqualTo(new Date(2020, 1, 15));
+        await Assert.That(first["Annual Salary"]).IsEqualTo(75000);
+        await Assert.That((bool?)first["IsActive"]).IsTrue();
+        await Assert.That(first["Status"]).IsEqualTo(EmployeeStatus.FullTime);
     }
 
     public class Department
@@ -80,44 +79,47 @@ public class BookReaderAnonymousTests
 
         reader.Convert(stream);
 
-        Assert.That(staff.Rows[0]["Employee ID"], Is.EqualTo(1));
-        Assert.That(staff.Rows[0]["Full Name"], Is.EqualTo("John Doe"));
-        Assert.That(departments.Rows.Select(_ => _["Name"]), Is.EqualTo(new object[] { "Eng", "Sales" }));
-        Assert.That(departments.Rows.Select(_ => _["HeadCount"]), Is.EqualTo(new object[] { 12, 7 }));
+        await Assert.That(staff.Rows[0]["Employee ID"]).IsEqualTo(1);
+        await Assert.That(staff.Rows[0]["Full Name"]).IsEqualTo("John Doe");
+        await Assert.That(departments.Rows.Select(_ => _["Name"]))
+            .IsEquivalentTo(new object?[] { "Eng", "Sales" }, CollectionOrdering.Matching);
+        await Assert.That(departments.Rows.Select(_ => _["HeadCount"]))
+            .IsEquivalentTo(new object?[] { 12, 7 }, CollectionOrdering.Matching);
         #endregion
     }
 
     [Test]
-    public void DuplicateColumnThrows()
+    public async Task DuplicateColumnThrows()
     {
         var reader = new BookReader();
         var sheet = reader.AddSheet("Staff");
         sheet.Column<string>("Name");
 
-        var ex = Assert.Throws<Exception>(() => sheet.Column<string>("Name"));
-        Assert.That(ex!.Message, Does.Contain("already contains a column"));
+        var ex = await Assert.That(() => sheet.Column<string>("Name")).ThrowsExactly<Exception>();
+        await Assert.That(ex!.Message).Contains("already contains a column");
     }
 
     [Test]
-    public void CaseInsensitiveDuplicateColumnThrows()
+    public async Task CaseInsensitiveDuplicateColumnThrows()
     {
         var reader = new BookReader();
         var sheet = reader.AddSheet("Staff");
         sheet.Column<string>("Name");
 
-        var ex = Assert.Throws<Exception>(() => sheet.Column<string>("NAME"));
-        Assert.That(ex!.Message, Does.Contain("already contains a column named 'Name'"));
+        var ex = await Assert.That(() => sheet.Column<string>("NAME")).ThrowsExactly<Exception>();
+        await Assert.That(ex!.Message).Contains("already contains a column named 'Name'");
     }
 
-    [TestCase(" Name")]
-    [TestCase("Name ")]
-    [TestCase("\tName")]
-    public void WhitespaceColumnThrows(string name)
+    [Test]
+    [Arguments(" Name")]
+    [Arguments("Name ")]
+    [Arguments("\tName")]
+    public async Task WhitespaceColumnThrows(string name)
     {
         var reader = new BookReader();
         var sheet = reader.AddSheet("Staff");
 
-        var ex = Assert.Throws<ArgumentException>(() => sheet.Column<string>(name));
-        Assert.That(ex!.Message, Does.Contain("must not have leading or trailing whitespace"));
+        var ex = await Assert.That(() => sheet.Column<string>(name)).ThrowsExactly<ArgumentException>();
+        await Assert.That(ex!.Message).Contains("must not have leading or trailing whitespace");
     }
 }

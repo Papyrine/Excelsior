@@ -1,5 +1,4 @@
-﻿[TestFixture]
-public class EnumerableStringTests
+﻿public class EnumerableStringTests
 {
     #region EnumerableModel
 

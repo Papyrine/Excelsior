@@ -1,6 +1,5 @@
 using DocumentFormat.OpenXml.Packaging;
 
-[TestFixture]
 public class DocumentPropertiesTests
 {
     [Test]
@@ -55,11 +54,11 @@ public class DocumentPropertiesTests
         using var stream = await builder.ToMemoryStream();
         using var document = SpreadsheetDocument.Open(stream, false);
 
-        Assert.That(document.PackageProperties.Title, Is.EqualTo("second"));
+        await Assert.That(document.PackageProperties.Title).IsEqualTo("second");
     }
 
     [Test]
-    public void SetProperties_UnsupportedCustomType_Throws()
+    public async Task SetProperties_UnsupportedCustomType_Throws()
     {
         var builder = new BookBuilder();
         builder.AddSheet(SampleData.Employees());
@@ -73,8 +72,8 @@ public class DocumentPropertiesTests
             });
 
         // The unsupported value is only encountered when the workbook is built.
-        var exception = Assert.ThrowsAsync<ArgumentException>(async () => await builder.ToMemoryStream());
-        Assert.That(exception!.Message, Does.Contain("Bad").And.Contain("System.Object"));
+        var exception = await Assert.That(async () => await builder.ToMemoryStream()).ThrowsExactly<ArgumentException>();
+        await Assert.That(exception!.Message).Contains("Bad").And.Contains("System.Object");
     }
 
     // Reading a property without a Convert: the sheets are never parsed, so an upload can be routed
@@ -104,13 +103,13 @@ public class DocumentPropertiesTests
 
         #endregion
 
-        Assert.Multiple(() =>
+        using (Assert.Multiple())
         {
-            Assert.That(properties["DatasetId"], Is.EqualTo(datasetId.ToString()));
-            Assert.That(properties["Project"], Is.EqualTo("Excelsior"));
+            await Assert.That(properties["DatasetId"]).IsEqualTo(datasetId.ToString());
+            await Assert.That(properties["Project"]).IsEqualTo("Excelsior");
             // Case-insensitive, matching the instance members.
-            Assert.That(properties["datasetid"], Is.EqualTo(datasetId.ToString()));
-        });
+            await Assert.That(properties["datasetid"]).IsEqualTo(datasetId.ToString());
+        }
     }
 
     // A workbook with no custom part reads as empty rather than throwing.
@@ -121,7 +120,7 @@ public class DocumentPropertiesTests
         builder.AddSheet(SampleData.Employees());
         using var stream = await builder.ToMemoryStream();
 
-        Assert.That(BookReader.ReadCustomProperties(stream), Is.Empty);
+        await Assert.That(BookReader.ReadCustomProperties(stream)).IsEmpty();
     }
 
     [Test]
@@ -158,16 +157,16 @@ public class DocumentPropertiesTests
 
         #endregion
 
-        Assert.Multiple(() =>
+        using (Assert.Multiple())
         {
-            Assert.That(id, Is.EqualTo(datasetId));
-            Assert.That(revision, Is.EqualTo(3));
-            Assert.That(reader.GetCustomProperty<string>("Project"), Is.EqualTo("Excelsior"));
-            Assert.That(reader.GetCustomProperty<bool>("Reviewed"), Is.True);
-            Assert.That(reader.GetCustomProperty<double>("Score"), Is.EqualTo(9.5));
+            await Assert.That(id).IsEqualTo(datasetId);
+            await Assert.That(revision).IsEqualTo(3);
+            await Assert.That(reader.GetCustomProperty<string>("Project")).IsEqualTo("Excelsior");
+            await Assert.That(reader.GetCustomProperty<bool>("Reviewed")).IsTrue();
+            await Assert.That(reader.GetCustomProperty<double>("Score")).IsEqualTo(9.5);
             // Names are matched case-insensitively, mirroring Excel and sheet-name lookup.
-            Assert.That(reader.GetCustomProperty<Guid>("datasetid"), Is.EqualTo(datasetId));
-        });
+            await Assert.That(reader.GetCustomProperty<Guid>("datasetid")).IsEqualTo(datasetId);
+        }
     }
 
     [Test]
@@ -182,15 +181,15 @@ public class DocumentPropertiesTests
         reader.AddSheet<Employee>();
         reader.Convert(stream);
 
-        Assert.Multiple(() =>
+        using (Assert.Multiple())
         {
-            Assert.That(reader.TryGetCustomProperty<string>("Project", out var present), Is.True);
-            Assert.That(present, Is.EqualTo("Excelsior"));
+            await Assert.That(reader.TryGetCustomProperty<string>("Project", out var present)).IsTrue();
+            await Assert.That(present).IsEqualTo("Excelsior");
             // Absent property.
-            Assert.That(reader.TryGetCustomProperty<string>("Missing", out _), Is.False);
+            await Assert.That(reader.TryGetCustomProperty<string>("Missing", out _)).IsFalse();
             // Present, but its value is not convertible to the requested type.
-            Assert.That(reader.TryGetCustomProperty<Guid>("Project", out _), Is.False);
-        });
+            await Assert.That(reader.TryGetCustomProperty<Guid>("Project", out _)).IsFalse();
+        }
     }
 
     [Test]
@@ -205,15 +204,15 @@ public class DocumentPropertiesTests
         reader.AddSheet<Employee>();
         reader.Convert(stream);
 
-        var exception = Assert.Throws<Exception>(() => reader.GetCustomProperty<string>("Missing"));
-        Assert.That(exception!.Message, Does.Contain("Missing"));
+        var exception = await Assert.That(() => reader.GetCustomProperty<string>("Missing")).ThrowsExactly<Exception>();
+        await Assert.That(exception!.Message).Contains("Missing");
     }
 
     [Test]
-    public void GetCustomProperty_BeforeConvert_Throws()
+    public async Task GetCustomProperty_BeforeConvert_Throws()
     {
         var reader = new BookReader();
-        var exception = Assert.Throws<Exception>(() => reader.GetCustomProperty<Guid>("DatasetId"));
-        Assert.That(exception!.Message, Does.Contain("Convert"));
+        var exception = await Assert.That(() => reader.GetCustomProperty<Guid>("DatasetId")).ThrowsExactly<Exception>();
+        await Assert.That(exception!.Message).Contains("Convert");
     }
 }

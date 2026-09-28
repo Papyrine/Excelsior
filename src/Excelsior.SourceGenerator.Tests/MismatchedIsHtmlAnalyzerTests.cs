@@ -1,11 +1,10 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-[TestFixture]
 public class MismatchedIsHtmlAnalyzerTests
 {
     [Test]
-    public void Mismatch_OnProperty()
+    public async Task Mismatch_OnProperty()
     {
         var source = """
             using Excelsior;
@@ -21,12 +20,12 @@ public class MismatchedIsHtmlAnalyzerTests
 
         var diagnostics = GetDiagnostics(source);
 
-        AreEqual(1, diagnostics.Length);
-        AreEqual("EXCEL003", diagnostics[0].Id);
+        await Assert.That(diagnostics.Length).IsEqualTo(1);
+        await Assert.That(diagnostics[0].Id).IsEqualTo("EXCEL003");
     }
 
     [Test]
-    public void Mismatch_OnRecordParameter()
+    public async Task Mismatch_OnRecordParameter()
     {
         var source = """
             using Excelsior;
@@ -37,12 +36,12 @@ public class MismatchedIsHtmlAnalyzerTests
 
         var diagnostics = GetDiagnostics(source);
 
-        AreEqual(1, diagnostics.Length);
-        AreEqual("EXCEL003", diagnostics[0].Id);
+        await Assert.That(diagnostics.Length).IsEqualTo(1);
+        await Assert.That(diagnostics[0].Id).IsEqualTo("EXCEL003");
     }
 
     [Test]
-    public void Mismatch_OnField()
+    public async Task Mismatch_OnField()
     {
         var source = """
             using Excelsior;
@@ -58,12 +57,12 @@ public class MismatchedIsHtmlAnalyzerTests
 
         var diagnostics = GetDiagnostics(source);
 
-        AreEqual(1, diagnostics.Length);
-        AreEqual("EXCEL003", diagnostics[0].Id);
+        await Assert.That(diagnostics.Length).IsEqualTo(1);
+        await Assert.That(diagnostics[0].Id).IsEqualTo("EXCEL003");
     }
 
     [Test]
-    public void Mismatch_CaseInsensitive()
+    public async Task Mismatch_CaseInsensitive()
     {
         var source = """
             using Excelsior;
@@ -79,12 +78,12 @@ public class MismatchedIsHtmlAnalyzerTests
 
         var diagnostics = GetDiagnostics(source);
 
-        AreEqual(1, diagnostics.Length);
-        AreEqual("EXCEL003", diagnostics[0].Id);
+        await Assert.That(diagnostics.Length).IsEqualTo(1);
+        await Assert.That(diagnostics[0].Id).IsEqualTo("EXCEL003");
     }
 
     [Test]
-    public void ColumnTrueWithStringSyntax_NoDiagnostic()
+    public async Task ColumnTrueWithStringSyntax_NoDiagnostic()
     {
         var source = """
             using Excelsior;
@@ -100,11 +99,11 @@ public class MismatchedIsHtmlAnalyzerTests
 
         var diagnostics = GetDiagnostics(source);
 
-        AreEqual(0, diagnostics.Length);
+        await Assert.That(diagnostics.Length).IsEqualTo(0);
     }
 
     [Test]
-    public void OnlyStringSyntax_NoDiagnostic()
+    public async Task OnlyStringSyntax_NoDiagnostic()
     {
         var source = """
             using System.Diagnostics.CodeAnalysis;
@@ -118,11 +117,11 @@ public class MismatchedIsHtmlAnalyzerTests
 
         var diagnostics = GetDiagnostics(source);
 
-        AreEqual(0, diagnostics.Length);
+        await Assert.That(diagnostics.Length).IsEqualTo(0);
     }
 
     [Test]
-    public void NonHtmlStringSyntax_NoDiagnostic()
+    public async Task NonHtmlStringSyntax_NoDiagnostic()
     {
         var source = """
             using Excelsior;
@@ -138,7 +137,7 @@ public class MismatchedIsHtmlAnalyzerTests
 
         var diagnostics = GetDiagnostics(source);
 
-        AreEqual(0, diagnostics.Length);
+        await Assert.That(diagnostics.Length).IsEqualTo(0);
     }
 
     static ImmutableArray<Diagnostic> GetDiagnostics(string source)

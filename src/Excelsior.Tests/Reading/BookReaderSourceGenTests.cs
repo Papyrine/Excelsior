@@ -1,4 +1,3 @@
-[TestFixture]
 public class BookReaderSourceGenTests
 {
     static async Task<MemoryStream> Write<T>(params IEnumerable<T> rows)
@@ -19,12 +18,12 @@ public class BookReaderSourceGenTests
     }
 
     [Test]
-    public void ActivatorRegisteredForSheetModelType() =>
-        Assert.That(GeneratedActivators.TryGet<SourceGenInitModel>(), Is.Not.Null);
+    public async Task ActivatorRegisteredForSheetModelType() =>
+        await Assert.That(GeneratedActivators.TryGet<SourceGenInitModel>()).IsNotNull();
 
     [Test]
-    public void ActivatorNotRegisteredForPlainType() =>
-        Assert.That(GeneratedActivators.TryGet<UnattributedModel>(), Is.Null);
+    public async Task ActivatorNotRegisteredForPlainType() =>
+        await Assert.That(GeneratedActivators.TryGet<UnattributedModel>()).IsNull();
 
     public class UnattributedModel
     {
@@ -50,8 +49,8 @@ public class BookReaderSourceGenTests
         var sheet = reader.AddSheet<SourceGenInitModel>();
         reader.Convert(stream);
 
-        Assert.That(sheet.Rows.Select(_ => _.Name), Is.EqualTo(["Alice", "Bob"]));
-        Assert.That(sheet.Rows.Select(_ => _.Age), Is.EqualTo([30, 25]));
+        await Assert.That(sheet.Rows.Select(_ => _.Name)).IsEquivalentTo(["Alice", "Bob"], CollectionOrdering.Matching);
+        await Assert.That(sheet.Rows.Select(_ => _.Age)).IsEquivalentTo([30, 25], CollectionOrdering.Matching);
     }
 
     [SheetModel]
@@ -68,13 +67,11 @@ public class BookReaderSourceGenTests
         var sheet = reader.AddSheet<SourceGenRecord>();
         reader.Convert(stream);
 
-        Assert.That(
-            sheet.Rows,
-            Is.EqualTo<SourceGenRecord>(
+        await Assert.That(sheet.Rows).IsEquivalentTo(
             [
-                new("Alice", 30),
+                new SourceGenRecord("Alice", 30),
                 new("Bob", 25)
-            ]));
+            ], CollectionOrdering.Matching);
     }
 
     [SheetModel]
@@ -103,7 +100,7 @@ public class BookReaderSourceGenTests
         var sheet = reader.AddSheet<SourceGenSetterModel>();
         reader.Convert(stream);
 
-        Assert.That(sheet.Rows.Select(_ => _.Name), Is.EqualTo(["Alice", "Bob"]));
-        Assert.That(sheet.Rows.Select(_ => _.Age), Is.EqualTo([30, 25]));
+        await Assert.That(sheet.Rows.Select(_ => _.Name)).IsEquivalentTo(["Alice", "Bob"], CollectionOrdering.Matching);
+        await Assert.That(sheet.Rows.Select(_ => _.Age)).IsEquivalentTo([30, 25], CollectionOrdering.Matching);
     }
 }

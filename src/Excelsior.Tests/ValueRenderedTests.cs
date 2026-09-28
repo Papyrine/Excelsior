@@ -1,5 +1,4 @@
-﻿[TestFixture]
-public class ValueRenderedTests
+﻿public class ValueRenderedTests
 {
     public enum AnEnum
     {

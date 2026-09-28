@@ -1,121 +1,120 @@
-﻿[TestFixture]
-public class EnumExtensionsTests
+﻿public class EnumExtensionsTests
 {
     [Test]
-    public void Humanize_WithDescriptionOnly_ReturnsDescription()
+    public async Task Humanize_WithDescriptionOnly_ReturnsDescription()
     {
         var result = TestEnum.WithDescription.Humanize();
 
-        Assert.That(result, Is.EqualTo("This is the description"));
+        await Assert.That(result).IsEqualTo("This is the description");
     }
 
     [Test]
-    public void Humanize_WithDescriptionAndName_ReturnsDescription()
+    public async Task Humanize_WithDescriptionAndName_ReturnsDescription()
     {
         var result = TestEnum.WithBoth.Humanize();
 
-        Assert.That(result, Is.EqualTo("Description wins"));
+        await Assert.That(result).IsEqualTo("Description wins");
     }
 
     [Test]
-    public void Humanize_WithNameOnly_ReturnsName()
+    public async Task Humanize_WithNameOnly_ReturnsName()
     {
         var result = TestEnum.WithNameOnly.Humanize();
 
-        Assert.That(result, Is.EqualTo("Custom Name"));
+        await Assert.That(result).IsEqualTo("Custom Name");
     }
 
     [Test]
-    public void Humanize_WithEmptyDisplayAttribute_FallsBackToHumanization()
+    public async Task Humanize_WithEmptyDisplayAttribute_FallsBackToHumanization()
     {
         var result = TestEnum.EmptyDisplay.Humanize();
 
-        Assert.That(result, Is.EqualTo("Empty display"));
+        await Assert.That(result).IsEqualTo("Empty display");
     }
 
     [Test]
-    public void Humanize_PascalCase_AddsSpacesAndLowercases()
+    public async Task Humanize_PascalCase_AddsSpacesAndLowercases()
     {
         var result = TestEnum.AntiqueWhite.Humanize();
 
-        Assert.That(result, Is.EqualTo("Antique white"));
+        await Assert.That(result).IsEqualTo("Antique white");
     }
 
     [Test]
-    public void Humanize_MultipleCamelCaseWords_AddsSpacesBetweenEach()
+    public async Task Humanize_MultipleCamelCaseWords_AddsSpacesBetweenEach()
     {
         var result = TestEnum.DeepSkyBlue.Humanize();
 
-        Assert.That(result, Is.EqualTo("Deep sky blue"));
+        await Assert.That(result).IsEqualTo("Deep sky blue");
     }
 
     [Test]
-    public void Humanize_SingleWord_ReturnsAsIs()
+    public async Task Humanize_SingleWord_ReturnsAsIs()
     {
         var result = TestEnum.Red.Humanize();
 
-        Assert.That(result, Is.EqualTo("Red"));
+        await Assert.That(result).IsEqualTo("Red");
     }
 
     [Test]
-    public void Humanize_CalledTwice_ReturnsSameInstance()
+    public async Task Humanize_CalledTwice_ReturnsSameInstance()
     {
         var first = TestEnum.AntiqueWhite.Humanize();
         var second = TestEnum.AntiqueWhite.Humanize();
 
-        Assert.That(ReferenceEquals(first, second), Is.True, "Should return cached instance");
+        await Assert.That(ReferenceEquals(first, second)).IsTrue().Because("Should return cached instance");
     }
 
     [Test]
-    public void Humanize_DifferentEnumTypes_DoNotCollide()
+    public async Task Humanize_DifferentEnumTypes_DoNotCollide()
     {
         var colorResult = TestEnum.Red.Humanize();
         var shapeResult = AnotherEnum.Red.Humanize();
 
-        Assert.That(colorResult, Is.EqualTo("Red"));
-        Assert.That(shapeResult, Is.EqualTo("Red"));
+        await Assert.That(colorResult).IsEqualTo("Red");
+        await Assert.That(shapeResult).IsEqualTo("Red");
     }
 
     [Test]
-    public void Humanize_AllUppercase_ReturnsUnchanged()
+    public async Task Humanize_AllUppercase_ReturnsUnchanged()
     {
         var result = TestEnum.RGB.Humanize();
 
-        Assert.That(result, Is.EqualTo("RGB"));
+        await Assert.That(result).IsEqualTo("RGB");
     }
 
     [Test]
-    public void Humanize_AllUppercaseAcronym_ReturnsUnchanged()
+    public async Task Humanize_AllUppercaseAcronym_ReturnsUnchanged()
     {
         var result = TestEnum.HTML.Humanize();
 
-        Assert.That(result, Is.EqualTo("HTML"));
+        await Assert.That(result).IsEqualTo("HTML");
     }
 
     [Test]
-    public void Humanize_MixedWithAcronym_AddsSpaces()
+    public async Task Humanize_MixedWithAcronym_AddsSpaces()
     {
         var result = TestEnum.HTMLColor.Humanize();
 
-        Assert.That(result, Is.EqualTo("H t m l color"));
+        await Assert.That(result).IsEqualTo("H t m l color");
     }
 
     [Test]
-    [TestCase(TestEnum.Red, "Red")]
-    [TestCase(TestEnum.AntiqueWhite, "Antique white")]
-    [TestCase(TestEnum.DeepSkyBlue, "Deep sky blue")]
-    [TestCase(TestEnum.WithDescription, "This is the description")]
-    [TestCase(TestEnum.WithBoth, "Description wins")]
-    [TestCase(TestEnum.WithNameOnly, "Custom Name")]
-    public void Humanize_VariousValues_ReturnsExpectedResult(TestEnum value, string expected)
+    [Arguments(TestEnum.Red, "Red")]
+    [Arguments(TestEnum.AntiqueWhite, "Antique white")]
+    [Arguments(TestEnum.DeepSkyBlue, "Deep sky blue")]
+    [Arguments(TestEnum.WithDescription, "This is the description")]
+    [Arguments(TestEnum.WithBoth, "Description wins")]
+    [Arguments(TestEnum.WithNameOnly, "Custom Name")]
+    public async Task Humanize_VariousValues_ReturnsExpectedResult(TestEnum value, string expected)
     {
         var result = value.Humanize();
 
-        Assert.That(result, Is.EqualTo(expected));
+        await Assert.That(result).IsEqualTo(expected);
     }
 
     [Test]
-    public void Humanize_ThreadSafety_NoExceptions()
+    public async Task Humanize_ThreadSafety_NoExceptions()
     {
         var exceptions = new List<Exception>();
         var threads = new List<Thread>();
@@ -151,33 +150,33 @@ public class EnumExtensionsTests
             thread.Join();
         }
 
-        Assert.That(exceptions, Is.Empty, $"Exceptions occurred: {string.Join(", ", exceptions.Select(_ => _.Message))}");
+        await Assert.That(exceptions).IsEmpty().Because($"Exceptions occurred: {string.Join(", ", exceptions.Select(_ => _.Message))}");
     }
 
     [Test]
-    public void Humanize_StartsWithLowercase_PreservesFirstLetter()
+    public async Task Humanize_StartsWithLowercase_PreservesFirstLetter()
     {
         var result = EdgeCaseEnum.lowercase.Humanize();
 
-        Assert.That(result, Is.EqualTo("lowercase"));
+        await Assert.That(result).IsEqualTo("lowercase");
     }
 
     [Test]
-    public void Humanize_AllUppercaseWord_ReturnsUnchanged()
+    public async Task Humanize_AllUppercaseWord_ReturnsUnchanged()
     {
         var result = EdgeCaseEnum.UPPERCASE.Humanize();
 
-        Assert.That(result, Is.EqualTo("UPPERCASE"));
+        await Assert.That(result).IsEqualTo("UPPERCASE");
     }
 
     [Test]
-    public void Humanize_DisplayAttributePriority_DescriptionOverName()
+    public async Task Humanize_DisplayAttributePriority_DescriptionOverName()
     {
         // Verify that when both Description and Name are set, Description is used
         var result = TestEnum.WithBoth.Humanize();
 
-        Assert.That(result, Is.Not.EqualTo("Name comes second"));
-        Assert.That(result, Is.EqualTo("Description wins"));
+        await Assert.That(result).IsNotEqualTo("Name comes second");
+        await Assert.That(result).IsEqualTo("Description wins");
     }
 
     public enum TestEnum

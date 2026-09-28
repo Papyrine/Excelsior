@@ -1,11 +1,11 @@
-[TestFixture]
+[NotInParallel]
 public class ValueRendererNullDisplayForEnum
 {
-    [SetUp]
+    [Before(HookType.Test)]
     public void Setup() =>
         ValueRenderer.NullDisplayFor<Enum>("Unknown");
 
-    [TearDown]
+    [After(HookType.Test)]
     public void Teardown() =>
         ValueRenderer.Reset();
 

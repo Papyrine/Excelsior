@@ -2,7 +2,6 @@ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 
-[TestFixture]
 public class BookReaderErrorTests
 {
     public class StringSource
@@ -47,11 +46,11 @@ public class BookReaderErrorTests
         var reader = new BookReader();
         reader.AddSheet<IntTarget>();
 
-        var exception = Assert.Throws<ReadException>(() => reader.Convert(stream))!;
-        var errors = exception.Errors;
-        Assert.That(errors, Has.Count.EqualTo(1));
-        Assert.That(errors[0].ColumnName, Is.EqualTo("Number"));
-        Assert.That(errors[0].Message, Does.Contain("not-a-number"));
+        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>()!;
+        var errors = exception!.Errors;
+        await Assert.That(errors).Count().IsEqualTo(1);
+        await Assert.That(errors[0].ColumnName).IsEqualTo("Number");
+        await Assert.That(errors[0].Message).Contains("not-a-number");
     }
 
     [Test]
@@ -74,15 +73,15 @@ public class BookReaderErrorTests
 
         #endregion
 
-        Assert.That(result.Succeeded, Is.False);
-        Assert.That((bool)result, Is.False);
+        await Assert.That(result.Succeeded).IsFalse();
+        await Assert.That((bool)result).IsFalse();
         var errors = (ReadError[])result;
-        Assert.That(errors, Has.Length.EqualTo(1));
-        Assert.That(errors[0].ColumnName, Is.EqualTo("Number"));
-        Assert.That(sheet.Rows, Has.Count.EqualTo(3));
-        Assert.That(sheet.Rows[0].Number, Is.EqualTo(42));
-        Assert.That(sheet.Rows[1].Number, Is.EqualTo(0));
-        Assert.That(sheet.Rows[2].Number, Is.EqualTo(100));
+        await Assert.That(errors).Count().IsEqualTo(1);
+        await Assert.That(errors[0].ColumnName).IsEqualTo("Number");
+        await Assert.That(sheet.Rows).Count().IsEqualTo(3);
+        await Assert.That(sheet.Rows[0].Number).IsEqualTo(42);
+        await Assert.That(sheet.Rows[1].Number).IsEqualTo(0);
+        await Assert.That(sheet.Rows[2].Number).IsEqualTo(100);
     }
 
     [Test]
@@ -97,9 +96,9 @@ public class BookReaderErrorTests
 
         var reader2 = new BookReader();
         reader2.AddSheet<IntTarget>();
-        var exception = Assert.Throws<ReadException>(() => reader2.Convert(stream2))!;
+        var exception = await Assert.That(() => reader2.Convert(stream2)).ThrowsExactly<ReadException>()!;
 
-        Assert.That(exception.Errors.Select(_ => _.Message), Is.EqualTo(tryResult.Errors.Select(_ => _.Message)));
+        await Assert.That(exception!.Errors.Select(_ => _.Message)).IsEquivalentTo(tryResult.Errors.Select(_ => _.Message), CollectionOrdering.Matching);
     }
 
     public class OneCol
@@ -138,11 +137,11 @@ public class BookReaderErrorTests
         var reader = new BookReader();
         reader.AddSheet<TwoCols>();
 
-        var exception = Assert.Throws<ReadException>(() => reader.Convert(stream))!;
-        Assert.That(exception.Errors, Has.Count.EqualTo(1));
+        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>()!;
+        await Assert.That(exception!.Errors).Count().IsEqualTo(1);
         var error = exception.Errors[0];
-        Assert.That(error.ColumnName, Is.EqualTo("B"));
-        Assert.That(error.Message, Does.Contain("not found"));
+        await Assert.That(error.ColumnName).IsEqualTo("B");
+        await Assert.That(error.Message).Contains("not found");
     }
 
     [Test]
@@ -153,9 +152,9 @@ public class BookReaderErrorTests
         var reader = new BookReader();
         reader.AddSheet<ThreeCols>();
 
-        var exception = Assert.Throws<ReadException>(() => reader.Convert(stream))!;
-        Assert.That(exception.Errors, Has.Count.EqualTo(2));
-        Assert.That(exception.Errors.Select(_ => _.ColumnName), Is.EquivalentTo(["B", "C"]));
+        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>()!;
+        await Assert.That(exception!.Errors).Count().IsEqualTo(2);
+        await Assert.That(exception.Errors.Select(_ => _.ColumnName)).IsEquivalentTo(["B", "C"]);
     }
 
     [Test]
@@ -167,12 +166,12 @@ public class BookReaderErrorTests
         var sheet = reader.AddSheet();
         sheet.Column<string>("Nope");
 
-        var exception = Assert.Throws<ReadException>(() => reader.Convert(stream))!;
-        var errors = exception.Errors;
-        Assert.That(errors, Has.Count.EqualTo(2));
-        Assert.That(errors.Any(_ => _.ColumnName == "Nope" &&
-                                    _.Message.Contains("not found")));
-        Assert.That(errors.Any(_ => _.Message.Contains("Unrecognized header 'A'")));
+        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>()!;
+        var errors = exception!.Errors;
+        await Assert.That(errors).Count().IsEqualTo(2);
+        await Assert.That(errors.Any(_ => _.ColumnName == "Nope" &&
+                                    _.Message.Contains("not found"))).IsTrue();
+        await Assert.That(errors.Any(_ => _.Message.Contains("Unrecognized header 'A'"))).IsTrue();
     }
 
     [Test]
@@ -199,13 +198,13 @@ public class BookReaderErrorTests
         var sheet = reader.AddSheet();
         sheet.Column<int>("Value");
 
-        var exception = Assert.Throws<ReadException>(() => reader.Convert(stream))!;
-        var errors = exception.Errors;
-        Assert.That(errors, Has.Count.EqualTo(2));
-        Assert.That(errors.Any(_ => _.ColumnName == "Value" &&
-                                    _.Message.Contains("not found")));
-        Assert.That(errors.Any(_ => _.Message.Contains("Unrecognized header 'A'")));
-        Assert.That(sheet.Rows, Is.Empty);
+        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>()!;
+        var errors = exception!.Errors;
+        await Assert.That(errors).Count().IsEqualTo(2);
+        await Assert.That(errors.Any(_ => _.ColumnName == "Value" &&
+                                    _.Message.Contains("not found"))).IsTrue();
+        await Assert.That(errors.Any(_ => _.Message.Contains("Unrecognized header 'A'"))).IsTrue();
+        await Assert.That(sheet.Rows).IsEmpty();
     }
 
     public class StringRow
@@ -232,16 +231,16 @@ public class BookReaderErrorTests
         var first = reader.AddSheet<TwoCols>("First");
         var second = reader.AddSheet<OneCol>("Second");
 
-        var exception = Assert.Throws<ReadException>(() => reader.Convert(stream))!;
+        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>()!;
         // Mismatch in "First" emits one error and skips its rows;
         // "Second" still parses successfully.
-        Assert.That(exception.Errors, Has.Count.EqualTo(1));
+        await Assert.That(exception!.Errors).Count().IsEqualTo(1);
         var error = exception.Errors[0];
-        Assert.That(error.SheetName, Is.EqualTo("First"));
-        Assert.That(error.ColumnName, Is.EqualTo("B"));
-        Assert.That(first.Rows, Is.Empty);
-        Assert.That(second.Rows, Has.Count.EqualTo(1));
-        Assert.That(second.Rows[0].A, Is.EqualTo("y"));
+        await Assert.That(error.SheetName).IsEqualTo("First");
+        await Assert.That(error.ColumnName).IsEqualTo("B");
+        await Assert.That(first.Rows).IsEmpty();
+        await Assert.That(second.Rows).Count().IsEqualTo(1);
+        await Assert.That(second.Rows[0].A).IsEqualTo("y");
     }
 
     static MemoryStream WriteRaw(IReadOnlyList<string> headers, IReadOnlyList<IReadOnlyList<string>> rows, XDocument? metadata = null)
@@ -304,7 +303,7 @@ public class BookReaderErrorTests
     }
 
     [Test]
-    public void DuplicateHeaderCells_ProduceError()
+    public async Task DuplicateHeaderCells_ProduceError()
     {
         // Two header cells both reading "A" — both resolve to the same declared column.
         var stream = WriteRaw(["A", "A"], [["x", "y"]]);
@@ -312,17 +311,17 @@ public class BookReaderErrorTests
         var reader = new BookReader();
         reader.AddSheet<OneCol>();
 
-        var exception = Assert.Throws<ReadException>(() => reader.Convert(stream))!;
-        Assert.That(exception.Errors, Has.Count.EqualTo(1));
+        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>()!;
+        await Assert.That(exception!.Errors).Count().IsEqualTo(1);
         var error = exception.Errors[0];
-        Assert.That(error.ColumnName, Is.EqualTo("A"));
-        Assert.That(error.CellReference, Is.EqualTo("B1"));
-        Assert.That(error.Message, Does.Contain("Duplicate column match"));
-        Assert.That(error.Message, Does.Contain("A1 and B1"));
+        await Assert.That(error.ColumnName).IsEqualTo("A");
+        await Assert.That(error.CellReference).IsEqualTo("B1");
+        await Assert.That(error.Message).Contains("Duplicate column match");
+        await Assert.That(error.Message).Contains("A1 and B1");
     }
 
     [Test]
-    public void DuplicateMetadataMapping_ProducesError()
+    public async Task DuplicateMetadataMapping_ProducesError()
     {
         // Metadata XML maps two file column indices to the same property "A".
         // The header cells themselves have different text so the metadata path
@@ -342,13 +341,13 @@ public class BookReaderErrorTests
         var reader = new BookReader();
         reader.AddSheet<OneCol>();
 
-        var exception = Assert.Throws<ReadException>(() => reader.Convert(stream))!;
-        Assert.That(exception.Errors, Has.Count.EqualTo(1));
+        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>()!;
+        await Assert.That(exception!.Errors).Count().IsEqualTo(1);
         var error = exception.Errors[0];
-        Assert.That(error.ColumnName, Is.EqualTo("A"));
-        Assert.That(error.CellReference, Is.EqualTo("B1"));
-        Assert.That(error.Message, Does.Contain("metadata maps multiple header cells"));
-        Assert.That(error.Message, Does.Contain("A1 and B1"));
+        await Assert.That(error.ColumnName).IsEqualTo("A");
+        await Assert.That(error.CellReference).IsEqualTo("B1");
+        await Assert.That(error.Message).Contains("metadata maps multiple header cells");
+        await Assert.That(error.Message).Contains("A1 and B1");
     }
 
     [Test]
@@ -373,11 +372,11 @@ public class BookReaderErrorTests
         var reader = new BookReader();
         reader.AddSheet<IntRow>();
 
-        var exception = Assert.Throws<ReadException>(() => reader.Convert(stream))!;
-        var errors = exception.Errors;
-        Assert.That(errors, Has.Count.EqualTo(3));
-        Assert.That(errors.Select(_ => _.ColumnName), Is.EqualTo(["Value", "Value", "Value"]));
-        Assert.That(errors.Select(_ => _.RowIndex), Is.EqualTo([2, 3, 4]));
+        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>()!;
+        var errors = exception!.Errors;
+        await Assert.That(errors).Count().IsEqualTo(3);
+        await Assert.That(errors.Select(_ => _.ColumnName)).IsEquivalentTo(["Value", "Value", "Value"], CollectionOrdering.Matching);
+        await Assert.That(errors.Select(_ => _.RowIndex)).IsEquivalentTo([2, 3, 4], CollectionOrdering.Matching);
     }
 
     public class ReorderSource
@@ -409,10 +408,10 @@ public class BookReaderErrorTests
         reader.AddSheet<ReorderTarget>();
         var result = reader.TryConvert(stream);
 
-        Assert.That((bool)result, Is.False);
-        Assert.That(result.Errors, Has.Count.EqualTo(1));
+        await Assert.That((bool)result).IsFalse();
+        await Assert.That(result.Errors).Count().IsEqualTo(1);
         var error = result.Errors[0];
-        Assert.That(error.ColumnName, Is.EqualTo("Beta"));
-        Assert.That(error.CellReference, Is.EqualTo("B2"));
+        await Assert.That(error.ColumnName).IsEqualTo("Beta");
+        await Assert.That(error.CellReference).IsEqualTo("B2");
     }
 }

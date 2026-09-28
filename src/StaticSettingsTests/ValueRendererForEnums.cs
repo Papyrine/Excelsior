@@ -1,11 +1,11 @@
-[TestFixture]
+[NotInParallel]
 public class ValueRendererForEnums
 {
-    [SetUp]
+    [Before(HookType.Test)]
     public void Setup() =>
         ValueRenderer.ForEnums(_ => _.ToString().ToUpper());
 
-    [TearDown]
+    [After(HookType.Test)]
     public void Teardown() =>
         ValueRenderer.Reset();
 

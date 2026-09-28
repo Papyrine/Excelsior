@@ -15,22 +15,22 @@ using DocumentFormat.OpenXml.Validation;
 /// repair prompt - which the snapshot model does not capture.
 /// </para>
 /// </remarks>
-[TestFixture]
 public class SchemaValidationTests
 {
-    [TestCaseSource(nameof(Snapshots))]
-    public void SnapshotMatchesTheSchema(string snapshot)
+    [Test]
+    [MethodDataSource(nameof(Snapshots))]
+    public async Task SnapshotMatchesTheSchema(string snapshot)
     {
         var errors = Validate(Path.Combine(ProjectDirectory, snapshot));
 
-        Assert.That(errors, Is.Empty, () => string.Join('\n', errors));
+        await Assert.That(errors).IsEmpty().Because(string.Join('\n', errors));
     }
 
     // A sweep that stops matching leaves nothing to run and nothing to report, which reads exactly
     // like a clean one.
     [Test]
-    public void SnapshotsAreFound() =>
-        Assert.That(Snapshots(), Is.Not.Empty);
+    public async Task SnapshotsAreFound() =>
+        await Assert.That(Snapshots()).IsNotEmpty();
 
     static List<string> Validate(string path)
     {

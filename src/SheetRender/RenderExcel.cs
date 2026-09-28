@@ -1,7 +1,7 @@
-﻿using Application = Microsoft.Office.Interop.Excel.Application;
+﻿using TUnit.Core.Executors;
+using Application = Microsoft.Office.Interop.Excel.Application;
 
-[TestFixture]
-[Apartment(ApartmentState.STA)]
+[STAThreadExecutor]
 public class RenderExcel
 {
     [Test]

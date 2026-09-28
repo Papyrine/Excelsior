@@ -1,5 +1,4 @@
 // ReSharper disable NotAccessedPositionalProperty.Local
-[TestFixture]
 public class FilterTests
 {
     record Target(string Name, int Age, string Email);

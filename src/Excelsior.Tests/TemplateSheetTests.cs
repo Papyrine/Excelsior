@@ -1,4 +1,3 @@
-[TestFixture]
 public class TemplateSheetTests
 {
     [Test]
@@ -222,36 +221,37 @@ public class TemplateSheetTests
     }
 
     [Test]
-    public void DuplicateColumnThrows()
+    public async Task DuplicateColumnThrows()
     {
         var builder = new BookBuilder();
         var sheet = builder.AddTemplateSheet("Employees")
             .Column<string>("Name");
 
-        var ex = Assert.Throws<Exception>(() => sheet.Column<string>("Name"));
-        Assert.That(ex!.Message, Does.Contain("already contains a column"));
+        var ex = await Assert.That(() => sheet.Column<string>("Name")).ThrowsExactly<Exception>();
+        await Assert.That(ex!.Message).Contains("already contains a column");
     }
 
     [Test]
-    public void CaseInsensitiveDuplicateColumnThrows()
+    public async Task CaseInsensitiveDuplicateColumnThrows()
     {
         var builder = new BookBuilder();
         var sheet = builder.AddTemplateSheet("Employees")
             .Column<string>("Name");
 
-        var ex = Assert.Throws<Exception>(() => sheet.Column<string>("NAME"));
-        Assert.That(ex!.Message, Does.Contain("already contains a column named 'Name'"));
+        var ex = await Assert.That(() => sheet.Column<string>("NAME")).ThrowsExactly<Exception>();
+        await Assert.That(ex!.Message).Contains("already contains a column named 'Name'");
     }
 
-    [TestCase(" Name")]
-    [TestCase("Name ")]
-    [TestCase("\tName")]
-    public void WhitespaceColumnThrows(string name)
+    [Test]
+    [Arguments(" Name")]
+    [Arguments("Name ")]
+    [Arguments("\tName")]
+    public async Task WhitespaceColumnThrows(string name)
     {
         var builder = new BookBuilder();
         var sheet = builder.AddTemplateSheet("Employees");
 
-        var ex = Assert.Throws<ArgumentException>(() => sheet.Column<string>(name));
-        Assert.That(ex!.Message, Does.Contain("must not have leading or trailing whitespace"));
+        var ex = await Assert.That(() => sheet.Column<string>(name)).ThrowsExactly<ArgumentException>();
+        await Assert.That(ex!.Message).Contains("must not have leading or trailing whitespace");
     }
 }

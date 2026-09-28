@@ -1,11 +1,10 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-[TestFixture]
 public class ExcludedColumnSettingsAnalyzerTests
 {
     [Test]
-    public void ExcludeWithWidth_OnProperty()
+    public async Task ExcludeWithWidth_OnProperty()
     {
         var source = """
             using Excelsior;
@@ -19,12 +18,12 @@ public class ExcludedColumnSettingsAnalyzerTests
 
         var diagnostics = GetDiagnostics(source);
 
-        AreEqual(1, diagnostics.Length);
-        AreEqual("EXCEL004", diagnostics[0].Id);
+        await Assert.That(diagnostics.Length).IsEqualTo(1);
+        await Assert.That(diagnostics[0].Id).IsEqualTo("EXCEL004");
     }
 
     [Test]
-    public void ExcludeWithHeading_OnRecordParameter()
+    public async Task ExcludeWithHeading_OnRecordParameter()
     {
         var source = """
             using Excelsior;
@@ -34,12 +33,12 @@ public class ExcludedColumnSettingsAnalyzerTests
 
         var diagnostics = GetDiagnostics(source);
 
-        AreEqual(1, diagnostics.Length);
-        AreEqual("EXCEL004", diagnostics[0].Id);
+        await Assert.That(diagnostics.Length).IsEqualTo(1);
+        await Assert.That(diagnostics[0].Id).IsEqualTo("EXCEL004");
     }
 
     [Test]
-    public void ExcludeWithFormat_OnField()
+    public async Task ExcludeWithFormat_OnField()
     {
         var source = """
             using Excelsior;
@@ -53,12 +52,12 @@ public class ExcludedColumnSettingsAnalyzerTests
 
         var diagnostics = GetDiagnostics(source);
 
-        AreEqual(1, diagnostics.Length);
-        AreEqual("EXCEL004", diagnostics[0].Id);
+        await Assert.That(diagnostics.Length).IsEqualTo(1);
+        await Assert.That(diagnostics[0].Id).IsEqualTo("EXCEL004");
     }
 
     [Test]
-    public void ExcludeAlone_NoDiagnostic()
+    public async Task ExcludeAlone_NoDiagnostic()
     {
         var source = """
             using Excelsior;
@@ -72,11 +71,11 @@ public class ExcludedColumnSettingsAnalyzerTests
 
         var diagnostics = GetDiagnostics(source);
 
-        AreEqual(0, diagnostics.Length);
+        await Assert.That(diagnostics.Length).IsEqualTo(0);
     }
 
     [Test]
-    public void IncludedWithSettings_NoDiagnostic()
+    public async Task IncludedWithSettings_NoDiagnostic()
     {
         var source = """
             using Excelsior;
@@ -90,11 +89,11 @@ public class ExcludedColumnSettingsAnalyzerTests
 
         var diagnostics = GetDiagnostics(source);
 
-        AreEqual(0, diagnostics.Length);
+        await Assert.That(diagnostics.Length).IsEqualTo(0);
     }
 
     [Test]
-    public void ExplicitIncludeTrueWithSettings_NoDiagnostic()
+    public async Task ExplicitIncludeTrueWithSettings_NoDiagnostic()
     {
         var source = """
             using Excelsior;
@@ -108,7 +107,7 @@ public class ExcludedColumnSettingsAnalyzerTests
 
         var diagnostics = GetDiagnostics(source);
 
-        AreEqual(0, diagnostics.Length);
+        await Assert.That(diagnostics.Length).IsEqualTo(0);
     }
 
     static ImmutableArray<Diagnostic> GetDiagnostics(string source)

@@ -1,5 +1,4 @@
 // ReSharper disable UnusedParameter.Local
-[TestFixture]
 public class FormulaTests
 {
     [Test]
@@ -29,7 +28,7 @@ public class FormulaTests
     }
 
     [Test]
-    public void FormulaWithoutWidthThrows()
+    public async Task FormulaWithoutWidthThrows()
     {
         var employees = SampleData.Employees();
 
@@ -37,12 +36,12 @@ public class FormulaTests
         builder.AddSheet(employees)
             .Formula(_ => _.Salary, context => $"={context.Ref(_ => _.Id)} * 1000");
 
-        var exception = Assert.ThrowsAsync<Exception>(() => builder.Build());
-        Assert.That(exception!.Message, Does.Contain("formula columns must set Width explicitly"));
+        var exception = await Assert.That(async () => await builder.Build()).ThrowsExactly<Exception>();
+        await Assert.That(exception!.Message).Contains("formula columns must set Width explicitly");
     }
 
     [Test]
-    public void FormulaWithMinWidthThrows()
+    public async Task FormulaWithMinWidthThrows()
     {
         var employees = SampleData.Employees();
 
@@ -56,12 +55,12 @@ public class FormulaTests
                     _.MinWidth = 10;
                 });
 
-        var exception = Assert.ThrowsAsync<Exception>(() => builder.Build());
-        Assert.That(exception!.Message, Does.Contain("formula columns cannot use MinWidth/MaxWidth"));
+        var exception = await Assert.That(async () => await builder.Build()).ThrowsExactly<Exception>();
+        await Assert.That(exception!.Message).Contains("formula columns cannot use MinWidth/MaxWidth");
     }
 
     [Test]
-    public void FormulaWithMaxWidthThrows()
+    public async Task FormulaWithMaxWidthThrows()
     {
         var employees = SampleData.Employees();
 
@@ -75,8 +74,8 @@ public class FormulaTests
                     _.MaxWidth = 30;
                 });
 
-        var exception = Assert.ThrowsAsync<Exception>(() => builder.Build());
-        Assert.That(exception!.Message, Does.Contain("formula columns cannot use MinWidth/MaxWidth"));
+        var exception = await Assert.That(async () => await builder.Build()).ThrowsExactly<Exception>();
+        await Assert.That(exception!.Message).Contains("formula columns cannot use MinWidth/MaxWidth");
     }
 
     [Test]

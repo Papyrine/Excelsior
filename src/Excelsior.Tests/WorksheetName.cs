@@ -1,5 +1,4 @@
-﻿[TestFixture]
-public class WorksheetName
+﻿public class WorksheetName
 {
     [Test]
     public async Task Fluent()

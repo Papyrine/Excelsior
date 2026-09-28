@@ -1,5 +1,4 @@
-﻿[TestFixture]
-public class ColumnAttributeTests
+﻿public class ColumnAttributeTests
 {
     #region ColumnAttributeModel
 

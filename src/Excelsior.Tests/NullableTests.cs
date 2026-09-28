@@ -1,5 +1,4 @@
-﻿[TestFixture]
-public class NullableTests
+﻿public class NullableTests
 {
     [Test]
     public async Task Nulls()

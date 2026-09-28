@@ -1,4 +1,3 @@
-[TestFixture]
 public class ProtectionTests
 {
     [Test]
@@ -38,7 +37,7 @@ public class ProtectionTests
         // Snapshotting is skipped here — the generated GUID password produces a
         // different hash on every run.
         using var book = await builder.Build();
-        Assert.That(book.WorkbookPart!.Workbook!.GetFirstChild<DocumentFormat.OpenXml.Spreadsheet.WorkbookProtection>(), Is.Not.Null);
+        await Assert.That(book.WorkbookPart!.Workbook!.GetFirstChild<DocumentFormat.OpenXml.Spreadsheet.WorkbookProtection>()).IsNotNull();
     }
 
     [Test]

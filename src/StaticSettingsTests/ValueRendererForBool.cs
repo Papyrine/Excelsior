@@ -1,11 +1,11 @@
-[TestFixture]
+[NotInParallel]
 public class ValueRendererForBool
 {
-    [SetUp]
+    [Before(HookType.Test)]
     public void Setup() =>
         ValueRenderer.BoolDisplay("Yes", "No", "Unknown");
 
-    [TearDown]
+    [After(HookType.Test)]
     public void Teardown() =>
         ValueRenderer.Reset();
 

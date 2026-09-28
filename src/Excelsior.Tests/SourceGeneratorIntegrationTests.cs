@@ -1,4 +1,3 @@
-[TestFixture]
 public class SourceGeneratorIntegrationTests
 {
     [Test]
@@ -122,7 +121,6 @@ public class GeneratedFieldModel
     public int Age;
 }
 
-[TestFixture]
 public class SourceGeneratorFieldIntegrationTests
 {
     [Test]

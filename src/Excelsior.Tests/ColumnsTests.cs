@@ -1,6 +1,5 @@
 // ReSharper disable NotAccessedPositionalProperty.Local
 // ReSharper disable AutoPropertyCanBeMadeGetOnly.Local
-[TestFixture]
 public class ColumnsTests
 {
     class NoOrderModel
@@ -11,12 +10,12 @@ public class ColumnsTests
     }
 
     [Test]
-    public void NoOrder_UsesDeclarationOrder()
+    public async Task NoOrder_UsesDeclarationOrder()
     {
         var columns = new Columns<NoOrderModel>();
         var ordered = columns.OrderedColumns();
 
-        Assert.That(ordered.Select(_ => _.Name).ToList(), Is.EqualTo(["First", "Second", "Third"]));
+        await Assert.That(ordered.Select(_ => _.Name).ToList()).IsEquivalentTo(["First", "Second", "Third"], CollectionOrdering.Matching);
     }
 
     class MixedOrderModel
@@ -30,12 +29,12 @@ public class ColumnsTests
     }
 
     [Test]
-    public void MixedOrder_UnorderedMaintainDeclarationPosition()
+    public async Task MixedOrder_UnorderedMaintainDeclarationPosition()
     {
         var columns = new Columns<MixedOrderModel>();
         var ordered = columns.OrderedColumns();
 
-        Assert.That(ordered.Select(_ => _.Name).ToList(), Is.EqualTo(["Ordered", "NoOrder1", "NoOrder2"]));
+        await Assert.That(ordered.Select(_ => _.Name).ToList()).IsEquivalentTo(["Ordered", "NoOrder1", "NoOrder2"], CollectionOrdering.Matching);
     }
 
     class AllOrderedModel
@@ -51,23 +50,23 @@ public class ColumnsTests
     }
 
     [Test]
-    public void AllOrdered_SortsByOrder()
+    public async Task AllOrdered_SortsByOrder()
     {
         var columns = new Columns<AllOrderedModel>();
         var ordered = columns.OrderedColumns();
 
-        Assert.That(ordered.Select(_ => _.Name).ToList(), Is.EqualTo(["First", "Second", "Third"]));
+        await Assert.That(ordered.Select(_ => _.Name).ToList()).IsEquivalentTo(["First", "Second", "Third"], CollectionOrdering.Matching);
     }
 
     record NoOrderRecord(string First, string Second, string Third);
 
     [Test]
-    public void Record_NoOrder_UsesDeclarationOrder()
+    public async Task Record_NoOrder_UsesDeclarationOrder()
     {
         var columns = new Columns<NoOrderRecord>();
         var ordered = columns.OrderedColumns();
 
-        Assert.That(ordered.Select(_ => _.Name).ToList(), Is.EqualTo(["First", "Second", "Third"]));
+        await Assert.That(ordered.Select(_ => _.Name).ToList()).IsEquivalentTo(["First", "Second", "Third"], CollectionOrdering.Matching);
     }
 
     record MixedOrderRecord(
@@ -76,12 +75,12 @@ public class ColumnsTests
         string NoOrder2);
 
     [Test]
-    public void Record_MixedOrder_UnorderedMaintainDeclarationPosition()
+    public async Task Record_MixedOrder_UnorderedMaintainDeclarationPosition()
     {
         var columns = new Columns<MixedOrderRecord>();
         var ordered = columns.OrderedColumns();
 
-        Assert.That(ordered.Select(_ => _.Name).ToList(), Is.EqualTo(["Ordered", "NoOrder1", "NoOrder2"]));
+        await Assert.That(ordered.Select(_ => _.Name).ToList()).IsEquivalentTo(["Ordered", "NoOrder1", "NoOrder2"], CollectionOrdering.Matching);
     }
 
     record MixedConstructorAndProperties(string First, string Second)
@@ -91,12 +90,12 @@ public class ColumnsTests
     }
 
     [Test]
-    public void Record_MixedConstructorAndProperties_UsesDeclarationOrder()
+    public async Task Record_MixedConstructorAndProperties_UsesDeclarationOrder()
     {
         var columns = new Columns<MixedConstructorAndProperties>();
         var ordered = columns.OrderedColumns();
 
-        Assert.That(ordered.Select(_ => _.Name).ToList(), Is.EqualTo(["First", "Second", "Third", "Fourth"]));
+        await Assert.That(ordered.Select(_ => _.Name).ToList()).IsEquivalentTo(["First", "Second", "Third", "Fourth"], CollectionOrdering.Matching);
     }
 
     record MixedConstructorAndPropertiesWithOrder(
@@ -110,12 +109,12 @@ public class ColumnsTests
     }
 
     [Test]
-    public void Record_MixedConstructorAndPropertiesWithOrder()
+    public async Task Record_MixedConstructorAndPropertiesWithOrder()
     {
         var columns = new Columns<MixedConstructorAndPropertiesWithOrder>();
         var ordered = columns.OrderedColumns();
 
-        Assert.That(ordered.Select(_ => _.Name).ToList(), Is.EqualTo(["Ordered2", "Ordered1", "NoOrder1", "NoOrder2"]));
+        await Assert.That(ordered.Select(_ => _.Name).ToList()).IsEquivalentTo(["Ordered2", "Ordered1", "NoOrder1", "NoOrder2"], CollectionOrdering.Matching);
     }
 
     record AllOrderedRecord(
@@ -124,16 +123,16 @@ public class ColumnsTests
         [Column(Order = 2)] string Second);
 
     [Test]
-    public void Record_AllOrdered_SortsByOrder()
+    public async Task Record_AllOrdered_SortsByOrder()
     {
         var columns = new Columns<AllOrderedRecord>();
         var ordered = columns.OrderedColumns();
 
-        Assert.That(ordered.Select(_ => _.Name).ToList(), Is.EqualTo(["First", "Second", "Third"]));
+        await Assert.That(ordered.Select(_ => _.Name).ToList()).IsEquivalentTo(["First", "Second", "Third"], CollectionOrdering.Matching);
     }
 
     [Test]
-    public void Fluent_ReorderColumns()
+    public async Task Fluent_ReorderColumns()
     {
         var columns = new Columns<NoOrderModel>();
         columns.Add<string>(_ => _.Third, _ => _.Order = 1);
@@ -141,17 +140,17 @@ public class ColumnsTests
         columns.Add<string>(_ => _.Second, _ => _.Order = 3);
         var ordered = columns.OrderedColumns();
 
-        Assert.That(ordered.Select(_ => _.Name).ToList(), Is.EqualTo(["Third", "First", "Second"]));
+        await Assert.That(ordered.Select(_ => _.Name).ToList()).IsEquivalentTo(["Third", "First", "Second"], CollectionOrdering.Matching);
     }
 
     [Test]
-    public void Fluent_PartialOrder_UnorderedAfterOrdered()
+    public async Task Fluent_PartialOrder_UnorderedAfterOrdered()
     {
         var columns = new Columns<NoOrderModel>();
         columns.Add<string>(_ => _.Third, _ => _.Order = 1);
         var ordered = columns.OrderedColumns();
 
-        Assert.That(ordered.Select(_ => _.Name).ToList(), Is.EqualTo(["Third", "First", "Second"]));
+        await Assert.That(ordered.Select(_ => _.Name).ToList()).IsEquivalentTo(["Third", "First", "Second"], CollectionOrdering.Matching);
     }
 
     class AttributeOrderModel
@@ -166,17 +165,17 @@ public class ColumnsTests
     }
 
     [Test]
-    public void Fluent_OverridesAttributeOrder()
+    public async Task Fluent_OverridesAttributeOrder()
     {
         var columns = new Columns<AttributeOrderModel>();
         columns.Add<string>(_ => _.B, _ => _.Order = 0);
         var ordered = columns.OrderedColumns();
 
-        Assert.That(ordered.Select(_ => _.Name).ToList(), Is.EqualTo(["B", "C", "A"]));
+        await Assert.That(ordered.Select(_ => _.Name).ToList()).IsEquivalentTo(["B", "C", "A"], CollectionOrdering.Matching);
     }
 
     [Test]
-    public void Fluent_MixedWithAttributeAndPositional()
+    public async Task Fluent_MixedWithAttributeAndPositional()
     {
         var columns = new Columns<MixedOrderModel>();
         // MixedOrderModel: NoOrder1 (no attr), Ordered (Order=5), NoOrder2 (no attr)
@@ -185,13 +184,13 @@ public class ColumnsTests
         var ordered = columns.OrderedColumns();
 
         // Ordered(5), NoOrder2(3) are explicitly ordered; NoOrder1 is positional
-        Assert.That(ordered.Select(_ => _.Name).ToList(), Is.EqualTo(["NoOrder2", "Ordered", "NoOrder1"]));
+        await Assert.That(ordered.Select(_ => _.Name).ToList()).IsEquivalentTo(["NoOrder2", "Ordered", "NoOrder1"], CollectionOrdering.Matching);
     }
 
     record FluentRecordModel(string A, string B, string C, string D);
 
     [Test]
-    public void Fluent_Record_MixOrderedAndPositional()
+    public async Task Fluent_Record_MixOrderedAndPositional()
     {
         var columns = new Columns<FluentRecordModel>();
         columns.Add<string>(_ => _.C, _ => _.Order = 1);
@@ -199,6 +198,6 @@ public class ColumnsTests
         var ordered = columns.OrderedColumns();
 
         // C(1), A(2) explicitly ordered; B, D positional
-        Assert.That(ordered.Select(_ => _.Name).ToList(), Is.EqualTo(["C", "A", "B", "D"]));
+        await Assert.That(ordered.Select(_ => _.Name).ToList()).IsEquivalentTo(["C", "A", "B", "D"], CollectionOrdering.Matching);
     }
 }

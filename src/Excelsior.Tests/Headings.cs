@@ -1,5 +1,4 @@
-﻿[TestFixture]
-public class Headings
+﻿public class Headings
 {
     [Test]
     public async Task Fluent()

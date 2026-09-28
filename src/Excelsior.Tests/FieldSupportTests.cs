@@ -1,7 +1,6 @@
 // ReSharper disable FieldCanBeMadeReadOnly.Local
 // ReSharper disable UnassignedField.Local
 #pragma warning disable CS0649 // Field is never assigned to
-[TestFixture]
 public class FieldSupportTests
 {
     public class FieldModel
@@ -79,43 +78,43 @@ public class FieldSupportTests
     }
 
     [Test]
-    public void Properties_IncludesPublicInstanceFields()
+    public async Task Properties_IncludesPublicInstanceFields()
     {
         var items = Properties<FieldModel>.Items;
 
-        Assert.That(items, Has.Some.Matches<Property<FieldModel>>(_ => _.Name == "Id"));
-        Assert.That(items, Has.Some.Matches<Property<FieldModel>>(_ => _.Name == "Name"));
-        Assert.That(items, Has.Some.Matches<Property<FieldModel>>(_ => _.Name == "Amount"));
+        await Assert.That(items).Contains(_ => _.Name == "Id");
+        await Assert.That(items).Contains(_ => _.Name == "Name");
+        await Assert.That(items).Contains(_ => _.Name == "Amount");
     }
 
     [Test]
-    public void Properties_ExcludesIgnoredFields()
+    public async Task Properties_ExcludesIgnoredFields()
     {
         var items = Properties<FieldModel>.Items;
 
-        Assert.That(items, Has.None.Matches<Property<FieldModel>>(_ => _.Name == "Ignored"));
+        await Assert.That(items).DoesNotContain(_ => _.Name == "Ignored");
     }
 
     [Test]
-    public void Properties_ExcludesConstants()
+    public async Task Properties_ExcludesConstants()
     {
         var items = Properties<FieldModel>.Items;
 
-        Assert.That(items, Has.None.Matches<Property<FieldModel>>(_ => _.Name == "Constant"));
+        await Assert.That(items).DoesNotContain(_ => _.Name == "Constant");
     }
 
     [Test]
-    public void Property_Field_HasColumnAttributeApplied()
+    public async Task Property_Field_HasColumnAttributeApplied()
     {
         var amount = Properties<FieldModel>.Items.First(_ => _.Name == "Amount");
 
-        Assert.That(amount.DisplayName, Is.EqualTo("Custom Heading"));
-        Assert.That(amount.Width, Is.EqualTo(80));
-        Assert.That(amount.Type, Is.EqualTo(typeof(decimal)));
+        await Assert.That(amount.DisplayName).IsEqualTo("Custom Heading");
+        await Assert.That(amount.Width).IsEqualTo(80);
+        await Assert.That(amount.Type).IsEqualTo(typeof(decimal));
     }
 
     [Test]
-    public void Property_Field_GetReturnsValue()
+    public async Task Property_Field_GetReturnsValue()
     {
         var model = new FieldModel
         {
@@ -125,8 +124,8 @@ public class FieldSupportTests
         var idProp = Properties<FieldModel>.Items.First(_ => _.Name == "Id");
         var nameProp = Properties<FieldModel>.Items.First(_ => _.Name == "Name");
 
-        Assert.That(idProp.Get(model), Is.EqualTo(99));
-        Assert.That(nameProp.Get(model), Is.EqualTo("Z"));
+        await Assert.That(idProp.Get(model)).IsEqualTo(99);
+        await Assert.That(nameProp.Get(model)).IsEqualTo("Z");
     }
 
     public class RequiredFieldModel
@@ -167,10 +166,10 @@ public class FieldSupportTests
     }
 
     [Test]
-    public void Property_RequiredField_IsRequired()
+    public async Task Property_RequiredField_IsRequired()
     {
         var prop = Properties<RequiredFieldModel>.Items.First(_ => _.Name == "Name");
-        Assert.That(prop.IsRequired, Is.True);
+        await Assert.That(prop.IsRequired).IsTrue();
     }
 
     public class NullableFieldModel
@@ -182,14 +181,14 @@ public class FieldSupportTests
     }
 
     [Test]
-    public void Property_Field_NullabilityDetectedCorrectly()
+    public async Task Property_Field_NullabilityDetectedCorrectly()
     {
         var items = Properties<NullableFieldModel>.Items;
 
-        Assert.That(items.First(_ => _.Name == "NonNull").IsNonNullable, Is.True);
-        Assert.That(items.First(_ => _.Name == "Nullable").IsNonNullable, Is.False);
-        Assert.That(items.First(_ => _.Name == "Value").IsNonNullable, Is.True);
-        Assert.That(items.First(_ => _.Name == "NullableValue").IsNonNullable, Is.False);
+        await Assert.That(items.First(_ => _.Name == "NonNull").IsNonNullable).IsTrue();
+        await Assert.That(items.First(_ => _.Name == "Nullable").IsNonNullable).IsFalse();
+        await Assert.That(items.First(_ => _.Name == "Value").IsNonNullable).IsTrue();
+        await Assert.That(items.First(_ => _.Name == "NullableValue").IsNonNullable).IsFalse();
     }
 
     public class HtmlFieldModel
@@ -201,11 +200,11 @@ public class FieldSupportTests
     }
 
     [Test]
-    public void Property_Field_StringSyntaxHtmlDetected()
+    public async Task Property_Field_StringSyntaxHtmlDetected()
     {
         var prop = Properties<HtmlFieldModel>.Items.First(_ => _.Name == "Body");
-        Assert.That(prop.IsHtml, Is.True);
-        Assert.That(prop.IsHtmlExplicit, Is.True);
+        await Assert.That(prop.IsHtml).IsTrue();
+        await Assert.That(prop.IsHtmlExplicit).IsTrue();
     }
 
     public class DisplayHeadingFieldModel
@@ -215,10 +214,10 @@ public class FieldSupportTests
     }
 
     [Test]
-    public void Property_Field_DisplayHeadingApplied()
+    public async Task Property_Field_DisplayHeadingApplied()
     {
         var prop = Properties<DisplayHeadingFieldModel>.Items.First(_ => _.Name == "A");
-        Assert.That(prop.DisplayName, Is.EqualTo("Display Heading"));
+        await Assert.That(prop.DisplayName).IsEqualTo("Display Heading");
     }
 
     public class FieldSplitChild
@@ -235,12 +234,12 @@ public class FieldSupportTests
     }
 
     [Test]
-    public void Property_Field_SplitRecursesIntoNestedType()
+    public async Task Property_Field_SplitRecursesIntoNestedType()
     {
         var items = Properties<FieldSplitParent>.Items;
 
-        Assert.That(items, Has.Some.Matches<Property<FieldSplitParent>>(_ => _.Name == "Outer"));
-        Assert.That(items, Has.Some.Matches<Property<FieldSplitParent>>(_ => _.Name == "Nested.Inner"));
+        await Assert.That(items).Contains(_ => _.Name == "Outer");
+        await Assert.That(items).Contains(_ => _.Name == "Nested.Inner");
     }
 
     public struct StructFieldModel

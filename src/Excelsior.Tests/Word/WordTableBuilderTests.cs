@@ -3,7 +3,6 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using DocumentFormat.OpenXml.Wordprocessing;
 
-[TestFixture]
 public class WordTableBuilderTests
 {
     [Test]
@@ -50,7 +49,7 @@ public class WordTableBuilderTests
     }
 
     [Test]
-    public void HeaderRowIsBoldAndLeftAligned()
+    public async Task HeaderRowIsBoldAndLeftAligned()
     {
         var builder = new WordTableBuilder<Employee>(SampleData.Employees());
         var table = builder.Build();
@@ -58,40 +57,40 @@ public class WordTableBuilderTests
         var headerRow = table.Elements<TableRow>().First();
         var headerParagraph = headerRow.Elements<TableCell>().First().GetFirstChild<Paragraph>()!;
         var justification = headerParagraph.ParagraphProperties!.GetFirstChild<Justification>()!;
-        AreEqual(JustificationValues.Left, justification.Val?.Value);
+        await Assert.That(justification.Val?.Value).IsEqualTo(JustificationValues.Left);
 
         var headerRun = headerParagraph.GetFirstChild<Run>()!;
-        IsNotNull(headerRun.RunProperties!.GetFirstChild<Bold>());
+        await Assert.That(headerRun.RunProperties!.GetFirstChild<Bold>()).IsNotNull();
     }
 
     [Test]
-    public void HeaderRowRepeatsAcrossPages()
+    public async Task HeaderRowRepeatsAcrossPages()
     {
         var table = new WordTableBuilder<Employee>(SampleData.Employees()).Build();
 
         var rows = table.Elements<TableRow>().ToList();
-        IsNotNull(rows[0].GetFirstChild<TableRowProperties>()?.GetFirstChild<TableHeader>());
+        await Assert.That(rows[0].GetFirstChild<TableRowProperties>()?.GetFirstChild<TableHeader>()).IsNotNull();
 
         // Only the heading repeats. Marking a data row would repeat it on every page too.
         foreach (var row in rows.Skip(1))
         {
-            IsNull(row.GetFirstChild<TableRowProperties>()?.GetFirstChild<TableHeader>());
+            await Assert.That(row.GetFirstChild<TableRowProperties>()?.GetFirstChild<TableHeader>()).IsNull();
         }
     }
 
     [Test]
-    public void DataRowsMatchEmployeeCount()
+    public async Task DataRowsMatchEmployeeCount()
     {
         var employees = SampleData.Employees();
         var table = new WordTableBuilder<Employee>(employees).Build();
 
         var rows = table.Elements<TableRow>().ToList();
         // +1 for header row
-        AreEqual(employees.Count + 1, rows.Count);
+        await Assert.That(rows.Count).IsEqualTo(employees.Count + 1);
     }
 
     [Test]
-    public void ColumnHeadingsHonorColumnAttribute()
+    public async Task ColumnHeadingsHonorColumnAttribute()
     {
         var table = new WordTableBuilder<Employee>([]).Build();
         var headerCells = table.Elements<TableRow>().First().Elements<TableCell>().ToList();
@@ -100,9 +99,9 @@ public class WordTableBuilderTests
             .ToList();
 
         // Employee model declares Order=1..5 with explicit Headings; IsActive/Status fall after.
-        AreEqual("Employee ID", headings[0]);
-        AreEqual("Full Name", headings[1]);
-        AreEqual("Email Address", headings[2]);
+        await Assert.That(headings[0]).IsEqualTo("Employee ID");
+        await Assert.That(headings[1]).IsEqualTo("Full Name");
+        await Assert.That(headings[2]).IsEqualTo("Email Address");
     }
 
     public class LinkRow
@@ -112,7 +111,7 @@ public class WordTableBuilderTests
     }
 
     [Test]
-    public void LinkValueProducesHyperlinkWhenMainPartGiven()
+    public async Task LinkValueProducesHyperlinkWhenMainPartGiven()
     {
         var rows = new[]
         {
@@ -139,20 +138,20 @@ public class WordTableBuilderTests
         var hyperlink = linkCell
             .GetFirstChild<Paragraph>()!
             .GetFirstChild<Hyperlink>();
-        IsNotNull(hyperlink);
+        await Assert.That(hyperlink).IsNotNull();
 
         var rel = mainPart.HyperlinkRelationships.Single();
-        AreEqual("http://github.com/Papyrine/Excelsior", rel.Uri.ToString());
-        AreEqual(rel.Id, hyperlink!.Id?.Value);
+        await Assert.That(rel.Uri.ToString()).IsEqualTo("http://github.com/Papyrine/Excelsior");
+        await Assert.That(hyperlink!.Id?.Value).IsEqualTo(rel.Id);
 
         var run = hyperlink.GetFirstChild<Run>()!;
-        AreEqual("Home", run.GetFirstChild<Text>()!.Text);
-        IsNotNull(run.RunProperties!.GetFirstChild<Color>());
-        IsNotNull(run.RunProperties.GetFirstChild<Underline>());
+        await Assert.That(run.GetFirstChild<Text>()!.Text).IsEqualTo("Home");
+        await Assert.That(run.RunProperties!.GetFirstChild<Color>()).IsNotNull();
+        await Assert.That(run.RunProperties.GetFirstChild<Underline>()).IsNotNull();
     }
 
     [Test]
-    public void LinkValueFallsBackToTextWhenMainPartOmitted()
+    public async Task LinkValueFallsBackToTextWhenMainPartOmitted()
     {
         var rows = new[]
         {
@@ -173,10 +172,10 @@ public class WordTableBuilderTests
             .ToList();
         var linkCell = cells[1];
         var paragraph = linkCell.GetFirstChild<Paragraph>()!;
-        IsNull(paragraph.GetFirstChild<Hyperlink>());
+        await Assert.That(paragraph.GetFirstChild<Hyperlink>()).IsNull();
 
         var run = paragraph.GetFirstChild<Run>()!;
-        AreEqual("Home", run.GetFirstChild<Text>()!.Text);
+        await Assert.That(run.GetFirstChild<Text>()!.Text).IsEqualTo("Home");
     }
 
     public record HtmlRow
@@ -186,7 +185,7 @@ public class WordTableBuilderTests
     }
 
     [Test]
-    public void IsHtmlColumnRendersInlineFormattingAsRunProperties()
+    public async Task IsHtmlColumnRendersInlineFormattingAsRunProperties()
     {
         var rows = new[]
         {
@@ -201,12 +200,12 @@ public class WordTableBuilderTests
         var dataCell = table.Elements<TableRow>().Skip(1).First().GetFirstChild<TableCell>()!;
         var paragraph = dataCell.GetFirstChild<Paragraph>()!;
         var run = paragraph.GetFirstChild<Run>()!;
-        IsNotNull(run.RunProperties!.GetFirstChild<Italic>());
-        AreEqual("A. Smith", run.GetFirstChild<Text>()!.Text);
+        await Assert.That(run.RunProperties!.GetFirstChild<Italic>()).IsNotNull();
+        await Assert.That(run.GetFirstChild<Text>()!.Text).IsEqualTo("A. Smith");
     }
 
     [Test]
-    public void FormulaColumnThrows()
+    public async Task FormulaColumnThrows()
     {
         var employees = SampleData.Employees();
         var builder = new WordTableBuilder<Employee>(employees)
@@ -215,9 +214,9 @@ public class WordTableBuilderTests
                 _ => _.Formula = (employee, context) =>
                     $"={context.Ref(_ => _.Id)} * 10000");
 
-        var exception = Assert.Throws<Exception>(() => builder.Build());
-        Assert.That(exception!.Message, Does.Contain("Formula"));
-        Assert.That(exception.Message, Does.Contain("not supported in Word tables"));
+        var exception = await Assert.That(() => builder.Build()).ThrowsExactly<Exception>();
+        await Assert.That(exception!.Message).Contains("Formula");
+        await Assert.That(exception.Message).Contains("not supported in Word tables");
     }
 
     [Test]
@@ -259,13 +258,13 @@ public class WordTableBuilderTests
     }
 
     [Test]
-    public Task HeadingBackgroundAcceptsLeadingHash()
+    public async Task HeadingBackgroundAcceptsLeadingHash()
     {
         var builder = new WordTableBuilder<Employee>(
             SampleData.Employees(),
             _ => _.BackgroundColor = "#ABCDEF");
 
-        return VerifyTable(builder);
+        await VerifyTable(builder);
     }
 
     static async Task VerifyTable<T>(WordTableBuilder<T> builder)
@@ -302,7 +301,7 @@ public class WordTableBuilderTests
     }
 
     [Test]
-    public void StandaloneTableCarriesInlineBordersAndFullWidth()
+    public async Task StandaloneTableCarriesInlineBordersAndFullWidth()
     {
         // Without a MainDocumentPart there's no styles part to add TableGrid to, so the renderer
         // falls back to inline borders. tblW pct=5000 is always emitted so the table fills the
@@ -310,21 +309,21 @@ public class WordTableBuilderTests
         var table = new WordTableBuilder<Employee>([]).Build();
         var props = table.GetFirstChild<TableProperties>()!;
 
-        IsNotNull(props.GetFirstChild<TableBorders>());
-        IsNotNull(props.GetFirstChild<TableCellMarginDefault>());
-        IsNull(props.GetFirstChild<TableStyle>());
+        await Assert.That(props.GetFirstChild<TableBorders>()).IsNotNull();
+        await Assert.That(props.GetFirstChild<TableCellMarginDefault>()).IsNotNull();
+        await Assert.That(props.GetFirstChild<TableStyle>()).IsNull();
 
         var width = props.GetFirstChild<TableWidth>()!;
-        AreEqual("5000", width.Width?.Value);
-        AreEqual(TableWidthUnitValues.Pct, width.Type?.Value);
+        await Assert.That(width.Width?.Value).IsEqualTo("5000");
+        await Assert.That(width.Type?.Value).IsEqualTo(TableWidthUnitValues.Pct);
 
         var look = props.GetFirstChild<TableLook>()!;
-        AreEqual(true, look.FirstRow?.Value);
-        AreEqual(true, look.NoVerticalBand?.Value);
+        await Assert.That(look.FirstRow?.Value).IsTrue();
+        await Assert.That(look.NoVerticalBand?.Value).IsTrue();
     }
 
     [Test]
-    public void HostBuiltTableReferencesTableGridStyleAndIsFullWidth()
+    public async Task HostBuiltTableReferencesTableGridStyleAndIsFullWidth()
     {
         // Build(mainPart) emits a tblStyle reference to the built-in TableGrid style and the
         // helper inserts the style definition into the host's styles part if it isn't already
@@ -338,24 +337,24 @@ public class WordTableBuilderTests
         var props = table.GetFirstChild<TableProperties>()!;
 
         var tableStyle = props.GetFirstChild<TableStyle>()!;
-        AreEqual("TableGrid", tableStyle.Val?.Value);
+        await Assert.That(tableStyle.Val?.Value).IsEqualTo("TableGrid");
 
         var width = props.GetFirstChild<TableWidth>()!;
-        AreEqual("5000", width.Width?.Value);
-        AreEqual(TableWidthUnitValues.Pct, width.Type?.Value);
+        await Assert.That(width.Width?.Value).IsEqualTo("5000");
+        await Assert.That(width.Type?.Value).IsEqualTo(TableWidthUnitValues.Pct);
 
         // No inline borders/margins when a tblStyle is referenced — the style owns them.
-        IsNull(props.GetFirstChild<TableBorders>());
-        IsNull(props.GetFirstChild<TableCellMarginDefault>());
+        await Assert.That(props.GetFirstChild<TableBorders>()).IsNull();
+        await Assert.That(props.GetFirstChild<TableCellMarginDefault>()).IsNull();
 
         var styles = mainPart.StyleDefinitionsPart!.Styles!.Elements<Style>().ToList();
         var tableGrid = styles.Single(_ => _.StyleId?.Value == "TableGrid");
-        AreEqual(StyleValues.Table, tableGrid.Type?.Value);
-        IsNotNull(tableGrid.Descendants<TableBorders>().FirstOrDefault());
+        await Assert.That(tableGrid.Type?.Value).IsEqualTo(StyleValues.Table);
+        await Assert.That(tableGrid.Descendants<TableBorders>().FirstOrDefault()).IsNotNull();
     }
 
     [Test]
-    public void NamedTableStyleReplacesTableGrid()
+    public async Task NamedTableStyleReplacesTableGrid()
     {
         using var stream = new MemoryStream();
         using var doc = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document);
@@ -373,14 +372,14 @@ public class WordTableBuilderTests
         #endregion
 
         var props = table.GetFirstChild<TableProperties>()!;
-        AreEqual(linedColumnsStyleId, props.GetFirstChild<TableStyle>()!.Val?.Value);
+        await Assert.That(props.GetFirstChild<TableStyle>()!.Val?.Value).IsEqualTo(linedColumnsStyleId);
 
         // The style belongs to the host document. TableGrid is inserted when missing because it is
         // a Word built-in with a known definition; inventing one for a template's own style would
         // style the table as something other than what the template says.
         var styles = mainPart.StyleDefinitionsPart?.Styles?.Elements<Style>().ToList() ?? [];
-        IsFalse(styles.Any(_ => _.StyleId?.Value == linedColumnsStyleId));
-        IsFalse(styles.Any(_ => _.StyleId?.Value == "TableGrid"));
+        await Assert.That(styles.Any(_ => _.StyleId?.Value == linedColumnsStyleId)).IsFalse();
+        await Assert.That(styles.Any(_ => _.StyleId?.Value == "TableGrid")).IsFalse();
     }
 
     // The rendered file, so the style's effect is visible rather than inferred from a tblStyle
@@ -472,7 +471,7 @@ public class WordTableBuilderTests
     }
 
     [Test]
-    public void NamedTableStyleKeepsColumnWidths()
+    public async Task NamedTableStyleKeepsColumnWidths()
     {
         // The style drives borders and margins; widths stay the caller's, so the two compose.
         var table = new WordTableBuilder<Employee>(SampleData.Employees())
@@ -481,12 +480,12 @@ public class WordTableBuilderTests
             .Build();
 
         var props = table.GetFirstChild<TableProperties>()!;
-        AreEqual(TableLayoutValues.Fixed, props.GetFirstChild<TableLayout>()!.Type?.Value);
-        IsTrue(table.GetFirstChild<TableGrid>()!.Elements<GridColumn>().Any(_ => _.Width != null));
+        await Assert.That(props.GetFirstChild<TableLayout>()!.Type?.Value).IsEqualTo(TableLayoutValues.Fixed);
+        await Assert.That(table.GetFirstChild<TableGrid>()!.Elements<GridColumn>().Any(_ => _.Width != null)).IsTrue();
     }
 
     [Test]
-    public void EnsureTableGridStyleIsIdempotent_AcrossMultipleBuilds()
+    public async Task EnsureTableGridStyleIsIdempotent_AcrossMultipleBuilds()
     {
         // Building two tables against the same host must not duplicate the TableGrid definition.
         using var stream = new MemoryStream();
@@ -500,11 +499,11 @@ public class WordTableBuilderTests
         var tableGridCount = mainPart.StyleDefinitionsPart!.Styles!
             .Elements<Style>()
             .Count(_ => _.StyleId?.Value == "TableGrid");
-        AreEqual(1, tableGridCount);
+        await Assert.That(tableGridCount).IsEqualTo(1);
     }
 
     [Test]
-    public void EnsureTableGridStyleAddsStockTableNormalWithCellMarginsWhenHostHasNone()
+    public async Task EnsureTableGridStyleAddsStockTableNormalWithCellMarginsWhenHostHasNone()
     {
         // TableGrid inherits its cell padding from TableNormal via basedOn. A programmatically
         // built host has no styles part at all — so the helper must add a stock TableNormal
@@ -520,15 +519,15 @@ public class WordTableBuilderTests
         var tableNormal = mainPart.StyleDefinitionsPart!.Styles!
             .Elements<Style>()
             .Single(_ => _.StyleId?.Value == "TableNormal");
-        AreEqual(true, tableNormal.Default?.Value);
+        await Assert.That(tableNormal.Default?.Value).IsTrue();
 
         var cellMargins = tableNormal.Descendants<TableCellMarginDefault>().Single();
-        AreEqual("108", cellMargins.GetFirstChild<StartMargin>()!.Width?.Value);
-        AreEqual("108", cellMargins.GetFirstChild<EndMargin>()!.Width?.Value);
+        await Assert.That(cellMargins.GetFirstChild<StartMargin>()!.Width?.Value).IsEqualTo("108");
+        await Assert.That(cellMargins.GetFirstChild<EndMargin>()!.Width?.Value).IsEqualTo("108");
     }
 
     [Test]
-    public void EnsureTableGridStyleLeavesPreExistingTableNormalUntouched()
+    public async Task EnsureTableGridStyleLeavesPreExistingTableNormalUntouched()
     {
         // A Word-authored host always ships TableNormal in its styles part — sometimes with
         // customizations the template author intentionally made (different cell margins, etc.).
@@ -576,14 +575,14 @@ public class WordTableBuilderTests
         new WordTableBuilder<Employee>([]).Build(mainPart);
 
         var tableNormals = stylesPart.Styles.Elements<Style>().Where(_ => _.StyleId?.Value == "TableNormal").ToList();
-        AreEqual(1, tableNormals.Count);
-        AreSame(preExisting, tableNormals[0]);
+        await Assert.That(tableNormals.Count).IsEqualTo(1);
+        await Assert.That(tableNormals[0]).IsSameReferenceAs(preExisting);
         var cellMargins = tableNormals[0].Descendants<TableCellMarginDefault>().Single();
-        AreEqual("200", cellMargins.GetFirstChild<StartMargin>()!.Width?.Value);
+        await Assert.That(cellMargins.GetFirstChild<StartMargin>()!.Width?.Value).IsEqualTo("200");
     }
 
     [Test]
-    public void EnsureTableGridStyleIsIdempotent_LeavesPreExistingTableGridUntouched()
+    public async Task EnsureTableGridStyleIsIdempotent_LeavesPreExistingTableGridUntouched()
     {
         // A template authored in Word with tables already present ships TableGrid in styles.xml.
         // Build(mainPart) must detect the existing definition and leave it alone — not replace,
@@ -604,23 +603,23 @@ public class WordTableBuilderTests
             .Elements<Style>()
             .Where(_ => _.StyleId?.Value == "TableGrid")
             .ToList();
-        AreEqual(1, styles.Count);
+        await Assert.That(styles.Count).IsEqualTo(1);
         // Same instance — confirms no replacement happened, just left in place.
-        AreSame(preExisting, styles[0]);
+        await Assert.That(styles[0]).IsSameReferenceAs(preExisting);
         // Customizations remain intact.
         var borders = styles[0].Descendants<TableBorders>().Single();
-        AreEqual(BorderValues.Double, borders.GetFirstChild<TopBorder>()!.Val?.Value);
-        AreEqual("1F4E79", borders.GetFirstChild<TopBorder>()!.Color?.Value);
+        await Assert.That(borders.GetFirstChild<TopBorder>()!.Val?.Value).IsEqualTo(BorderValues.Double);
+        await Assert.That(borders.GetFirstChild<TopBorder>()!.Color?.Value).IsEqualTo("1F4E79");
     }
 
     [Test]
-    public Task InheritsBordersFromHostCustomizedTableGrid()
+    public async Task InheritsBordersFromHostCustomizedTableGrid()
     {
         // The supported way to rebrand Excelsior tables is to customize TableGrid in the host
         // template — Excelsior emits a tblStyle reference, so any borders/cell-margin overrides
         // declared on TableGrid in the host's styles part flow straight through.
         var builder = new WordTableBuilder<Employee>(SampleData.Employees());
-        return VerifyTableInDocWithCustomizedTableGrid(builder);
+        await VerifyTableInDocWithCustomizedTableGrid(builder);
     }
 
     static void AddCustomizedTableGridStyle(MainDocumentPart mainPart)
@@ -740,7 +739,7 @@ public class WordTableBuilderTests
     }
 
     [Test]
-    public void BodyStyleAppliesFontAndAlignmentToEveryDataCell()
+    public async Task BodyStyleAppliesFontAndAlignmentToEveryDataCell()
     {
         #region WordTableBodyStyle
 
@@ -759,16 +758,16 @@ public class WordTableBuilderTests
         var paragraph = dataRow.GetFirstChild<TableCell>()!.GetFirstChild<Paragraph>()!;
 
         // Body alignment is emitted on the paragraph.
-        IsNotNull(paragraph.ParagraphProperties!.GetFirstChild<Justification>());
+        await Assert.That(paragraph.ParagraphProperties!.GetFirstChild<Justification>()).IsNotNull();
 
         var runProperties = paragraph.GetFirstChild<Run>()!.RunProperties!;
         // 9pt -> 18 half-points.
-        AreEqual("18", runProperties.GetFirstChild<FontSize>()!.Val?.Value);
-        AreEqual("Arial", runProperties.GetFirstChild<RunFonts>()!.Ascii?.Value);
+        await Assert.That(runProperties.GetFirstChild<FontSize>()!.Val?.Value).IsEqualTo("18");
+        await Assert.That(runProperties.GetFirstChild<RunFonts>()!.Ascii?.Value).IsEqualTo("Arial");
     }
 
     [Test]
-    public void ColumnCellStyleAppliesToDataCells()
+    public async Task ColumnCellStyleAppliesToDataCells()
     {
         var builder = new WordTableBuilder<Employee>(SampleData.Employees())
             .Column(
@@ -780,15 +779,15 @@ public class WordTableBuilderTests
 
         // Id is column 0, Name is column 1 — only Name should be shaded.
         var idCell = dataRow.Elements<TableCell>().ElementAt(0);
-        IsNull(idCell.TableCellProperties?.GetFirstChild<Shading>());
+        await Assert.That(idCell.TableCellProperties?.GetFirstChild<Shading>()).IsNull();
 
         var nameCell = dataRow.Elements<TableCell>().ElementAt(1);
         var shading = nameCell.TableCellProperties!.GetFirstChild<Shading>()!;
-        AreEqual("FFFF00", shading.Fill?.Value);
+        await Assert.That(shading.Fill?.Value).IsEqualTo("FFFF00");
     }
 
     [Test]
-    public void ColumnCellStyleCanStyleConditionallyOnValue()
+    public async Task ColumnCellStyleCanStyleConditionallyOnValue()
     {
         var builder = new WordTableBuilder<Employee>(SampleData.Employees())
             .Column(
@@ -809,7 +808,7 @@ public class WordTableBuilderTests
             .Select(_ => _.InnerText)
             .ToList()
             .IndexOf("Annual Salary");
-        IsTrue(salaryIndex >= 0);
+        await Assert.That(salaryIndex >= 0).IsTrue();
 
         var dataRows = table.Elements<TableRow>().Skip(1).ToList();
         for (var i = 0; i < employees.Count; i++)
@@ -818,17 +817,17 @@ public class WordTableBuilderTests
             var bold = salaryCell.GetFirstChild<Paragraph>()!.GetFirstChild<Run>()!.RunProperties?.GetFirstChild<Bold>();
             if (employees[i].Salary > 100_000)
             {
-                IsNotNull(bold);
+                await Assert.That(bold).IsNotNull();
             }
             else
             {
-                IsNull(bold);
+                await Assert.That(bold).IsNull();
             }
         }
     }
 
     [Test]
-    public void NoBodyStyleLeavesDataCellsBare()
+    public async Task NoBodyStyleLeavesDataCellsBare()
     {
         // Backward compatibility: without bodyStyle or a column CellStyle, data cells carry no
         // paragraph or run properties (a bare run), exactly as before.
@@ -836,12 +835,12 @@ public class WordTableBuilderTests
 
         var dataRow = table.Elements<TableRow>().Skip(1).First();
         var paragraph = dataRow.GetFirstChild<TableCell>()!.GetFirstChild<Paragraph>()!;
-        IsNull(paragraph.ParagraphProperties);
-        IsNull(paragraph.GetFirstChild<Run>()!.RunProperties);
+        await Assert.That(paragraph.ParagraphProperties).IsNull();
+        await Assert.That(paragraph.GetFirstChild<Run>()!.RunProperties).IsNull();
     }
 
     [Test]
-    public void ParagraphStylesAppliedToHeaderAndBodyCells()
+    public async Task ParagraphStylesAppliedToHeaderAndBodyCells()
     {
         #region WordTableParagraphStyles
 
@@ -855,14 +854,14 @@ public class WordTableBuilderTests
         var rows = table.Elements<TableRow>().ToList();
 
         var headerParagraph = rows[0].GetFirstChild<TableCell>()!.GetFirstChild<Paragraph>()!;
-        AreEqual("TBLHeading", headerParagraph.ParagraphProperties!.ParagraphStyleId!.Val?.Value);
+        await Assert.That(headerParagraph.ParagraphProperties!.ParagraphStyleId!.Val?.Value).IsEqualTo("TBLHeading");
 
         var bodyParagraph = rows[1].GetFirstChild<TableCell>()!.GetFirstChild<Paragraph>()!;
-        AreEqual("TBLText", bodyParagraph.ParagraphProperties!.ParagraphStyleId!.Val?.Value);
+        await Assert.That(bodyParagraph.ParagraphProperties!.ParagraphStyleId!.Val?.Value).IsEqualTo("TBLText");
     }
 
     [Test]
-    public void BodyParagraphStyleReachesHtmlCells()
+    public async Task BodyParagraphStyleReachesHtmlCells()
     {
         // A named paragraph style must reach IsHtml cells (unlike the run-level bodyStyle), while
         // leaving the HTML-derived inline formatting intact.
@@ -879,8 +878,8 @@ public class WordTableBuilderTests
             .Build();
 
         var paragraph = table.Elements<TableRow>().Skip(1).First().GetFirstChild<TableCell>()!.GetFirstChild<Paragraph>()!;
-        AreEqual("TBLText", paragraph.ParagraphProperties!.ParagraphStyleId!.Val?.Value);
-        IsNotNull(paragraph.GetFirstChild<Run>()!.RunProperties!.GetFirstChild<Italic>());
+        await Assert.That(paragraph.ParagraphProperties!.ParagraphStyleId!.Val?.Value).IsEqualTo("TBLText");
+        await Assert.That(paragraph.GetFirstChild<Run>()!.RunProperties!.GetFirstChild<Italic>()).IsNotNull();
     }
 
     public class WidthRow
@@ -907,28 +906,28 @@ public class WordTableBuilderTests
     ];
 
     [Test]
-    public void WidthHintSwitchesTableToFixedDxaLayout()
+    public async Task WidthHintSwitchesTableToFixedDxaLayout()
     {
         var table = new WordTableBuilder<WidthRow>(WidthRows()).Build();
         var props = table.GetFirstChild<TableProperties>()!;
 
         // A width hint flips the table from the default pct auto-layout to fixed dxa layout.
         var width = props.GetFirstChild<TableWidth>()!;
-        AreEqual(TableWidthUnitValues.Dxa, width.Type?.Value);
+        await Assert.That(width.Type?.Value).IsEqualTo(TableWidthUnitValues.Dxa);
 
         var layout = props.GetFirstChild<TableLayout>()!;
-        AreEqual(TableLayoutValues.Fixed, layout.Type?.Value);
+        await Assert.That(layout.Type?.Value).IsEqualTo(TableLayoutValues.Fixed);
 
         // tblW is the sum of the grid column widths.
         var gridWidths = table.GetFirstChild<TableGrid>()!
             .Elements<GridColumn>()
             .Select(_ => int.Parse(_.Width!.Value!))
             .ToList();
-        AreEqual(gridWidths.Sum(), int.Parse(width.Width!.Value!));
+        await Assert.That(int.Parse(width.Width!.Value!)).IsEqualTo(gridWidths.Sum());
     }
 
     [Test]
-    public void WidthHintsResolveExplicitClampedAndRaisedColumns()
+    public async Task WidthHintsResolveExplicitClampedAndRaisedColumns()
     {
         var table = new WordTableBuilder<WidthRow>(WidthRows()).Build();
         var gridWidths = table.GetFirstChild<TableGrid>()!
@@ -938,15 +937,15 @@ public class WordTableBuilderTests
 
         // chars -> twips is (chars * 7 + 5) * 15.
         // Fixed: explicit Width = 10 -> (10*7+5)*15 = 1125.
-        AreEqual(1125, gridWidths[0]);
+        await Assert.That(gridWidths[0]).IsEqualTo(1125);
         // Clamped: long content auto-sizes wide but MaxWidth = 8 caps it -> (8*7+5)*15 = 915.
-        AreEqual(915, gridWidths[1]);
+        await Assert.That(gridWidths[1]).IsEqualTo(915);
         // Raised: tiny content but MinWidth = 30 floors it -> (30*7+5)*15 = 3225.
-        AreEqual(3225, gridWidths[2]);
+        await Assert.That(gridWidths[2]).IsEqualTo(3225);
     }
 
     [Test]
-    public void NoWidthHintKeepsAutoLayoutAndBareGridColumns()
+    public async Task NoWidthHintKeepsAutoLayoutAndBareGridColumns()
     {
         // Regression: a model without any Width/MinWidth/MaxWidth keeps the prior output — a
         // pct=5000 width, no tblLayout, and grid columns with no explicit width.
@@ -954,12 +953,12 @@ public class WordTableBuilderTests
         var props = table.GetFirstChild<TableProperties>()!;
 
         var width = props.GetFirstChild<TableWidth>()!;
-        AreEqual(TableWidthUnitValues.Pct, width.Type?.Value);
-        AreEqual("5000", width.Width?.Value);
-        IsNull(props.GetFirstChild<TableLayout>());
+        await Assert.That(width.Type?.Value).IsEqualTo(TableWidthUnitValues.Pct);
+        await Assert.That(width.Width?.Value).IsEqualTo("5000");
+        await Assert.That(props.GetFirstChild<TableLayout>()).IsNull();
 
         var gridColumns = table.GetFirstChild<TableGrid>()!.Elements<GridColumn>().ToList();
-        IsTrue(gridColumns.All(_ => _.Width == null));
+        await Assert.That(gridColumns.All(_ => _.Width == null)).IsTrue();
     }
 
     [Test]
@@ -988,7 +987,7 @@ public class WordTableBuilderTests
     }
 
     [Test]
-    public void FluentColumnConfigurationOverridesHeading()
+    public async Task FluentColumnConfigurationOverridesHeading()
     {
         var builder = new WordTableBuilder<Employee>([])
             .Column(
@@ -1001,8 +1000,8 @@ public class WordTableBuilderTests
             .Select(_ => _.GetFirstChild<Paragraph>()!.GetFirstChild<Run>()!.GetFirstChild<Text>()!.Text)
             .ToList();
 
-        IsTrue(headings.Contains("Person"));
-        IsFalse(headings.Contains("Full Name"));
+        await Assert.That(headings.Contains("Person")).IsTrue();
+        await Assert.That(headings.Contains("Full Name")).IsFalse();
     }
 
     static WordTableBuilder<Employee> RichlyStyledTable() =>
@@ -1018,7 +1017,7 @@ public class WordTableBuilderTests
             });
 
     [Test]
-    public void RunPropertiesFollowSchemaOrder()
+    public async Task RunPropertiesFollowSchemaOrder()
     {
         // CT_RPr requires rFonts, b, color, sz, szCs, u in that order. Emitting them out of order
         // (e.g. underline before colour, or rFonts last) makes Word flag the document as corrupt.
@@ -1033,9 +1032,7 @@ public class WordTableBuilderTests
             .RunProperties!;
 
         var order = runProperties.ChildElements.Select(_ => _.GetType()).ToList();
-        Assert.That(
-            order,
-            Is.EqualTo(
+        await Assert.That(order).IsEquivalentTo(
             [
                 typeof(RunFonts),
                 typeof(Bold),
@@ -1043,11 +1040,11 @@ public class WordTableBuilderTests
                 typeof(FontSize),
                 typeof(FontSizeComplexScript),
                 typeof(Underline)
-            ]));
+            ], CollectionOrdering.Matching);
     }
 
     [Test]
-    public void StandaloneTableBordersFollowSchemaOrder()
+    public async Task StandaloneTableBordersFollowSchemaOrder()
     {
         // CT_TblBorders requires top, left, bottom, right, insideH, insideV. The standalone
         // (no MainDocumentPart) path emits these inline, so an out-of-order set corrupts the table.
@@ -1057,9 +1054,7 @@ public class WordTableBuilderTests
             .GetFirstChild<TableBorders>()!;
 
         var order = borders.ChildElements.Select(_ => _.GetType()).ToList();
-        Assert.That(
-            order,
-            Is.EqualTo(
+        await Assert.That(order).IsEquivalentTo(
             [
                 typeof(TopBorder),
                 typeof(LeftBorder),
@@ -1067,11 +1062,11 @@ public class WordTableBuilderTests
                 typeof(RightBorder),
                 typeof(InsideHorizontalBorder),
                 typeof(InsideVerticalBorder)
-            ]));
+            ], CollectionOrdering.Matching);
     }
 
     [Test]
-    public void EightDigitArgbIsSchemaValidInWord()
+    public async Task EightDigitArgbIsSchemaValidInWord()
     {
         // CellStyle accepts AARRGGBB — StyleManager prepends the alpha only when it is missing, and
         // the readme's own TemplateSheetFullFeatured sample passes FFEFEFEF. Word has nowhere to
@@ -1090,8 +1085,8 @@ public class WordTableBuilderTests
 
         var fills = table.Descendants<Shading>().Select(_ => _.Fill?.Value).Where(_ => _ != null);
         var colors = table.Descendants<Color>().Select(_ => _.Val?.Value).Where(_ => _ != "auto");
-        Assert.That(fills, Is.All.EqualTo("EFEFEF"));
-        Assert.That(colors, Is.All.EqualTo("0563C1"));
+        await Assert.That(fills).All(_ => _ == "EFEFEF");
+        await Assert.That(colors).All(_ => _ == "0563C1");
 
         using var stream = new MemoryStream();
         using (var document = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document))
@@ -1106,11 +1101,11 @@ public class WordTableBuilderTests
             .Validate(opened)
             .Select(_ => _.Description);
 
-        Assert.That(errors, Is.Empty);
+        await Assert.That(errors).IsEmpty();
     }
 
     [Test]
-    public void StandaloneStyledTableIsSchemaValid()
+    public async Task StandaloneStyledTableIsSchemaValid()
     {
         // End-to-end guard over the inline tblBorders ordering and the rich run-property ordering:
         // a standalone table (inline borders) with a body style that exercises every rPr child.
@@ -1131,6 +1126,6 @@ public class WordTableBuilderTests
             .Validate(opened)
             .Select(_ => $"{_.Part?.Uri}: {_.Description}");
 
-        Assert.That(errors, Is.Empty);
+        await Assert.That(errors).IsEmpty();
     }
 }

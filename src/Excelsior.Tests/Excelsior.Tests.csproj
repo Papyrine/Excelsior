@@ -1,19 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Verify.DiffPlex" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="MarkdownSnippets.MsBuild" PrivateAssets="all" />
-    <PackageReference Include="Verify.NUnit" />
+    <PackageReference Include="Verify.TUnit" />
     <PackageReference Include="Argon" />
     <PackageReference Include="DiffEngine" />
     <PackageReference Include="EmptyFiles" />
     <PackageReference Include="SimpleInfoName" />
     <PackageReference Include="Verify" />
-    <PackageReference Include="NUnit" />
-    <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="TUnit" />
+    <Using Include="TUnit.Assertions.Enums" />
     <PackageReference Include="Verify.OpenXML" />
     <PackageReference Include="Morph.Skia" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
@@ -21,7 +21,6 @@
     <ProjectReference Include="..\Excelsior\Excelsior.csproj" />
     <ProjectReference Include="..\Excelsior.SourceGenerator\Excelsior.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Model\Model.csproj" />
-    <Using Include="NUnit.Framework.Legacy.ClassicAssert" Static="True" />
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
     <None Include="**\*.png" Exclude="bin\**">
       <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>

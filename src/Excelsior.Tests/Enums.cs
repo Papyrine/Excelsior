@@ -1,5 +1,4 @@
-﻿[TestFixture]
-public class Enums
+﻿public class Enums
 {
     [Test]
     public async Task CustomRender()

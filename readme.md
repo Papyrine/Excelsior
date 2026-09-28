@@ -96,7 +96,7 @@ builder.AddSheet(data);
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/UsageTests.cs#L7-L38' title='Snippet source file'>snippet source</a> | <a href='#snippet-Usage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/UsageTests.cs#L6-L37' title='Snippet source file'>snippet source</a> | <a href='#snippet-Usage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -117,7 +117,7 @@ The name can be controlled by passing an explicit value.
 var builder = new BookBuilder();
 builder.AddSheet(employees, "Employee Report");
 ```
-<sup><a href='/src/Excelsior.Tests/WorksheetName.cs#L9-L14' title='Snippet source file'>snippet source</a> | <a href='#snippet-WorksheetName' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/WorksheetName.cs#L8-L13' title='Snippet source file'>snippet source</a> | <a href='#snippet-WorksheetName' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -168,7 +168,7 @@ public enum EmployeeStatus
     Terminated
 }
 ```
-<sup><a href='/src/Excelsior.Tests/DataAnnotationsTests.cs#L43-L83' title='Snippet source file'>snippet source</a> | <a href='#snippet-DataAnnotationsModel' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/DataAnnotationsTests.cs#L44-L84' title='Snippet source file'>snippet source</a> | <a href='#snippet-DataAnnotationsModel' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -190,7 +190,7 @@ builder.AddSheet(data);
 var stream = new MemoryStream();
 await builder.ToStream(stream);
 ```
-<sup><a href='/src/Excelsior.Tests/Saving.cs#L10-L18' title='Snippet source file'>snippet source</a> | <a href='#snippet-ToStream' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Saving.cs#L9-L17' title='Snippet source file'>snippet source</a> | <a href='#snippet-ToStream' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -206,7 +206,7 @@ builder.AddSheet(data);
 
 var bytes = await builder.ToBytes();
 ```
-<sup><a href='/src/Excelsior.Tests/Saving.cs#L28-L35' title='Snippet source file'>snippet source</a> | <a href='#snippet-ToBytes' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Saving.cs#L27-L34' title='Snippet source file'>snippet source</a> | <a href='#snippet-ToBytes' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -222,7 +222,7 @@ builder.AddSheet(data);
 
 var stream = await builder.ToMemoryStream();
 ```
-<sup><a href='/src/Excelsior.Tests/Saving.cs#L45-L52' title='Snippet source file'>snippet source</a> | <a href='#snippet-ToMemoryStream' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Saving.cs#L44-L51' title='Snippet source file'>snippet source</a> | <a href='#snippet-ToMemoryStream' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -251,7 +251,7 @@ reader.Convert(stream);
 
 var employees = sheet.Rows;
 ```
-<sup><a href='/src/Excelsior.Tests/Reading/BookReaderTests.cs#L7-L22' title='Snippet source file'>snippet source</a> | <a href='#snippet-BookReaderUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Reading/BookReaderTests.cs#L6-L21' title='Snippet source file'>snippet source</a> | <a href='#snippet-BookReaderUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -280,16 +280,14 @@ public async Task PositionalRecord()
     var sheet = reader.AddSheet<PersonRecord>();
     reader.Convert(stream);
 
-    Assert.That(
-        sheet.Rows,
-        Is.EqualTo<PersonRecord>(
+    await Assert.That(sheet.Rows).IsEquivalentTo(
         [
-            new("Alice", 30),
+            new PersonRecord("Alice", 30),
             new("Bob", 25)
-        ]));
+        ], CollectionOrdering.Matching);
 }
 ```
-<sup><a href='/src/Excelsior.Tests/Reading/BookReaderConstructionTests.cs#L15-L39' title='Snippet source file'>snippet source</a> | <a href='#snippet-BookReaderPositionalRecord' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Reading/BookReaderConstructionTests.cs#L14-L36' title='Snippet source file'>snippet source</a> | <a href='#snippet-BookReaderPositionalRecord' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Limitations:
@@ -330,7 +328,7 @@ reader.Convert(stream);
 
 var first = sheet.Rows[0];
 ```
-<sup><a href='/src/Excelsior.Tests/Reading/BookReaderAnonymousTests.cs#L13-L30' title='Snippet source file'>snippet source</a> | <a href='#snippet-BookReaderDictionary' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Reading/BookReaderAnonymousTests.cs#L12-L29' title='Snippet source file'>snippet source</a> | <a href='#snippet-BookReaderDictionary' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -351,7 +349,7 @@ reader.Convert(stream);
 var employees = staff.Rows;
 var depts = departments.Rows;
 ```
-<sup><a href='/src/Excelsior.Tests/Reading/BookReaderTests.cs#L92-L102' title='Snippet source file'>snippet source</a> | <a href='#snippet-BookReaderMultipleSheets' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Reading/BookReaderTests.cs#L91-L101' title='Snippet source file'>snippet source</a> | <a href='#snippet-BookReaderMultipleSheets' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Dictionary:
@@ -378,12 +376,14 @@ departments
 
 reader.Convert(stream);
 
-Assert.That(staff.Rows[0]["Employee ID"], Is.EqualTo(1));
-Assert.That(staff.Rows[0]["Full Name"], Is.EqualTo("John Doe"));
-Assert.That(departments.Rows.Select(_ => _["Name"]), Is.EqualTo(new object[] { "Eng", "Sales" }));
-Assert.That(departments.Rows.Select(_ => _["HeadCount"]), Is.EqualTo(new object[] { 12, 7 }));
+await Assert.That(staff.Rows[0]["Employee ID"]).IsEqualTo(1);
+await Assert.That(staff.Rows[0]["Full Name"]).IsEqualTo("John Doe");
+await Assert.That(departments.Rows.Select(_ => _["Name"]))
+    .IsEquivalentTo(new object?[] { "Eng", "Sales" }, CollectionOrdering.Matching);
+await Assert.That(departments.Rows.Select(_ => _["HeadCount"]))
+    .IsEquivalentTo(new object?[] { 12, 7 }, CollectionOrdering.Matching);
 ```
-<sup><a href='/src/Excelsior.Tests/Reading/BookReaderAnonymousTests.cs#L62-L87' title='Snippet source file'>snippet source</a> | <a href='#snippet-BookReaderDictionaryMultipleSheets' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Reading/BookReaderAnonymousTests.cs#L61-L88' title='Snippet source file'>snippet source</a> | <a href='#snippet-BookReaderDictionaryMultipleSheets' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 If a sheet's declared columns don't match what's in the file, that sheet's row parsing is skipped (one error per missing column, plus one error per unrecognized header column, is recorded against it), but subsequent sheets are still processed. Per-row parse errors don't have this short-circuit — they are collected per failing cell.
@@ -425,7 +425,7 @@ sheet.Convert(
     });
 reader.Convert(stream);
 ```
-<sup><a href='/src/Excelsior.Tests/Reading/BookReaderDelegateTests.cs#L39-L58' title='Snippet source file'>snippet source</a> | <a href='#snippet-ReaderDelegate' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Reading/BookReaderDelegateTests.cs#L38-L57' title='Snippet source file'>snippet source</a> | <a href='#snippet-ReaderDelegate' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Dictionary:
@@ -451,7 +451,7 @@ sheet.Column(
     });
 reader.Convert(stream);
 ```
-<sup><a href='/src/Excelsior.Tests/Reading/BookReaderDelegateTests.cs#L79-L99' title='Snippet source file'>snippet source</a> | <a href='#snippet-ReaderDictionaryDelegate' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Reading/BookReaderDelegateTests.cs#L78-L98' title='Snippet source file'>snippet source</a> | <a href='#snippet-ReaderDictionaryDelegate' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -477,7 +477,7 @@ if (!result)
     }
 }
 ```
-<sup><a href='/src/Excelsior.Tests/Reading/BookReaderErrorTests.cs#L60-L75' title='Snippet source file'>snippet source</a> | <a href='#snippet-BookReaderTryConvert' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Reading/BookReaderErrorTests.cs#L59-L74' title='Snippet source file'>snippet source</a> | <a href='#snippet-BookReaderTryConvert' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -510,7 +510,7 @@ reader.Convert(stream);
 
 var header = reader.GetMetadata<BookHeader>();
 ```
-<sup><a href='/src/Excelsior.Tests/Reading/BookReaderTests.cs#L118-L140' title='Snippet source file'>snippet source</a> | <a href='#snippet-UserMetadataUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Reading/BookReaderTests.cs#L117-L139' title='Snippet source file'>snippet source</a> | <a href='#snippet-UserMetadataUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Calling `SetMetadata` a second time with a non-null value throws — metadata is treated as a single intentional payload, so accidental double-assignment is surfaced loudly rather than silently last-wins. To overwrite deliberately, pass `null` first to clear and then set the new value.
@@ -545,7 +545,7 @@ reader.Convert(stream);
 
 var json = reader.GetMetadata();
 ```
-<sup><a href='/src/Excelsior.Tests/Reading/BookReaderTests.cs#L173-L195' title='Snippet source file'>snippet source</a> | <a href='#snippet-RawMetadataUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Reading/BookReaderTests.cs#L172-L194' title='Snippet source file'>snippet source</a> | <a href='#snippet-RawMetadataUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -603,7 +603,7 @@ builder.AddSheet(employees)
         _ => _.Name,
         _ => _.Heading = "Employee Name");
 ```
-<sup><a href='/src/Excelsior.Tests/Headings.cs#L9-L17' title='Snippet source file'>snippet source</a> | <a href='#snippet-CustomHeadings' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Headings.cs#L8-L16' title='Snippet source file'>snippet source</a> | <a href='#snippet-CustomHeadings' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -663,7 +663,7 @@ builder.AddSheet(employees)
     .Column(_ => _.Name, _ => _.Order = 2)
     .Column(_ => _.Salary, _ => _.Order = 3);
 ```
-<sup><a href='/src/Excelsior.Tests/ColumnOrdering.cs#L9-L17' title='Snippet source file'>snippet source</a> | <a href='#snippet-ColumnOrdering' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ColumnOrdering.cs#L8-L16' title='Snippet source file'>snippet source</a> | <a href='#snippet-ColumnOrdering' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -686,7 +686,7 @@ var builder = new BookBuilder(
     });
 builder.AddSheet(data);
 ```
-<sup><a href='/src/Excelsior.Tests/StyleTests.cs#L10-L21' title='Snippet source file'>snippet source</a> | <a href='#snippet-HeadingStyle' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/StyleTests.cs#L9-L20' title='Snippet source file'>snippet source</a> | <a href='#snippet-HeadingStyle' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -709,7 +709,7 @@ var builder = new BookBuilder(
     });
 builder.AddSheet(data);
 ```
-<sup><a href='/src/Excelsior.Tests/StyleTests.cs#L33-L44' title='Snippet source file'>snippet source</a> | <a href='#snippet-GlobalStyle' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/StyleTests.cs#L32-L43' title='Snippet source file'>snippet source</a> | <a href='#snippet-GlobalStyle' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -755,7 +755,7 @@ builder.AddSheet(employees)
             };
         });
 ```
-<sup><a href='/src/Excelsior.Tests/StyleTests.cs#L56-L90' title='Snippet source file'>snippet source</a> | <a href='#snippet-CellStyle' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/StyleTests.cs#L55-L89' title='Snippet source file'>snippet source</a> | <a href='#snippet-CellStyle' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -781,7 +781,7 @@ builder.AddSheet(employees)
         _ => _.HireDate,
         _ => _.Format = "yyyy-MM-dd");
 ```
-<sup><a href='/src/Excelsior.Tests/Render.cs#L10-L24' title='Snippet source file'>snippet source</a> | <a href='#snippet-CustomRender' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Render.cs#L9-L23' title='Snippet source file'>snippet source</a> | <a href='#snippet-CustomRender' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -818,7 +818,7 @@ builder.AddSheet(employees)
             _.Width = 15;
         });
 ```
-<sup><a href='/src/Excelsior.Tests/FormulaTests.cs#L10-L24' title='Snippet source file'>snippet source</a> | <a href='#snippet-FormulaFluent' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/FormulaTests.cs#L9-L23' title='Snippet source file'>snippet source</a> | <a href='#snippet-FormulaFluent' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 The shorter `Formula()` overload on `ISheetBuilder<TModel>` can be used when
@@ -852,7 +852,7 @@ builder.AddSheet(employees)
     .Column(_ => _.Email, _ => _.Width = 30)
     .Column(_ => _.HireDate, _ => _.Width = 15);
 ```
-<sup><a href='/src/Excelsior.Tests/ColumnWidths.cs#L9-L17' title='Snippet source file'>snippet source</a> | <a href='#snippet-ColumnWidths' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ColumnWidths.cs#L8-L16' title='Snippet source file'>snippet source</a> | <a href='#snippet-ColumnWidths' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -894,7 +894,7 @@ A book-wide or per-sheet `defaultMinColumnWidth` can also be set; it applies to 
 var builder = new BookBuilder();
 builder.AddSheet(employees, defaultMinColumnWidth: 25);
 ```
-<sup><a href='/src/Excelsior.Tests/ColumnWidths.cs#L141-L146' title='Snippet source file'>snippet source</a> | <a href='#snippet-SheetDefaultMinColumnWidth' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ColumnWidths.cs#L140-L145' title='Snippet source file'>snippet source</a> | <a href='#snippet-SheetDefaultMinColumnWidth' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -906,7 +906,7 @@ builder.AddSheet(employees, defaultMinColumnWidth: 25);
 var builder = new BookBuilder(defaultMinColumnWidth: 25);
 builder.AddSheet(employees);
 ```
-<sup><a href='/src/Excelsior.Tests/ColumnWidths.cs#L158-L163' title='Snippet source file'>snippet source</a> | <a href='#snippet-BookDefaultMinColumnWidth' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ColumnWidths.cs#L157-L162' title='Snippet source file'>snippet source</a> | <a href='#snippet-BookDefaultMinColumnWidth' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -919,7 +919,7 @@ var builder = new BookBuilder();
 builder.AddSheet(employees)
     .Column(_ => _.Name, _ => _.MinWidth = 40);
 ```
-<sup><a href='/src/Excelsior.Tests/ColumnWidths.cs#L57-L63' title='Snippet source file'>snippet source</a> | <a href='#snippet-ColumnMinWidth' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ColumnWidths.cs#L56-L62' title='Snippet source file'>snippet source</a> | <a href='#snippet-ColumnMinWidth' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -932,7 +932,7 @@ var builder = new BookBuilder();
 builder.AddSheet(employees)
     .Column(_ => _.Name, _ => _.MaxWidth = 5);
 ```
-<sup><a href='/src/Excelsior.Tests/ColumnWidths.cs#L99-L105' title='Snippet source file'>snippet source</a> | <a href='#snippet-ColumnMaxWidth' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ColumnWidths.cs#L98-L104' title='Snippet source file'>snippet source</a> | <a href='#snippet-ColumnMaxWidth' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -959,7 +959,7 @@ public class EmployeeWithMinMaxWidth
     public required string Email;
 }
 ```
-<sup><a href='/src/Excelsior.Tests/ColumnWidths.cs#L471-L482' title='Snippet source file'>snippet source</a> | <a href='#snippet-ColumnMinMaxWidthModel' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ColumnWidths.cs#L470-L481' title='Snippet source file'>snippet source</a> | <a href='#snippet-ColumnMinMaxWidthModel' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -978,7 +978,7 @@ The header row is exempt — it always auto-sizes, regardless of `MaxRowHeight`.
 var builder = new BookBuilder();
 builder.AddSheet(notes, maxRowHeight: 60);
 ```
-<sup><a href='/src/Excelsior.Tests/RowHeights.cs#L34-L39' title='Snippet source file'>snippet source</a> | <a href='#snippet-MaxRowHeight' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/RowHeights.cs#L33-L38' title='Snippet source file'>snippet source</a> | <a href='#snippet-MaxRowHeight' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -990,7 +990,7 @@ builder.AddSheet(notes, maxRowHeight: 60);
 var builder = new BookBuilder(maxRowHeight: 60);
 builder.AddSheet(notes);
 ```
-<sup><a href='/src/Excelsior.Tests/RowHeights.cs#L51-L56' title='Snippet source file'>snippet source</a> | <a href='#snippet-BookMaxRowHeight' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/RowHeights.cs#L50-L55' title='Snippet source file'>snippet source</a> | <a href='#snippet-BookMaxRowHeight' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -1013,7 +1013,7 @@ var builder = new BookBuilder(
     });
 builder.AddSheet(data);
 ```
-<sup><a href='/src/Excelsior.Tests/ProtectionTests.cs#L9-L18' title='Snippet source file'>snippet source</a> | <a href='#snippet-Protected' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ProtectionTests.cs#L8-L17' title='Snippet source file'>snippet source</a> | <a href='#snippet-Protected' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -1028,7 +1028,7 @@ var builder = new BookBuilder(
     protection: new());
 builder.AddSheet(data);
 ```
-<sup><a href='/src/Excelsior.Tests/ProtectionTests.cs#L30-L36' title='Snippet source file'>snippet source</a> | <a href='#snippet-ProtectedNoPassword' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ProtectionTests.cs#L29-L35' title='Snippet source file'>snippet source</a> | <a href='#snippet-ProtectedNoPassword' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -1049,7 +1049,7 @@ var builder = new BookBuilder(
     });
 builder.AddSheet(data);
 ```
-<sup><a href='/src/Excelsior.Tests/ProtectionTests.cs#L49-L61' title='Snippet source file'>snippet source</a> | <a href='#snippet-ProtectedCustomOptions' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ProtectionTests.cs#L48-L60' title='Snippet source file'>snippet source</a> | <a href='#snippet-ProtectedCustomOptions' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -1208,7 +1208,7 @@ builder.SetProperties(
 
 using var stream = await builder.ToMemoryStream();
 ```
-<sup><a href='/src/Excelsior.Tests/DocumentPropertiesTests.cs#L9-L39' title='Snippet source file'>snippet source</a> | <a href='#snippet-DocumentPropertiesUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/DocumentPropertiesTests.cs#L8-L38' title='Snippet source file'>snippet source</a> | <a href='#snippet-DocumentPropertiesUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 The standard fields map onto the workbook's core and extended (app) property parts:
@@ -1260,7 +1260,7 @@ reader.Convert(stream);
 var id = reader.GetCustomProperty<Guid>("DatasetId");
 var revision = reader.GetCustomProperty<int>("Revision");
 ```
-<sup><a href='/src/Excelsior.Tests/DocumentPropertiesTests.cs#L130-L159' title='Snippet source file'>snippet source</a> | <a href='#snippet-ReadCustomProperties' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/DocumentPropertiesTests.cs#L129-L158' title='Snippet source file'>snippet source</a> | <a href='#snippet-ReadCustomProperties' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Reading a property this way needs a `Convert` first, which parses every sheet. Where only a property is wanted — routing an upload by an embedded id, say — read it on its own:
@@ -1270,7 +1270,7 @@ Reading a property this way needs a `Convert` first, which parses every sheet. W
 ```cs
 var properties = BookReader.ReadCustomProperties(stream);
 ```
-<sup><a href='/src/Excelsior.Tests/DocumentPropertiesTests.cs#L101-L105' title='Snippet source file'>snippet source</a> | <a href='#snippet-ReadCustomPropertiesStandalone' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/DocumentPropertiesTests.cs#L100-L104' title='Snippet source file'>snippet source</a> | <a href='#snippet-ReadCustomPropertiesStandalone' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 That opens `docProps/custom.xml` and nothing else. Values come back as the raw stored text, so a `Guid` or a number is converted by the caller. The instance members above do that conversion, at the cost of reading the workbook.
@@ -1289,7 +1289,7 @@ builder.AddSheet(SampleData.Employees())
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/NoteTests.cs#L11-L19' title='Snippet source file'>snippet source</a> | <a href='#snippet-Note' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/NoteTests.cs#L10-L18' title='Snippet source file'>snippet source</a> | <a href='#snippet-Note' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Notes work on every sheet kind (data-bound, dictionary, and template) and combine freely with [protection](#protection) and [validation](#input-hints-and-error-messages).
@@ -1308,7 +1308,7 @@ builder.AddSheet(SampleData.Employees())
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/BannerTests.cs#L17-L25' title='Snippet source file'>snippet source</a> | <a href='#snippet-Banner' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/BannerTests.cs#L16-L24' title='Snippet source file'>snippet source</a> | <a href='#snippet-Banner' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 By default the banner and header are frozen together, so the instructions stay visible while scrolling. Pass `freeze: false` to leave the top of the sheet unpinned — Excel can only freeze contiguous rows from the top, so a scrolling banner means the header scrolls with it.
@@ -1332,7 +1332,7 @@ builder.AddSheet(SampleData.Employees())
                 new Text("complete every highlighted field.")));
     });
 ```
-<sup><a href='/src/Excelsior.Tests/BannerTests.cs#L35-L49' title='Snippet source file'>snippet source</a> | <a href='#snippet-BannerRichText' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/BannerTests.cs#L34-L48' title='Snippet source file'>snippet source</a> | <a href='#snippet-BannerRichText' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Banners work on every sheet kind (data-bound, dictionary, and template). The banner row count is recorded in the workbook's column metadata, so `BookReader` skips past it automatically and a bannered sheet round-trips cleanly.
@@ -1352,7 +1352,7 @@ public record Person(string Name, Address Address);
 
 public record Address(int Number, string Street, string City, State State, ushort PostCode);
 ```
-<sup><a href='/src/Excelsior.Tests/ComplexTypeWithToString.cs#L10-L16' title='Snippet source file'>snippet source</a> | <a href='#snippet-ComplexTypeModels' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ComplexTypeWithToString.cs#L9-L15' title='Snippet source file'>snippet source</a> | <a href='#snippet-ComplexTypeModels' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -1375,7 +1375,7 @@ List<Person> data =
 ];
 builder.AddSheet(data);
 ```
-<sup><a href='/src/Excelsior.Tests/ComplexTypeWithToString.cs#L21-L37' title='Snippet source file'>snippet source</a> | <a href='#snippet-ComplexTypeWithToString' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ComplexTypeWithToString.cs#L20-L36' title='Snippet source file'>snippet source</a> | <a href='#snippet-ComplexTypeWithToString' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -1393,7 +1393,7 @@ builder.AddSheet(data);
 public static void Init() =>
     ValueRenderer.For<Address>(_ => $"{_.Number}, {_.Street}, {_.City}, {_.State}, {_.PostCode}");
 ```
-<sup><a href='/src/Excelsior.Tests/ComplexTypeWithCustomRender.cs#L14-L20' title='Snippet source file'>snippet source</a> | <a href='#snippet-ComplexTypeWithCustomRenderInit' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ComplexTypeWithCustomRender.cs#L13-L19' title='Snippet source file'>snippet source</a> | <a href='#snippet-ComplexTypeWithCustomRenderInit' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 <!-- snippet: ComplexTypeWithCustomRender -->
@@ -1413,7 +1413,7 @@ List<Person> data =
 ];
 builder.AddSheet(data);
 ```
-<sup><a href='/src/Excelsior.Tests/ComplexTypeWithCustomRender.cs#L25-L41' title='Snippet source file'>snippet source</a> | <a href='#snippet-ComplexTypeWithCustomRender' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ComplexTypeWithCustomRender.cs#L24-L40' title='Snippet source file'>snippet source</a> | <a href='#snippet-ComplexTypeWithCustomRender' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -1450,7 +1450,7 @@ public record LinkTarget(
     IEnumerable<Link>? NullableLinks,
     IEnumerable<Link?> LinksWithNulls);
 ```
-<sup><a href='/src/Excelsior.Tests/LinkTests.cs#L4-L14' title='Snippet source file'>snippet source</a> | <a href='#snippet-LinkModel' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/LinkTests.cs#L3-L13' title='Snippet source file'>snippet source</a> | <a href='#snippet-LinkModel' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -1482,7 +1482,7 @@ List<LinkTarget> data =
 var builder = new BookBuilder();
 builder.AddSheet(data);
 ```
-<sup><a href='/src/Excelsior.Tests/LinkTests.cs#L19-L44' title='Snippet source file'>snippet source</a> | <a href='#snippet-LinkUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/LinkTests.cs#L18-L43' title='Snippet source file'>snippet source</a> | <a href='#snippet-LinkUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -1554,7 +1554,7 @@ builder.AddSheet(data);
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/WhitespaceTests.cs#L7-L24' title='Snippet source file'>snippet source</a> | <a href='#snippet-Whitespace' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/WhitespaceTests.cs#L6-L23' title='Snippet source file'>snippet source</a> | <a href='#snippet-Whitespace' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -1592,7 +1592,7 @@ Properties that are castable to an `IEnumerable<string>` will automatically be r
 ```cs
 public record Person(string Name, IEnumerable<string> PhoneNumbers);
 ```
-<sup><a href='/src/Excelsior.Tests/EnumerableStringTests.cs#L4-L8' title='Snippet source file'>snippet source</a> | <a href='#snippet-EnumerableModel' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/EnumerableStringTests.cs#L3-L7' title='Snippet source file'>snippet source</a> | <a href='#snippet-EnumerableModel' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -1615,7 +1615,7 @@ List<Person> data =
 var builder = new BookBuilder();
 builder.AddSheet(data);
 ```
-<sup><a href='/src/Excelsior.Tests/EnumerableStringTests.cs#L13-L29' title='Snippet source file'>snippet source</a> | <a href='#snippet-EnumerableUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/EnumerableStringTests.cs#L12-L28' title='Snippet source file'>snippet source</a> | <a href='#snippet-EnumerableUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -1720,7 +1720,7 @@ builder.AddSheet(employees)
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/AnonymousTypeTests.cs#L7-L25' title='Snippet source file'>snippet source</a> | <a href='#snippet-AnonymousType' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/AnonymousTypeTests.cs#L6-L24' title='Snippet source file'>snippet source</a> | <a href='#snippet-AnonymousType' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -1766,7 +1766,7 @@ builder.AddDictionarySheet(rows)
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/DictionarySheetTests.cs#L7-L42' title='Snippet source file'>snippet source</a> | <a href='#snippet-DictionarySheetBasic' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/DictionarySheetTests.cs#L6-L41' title='Snippet source file'>snippet source</a> | <a href='#snippet-DictionarySheetBasic' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -1798,7 +1798,7 @@ builder.AddDictionarySheet(rows)
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/DictionarySheetTests.cs#L78-L101' title='Snippet source file'>snippet source</a> | <a href='#snippet-DictionarySheetEnumDropdown' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/DictionarySheetTests.cs#L77-L100' title='Snippet source file'>snippet source</a> | <a href='#snippet-DictionarySheetEnumDropdown' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -1841,7 +1841,7 @@ builder.AddDictionarySheet(rows)
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/DictionarySheetTests.cs#L109-L143' title='Snippet source file'>snippet source</a> | <a href='#snippet-DictionarySheetFormula' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/DictionarySheetTests.cs#L108-L142' title='Snippet source file'>snippet source</a> | <a href='#snippet-DictionarySheetFormula' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 #### Round-Trip with `BookReader`
@@ -1886,7 +1886,7 @@ reader.Convert(stream);
 
 var first = sheet.Rows[0];
 ```
-<sup><a href='/src/Excelsior.Tests/DictionarySheetTests.cs#L151-L188' title='Snippet source file'>snippet source</a> | <a href='#snippet-DictionarySheetRoundTrip' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/DictionarySheetTests.cs#L150-L187' title='Snippet source file'>snippet source</a> | <a href='#snippet-DictionarySheetRoundTrip' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -1921,7 +1921,7 @@ builder.AddTemplateSheet("Employees")
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/TemplateSheetTests.cs#L7-L31' title='Snippet source file'>snippet source</a> | <a href='#snippet-TemplateSheetBasic' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/TemplateSheetTests.cs#L6-L30' title='Snippet source file'>snippet source</a> | <a href='#snippet-TemplateSheetBasic' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 #### Type-Based Inference
@@ -1967,7 +1967,7 @@ builder.AddTemplateSheet("Employees", templateRowCount: 10)
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/TypeInferenceTests.cs#L17-L28' title='Snippet source file'>snippet source</a> | <a href='#snippet-TemplateInferenceDefaults' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/TypeInferenceTests.cs#L16-L27' title='Snippet source file'>snippet source</a> | <a href='#snippet-TemplateInferenceDefaults' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Inference is **on by default for `AddTemplateSheet`** and **off by default for `AddSheet`**. Pass `inferValidationFromTypes: false` to disable on a template, or `inferValidationFromTypes: true` to opt in on a data-bound sheet:
@@ -1994,7 +1994,7 @@ builder.AddSheet(
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/TypeInferenceTests.cs#L147-L168' title='Snippet source file'>snippet source</a> | <a href='#snippet-DataBoundInferenceEnabled' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/TypeInferenceTests.cs#L146-L167' title='Snippet source file'>snippet source</a> | <a href='#snippet-DataBoundInferenceEnabled' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Per-column overrides always win — set `Required = false` or `DisableAllowedValues = true` to opt out for one column.
@@ -2016,7 +2016,7 @@ builder.AddTemplateSheet("Employees", templateRowCount: 50)
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/TemplateSheetTests.cs#L39-L48' title='Snippet source file'>snippet source</a> | <a href='#snippet-TemplateSheetEnumDropdown' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/TemplateSheetTests.cs#L38-L47' title='Snippet source file'>snippet source</a> | <a href='#snippet-TemplateSheetEnumDropdown' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 This applies to data-bound sheets too — set `templateRowCount` on `AddSheet` to extend dropdowns past the data rows so users adding new rows still get validation.
@@ -2029,7 +2029,7 @@ builder.AddSheet(SampleData.Employees(), templateRowCount: 25);
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L7-L14' title='Snippet source file'>snippet source</a> | <a href='#snippet-ValidationEnumDropdown' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L6-L13' title='Snippet source file'>snippet source</a> | <a href='#snippet-ValidationEnumDropdown' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 To suppress the auto-derived dropdown for a specific column, set `DisableAllowedValues = true`. Setting `AllowedValues` explicitly to a list overrides the auto-derived values.
@@ -2058,7 +2058,7 @@ builder.AddTemplateSheet("Scorecard", templateRowCount: 25)
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/TemplateSheetTests.cs#L56-L75' title='Snippet source file'>snippet source</a> | <a href='#snippet-TemplateSheetNumericRange' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/TemplateSheetTests.cs#L55-L74' title='Snippet source file'>snippet source</a> | <a href='#snippet-TemplateSheetNumericRange' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 <!-- snippet: TemplateSheetDateRange -->
@@ -2078,7 +2078,7 @@ builder.AddTemplateSheet("Hires", templateRowCount: 25)
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/TemplateSheetTests.cs#L83-L99' title='Snippet source file'>snippet source</a> | <a href='#snippet-TemplateSheetDateRange' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/TemplateSheetTests.cs#L82-L98' title='Snippet source file'>snippet source</a> | <a href='#snippet-TemplateSheetDateRange' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 #### Input Hints and Error Messages
@@ -2110,7 +2110,7 @@ builder.AddSheet(SampleData.Employees(), templateRowCount: 10)
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L45-L55' title='Snippet source file'>snippet source</a> | <a href='#snippet-AutoInputMessage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L44-L54' title='Snippet source file'>snippet source</a> | <a href='#snippet-AutoInputMessage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Set `InputTitle` / `InputMessage` to replace the auto-generated hint with custom wording, or suppress the auto hints entirely — `DisableInputMessage` for a single column, or `DisableInputMessages` for the whole sheet. An explicit `InputMessage` always survives either.
@@ -2125,7 +2125,7 @@ sheet.DisableInputMessage(_ => _.Salary);
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L63-L72' title='Snippet source file'>snippet source</a> | <a href='#snippet-DisableInputMessage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L62-L71' title='Snippet source file'>snippet source</a> | <a href='#snippet-DisableInputMessage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 `DisableInputMessages` turns the auto hints off across the sheet in one call (handy for a dense data-entry sheet where every column would otherwise carry a tooltip):
@@ -2143,7 +2143,7 @@ sheet.InputMessage(_ => _.Email, "Use the corporate address.");
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L80-L92' title='Snippet source file'>snippet source</a> | <a href='#snippet-DisableInputMessages' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L79-L91' title='Snippet source file'>snippet source</a> | <a href='#snippet-DisableInputMessages' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 `ErrorTitle` / `ErrorMessage` override the rejection popup. When unset, Excelsior fills in a default based on the validation type — `"Must be one of: A, B, C."` for dropdowns, `"Must be a number between X and Y."` for ranges, `"Must be a number."` for the auto-`ISNUMBER` constraint, etc.
@@ -2171,7 +2171,7 @@ builder.AddSheet(SampleData.Employees(), templateRowCount: 5)
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L140-L154' title='Snippet source file'>snippet source</a> | <a href='#snippet-ValidationErrorStyleWarning' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L139-L153' title='Snippet source file'>snippet source</a> | <a href='#snippet-ValidationErrorStyleWarning' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 #### Required Cells
@@ -2212,7 +2212,7 @@ builder.AddTemplateSheet("Employees", templateRowCount: 25)
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/TemplateSheetTests.cs#L107-L130' title='Snippet source file'>snippet source</a> | <a href='#snippet-TemplateSheetRequired' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/TemplateSheetTests.cs#L106-L129' title='Snippet source file'>snippet source</a> | <a href='#snippet-TemplateSheetRequired' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 #### Locked Cells under Protection
@@ -2240,7 +2240,7 @@ builder.AddTemplateSheet("Employees", templateRowCount: 25)
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/TemplateSheetTests.cs#L138-L158' title='Snippet source file'>snippet source</a> | <a href='#snippet-TemplateSheetProtected' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/TemplateSheetTests.cs#L137-L157' title='Snippet source file'>snippet source</a> | <a href='#snippet-TemplateSheetProtected' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 #### Combining Features
@@ -2301,7 +2301,7 @@ builder.AddTemplateSheet("Employees", templateRowCount: 100)
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/TemplateSheetTests.cs#L166-L219' title='Snippet source file'>snippet source</a> | <a href='#snippet-TemplateSheetFullFeatured' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/TemplateSheetTests.cs#L165-L218' title='Snippet source file'>snippet source</a> | <a href='#snippet-TemplateSheetFullFeatured' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 All of the above features (`AllowedValues`, `Range`, `Required`, `Locked`, `InputMessage`, `ErrorMessage`) work the same way on the data-bound `AddSheet(...).Column(_ => _.Foo, c => ...)` API.
@@ -2333,7 +2333,7 @@ sheet.ErrorMessage(_ => _.Salary, "Salary must be between 0 and 1,000,000.", "In
 
 using var book = await builder.Build();
 ```
-<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L162-L173' title='Snippet source file'>snippet source</a> | <a href='#snippet-ValidationShortcuts' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ValidationTests.cs#L161-L172' title='Snippet source file'>snippet source</a> | <a href='#snippet-ValidationShortcuts' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -2490,7 +2490,7 @@ public class Employee
     public Date? HireDate;
 }
 ```
-<sup><a href='/src/Excelsior.Tests/ColumnAttributeTests.cs#L4-L21' title='Snippet source file'>snippet source</a> | <a href='#snippet-ColumnAttributeModel' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ColumnAttributeTests.cs#L3-L20' title='Snippet source file'>snippet source</a> | <a href='#snippet-ColumnAttributeModel' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 <!-- snippet: ColumnAttribute -->
@@ -2518,7 +2518,7 @@ List<Employee> data =
 
 builder.AddSheet(data);
 ```
-<sup><a href='/src/Excelsior.Tests/ColumnAttributeTests.cs#L26-L50' title='Snippet source file'>snippet source</a> | <a href='#snippet-ColumnAttribute' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ColumnAttributeTests.cs#L25-L49' title='Snippet source file'>snippet source</a> | <a href='#snippet-ColumnAttribute' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -2854,7 +2854,7 @@ var builder = new BookBuilder();
 var sheet = builder.AddSheet(Data());
 sheet.DisableFilter();
 ```
-<sup><a href='/src/Excelsior.Tests/FilterTests.cs#L32-L38' title='Snippet source file'>snippet source</a> | <a href='#snippet-FilterAllOff' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/FilterTests.cs#L31-L37' title='Snippet source file'>snippet source</a> | <a href='#snippet-FilterAllOff' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -2875,7 +2875,7 @@ var sheet = builder.AddSheet(Data());
 sheet.DisableFilter();
 sheet.Filter(_ => _.Name);
 ```
-<sup><a href='/src/Excelsior.Tests/FilterTests.cs#L47-L54' title='Snippet source file'>snippet source</a> | <a href='#snippet-FilterDefaultOffWithOneOn' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/FilterTests.cs#L46-L53' title='Snippet source file'>snippet source</a> | <a href='#snippet-FilterDefaultOffWithOneOn' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -2897,7 +2897,7 @@ sheet.Column(
     _ => _.Age,
     _ => _.Filter = false);
 ```
-<sup><a href='/src/Excelsior.Tests/FilterTests.cs#L63-L71' title='Snippet source file'>snippet source</a> | <a href='#snippet-FilterDefaultOnWithOneOff' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/FilterTests.cs#L62-L70' title='Snippet source file'>snippet source</a> | <a href='#snippet-FilterDefaultOnWithOneOff' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -2933,7 +2933,7 @@ var builder = new BookBuilder();
 var sheet = builder.AddSheet(data);
 sheet.Include(_ => _.Email, !isInternalReport);
 ```
-<sup><a href='/src/Excelsior.Tests/IncludeTests.cs#L101-L110' title='Snippet source file'>snippet source</a> | <a href='#snippet-IncludeToggleBasedOnState' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/IncludeTests.cs#L99-L108' title='Snippet source file'>snippet source</a> | <a href='#snippet-IncludeToggleBasedOnState' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -2957,7 +2957,7 @@ var sheet = builder.AddSheet(data);
 sheet.Exclude(_ => _.Age);
 sheet.Exclude(_ => _.Email);
 ```
-<sup><a href='/src/Excelsior.Tests/IncludeTests.cs#L119-L129' title='Snippet source file'>snippet source</a> | <a href='#snippet-IncludeMultipleSpreadsheets_Public' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/IncludeTests.cs#L117-L127' title='Snippet source file'>snippet source</a> | <a href='#snippet-IncludeMultipleSpreadsheets_Public' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -2977,7 +2977,7 @@ List<Target> data = [
 var builder = new BookBuilder();
 builder.AddSheet(data);
 ```
-<sup><a href='/src/Excelsior.Tests/IncludeTests.cs#L138-L149' title='Snippet source file'>snippet source</a> | <a href='#snippet-IncludeMultipleSpreadsheets_Internal' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/IncludeTests.cs#L136-L147' title='Snippet source file'>snippet source</a> | <a href='#snippet-IncludeMultipleSpreadsheets_Internal' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -2999,7 +2999,7 @@ var builder = new BookBuilder();
 var sheet = builder.AddSheet(data);
 sheet.Exclude(_ => _.Age);
 ```
-<sup><a href='/src/Excelsior.Tests/IncludeTests.cs#L34-L44' title='Snippet source file'>snippet source</a> | <a href='#snippet-IncludeExcludeOne' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/IncludeTests.cs#L33-L43' title='Snippet source file'>snippet source</a> | <a href='#snippet-IncludeExcludeOne' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -3023,7 +3023,7 @@ sheet.Column(
     _ => _.Age,
     _ => _.Include = false);
 ```
-<sup><a href='/src/Excelsior.Tests/IncludeTests.cs#L53-L65' title='Snippet source file'>snippet source</a> | <a href='#snippet-IncludeExcludeOneViaColumn' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/IncludeTests.cs#L52-L64' title='Snippet source file'>snippet source</a> | <a href='#snippet-IncludeExcludeOneViaColumn' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -3055,7 +3055,7 @@ public record Person(
 
 public record Address(int StreetNumber, string Street, string City, State State, ushort PostCode);
 ```
-<sup><a href='/src/Excelsior.Tests/ComplexTypeWithSplitter.cs#L10-L18' title='Snippet source file'>snippet source</a> | <a href='#snippet-ComplexTypeWithSplitter' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ComplexTypeWithSplitter.cs#L9-L17' title='Snippet source file'>snippet source</a> | <a href='#snippet-ComplexTypeWithSplitter' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -3078,7 +3078,7 @@ public record Person(
 
 public record Address(int Number, string Street, string City, State State, ushort PostCode);
 ```
-<sup><a href='/src/Excelsior.Tests/ComplexTypeWithSplitterUseHierachyForName.cs#L10-L19' title='Snippet source file'>snippet source</a> | <a href='#snippet-ComplexTypeWithSplitterUseHierachyForName' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/ComplexTypeWithSplitterUseHierachyForName.cs#L9-L18' title='Snippet source file'>snippet source</a> | <a href='#snippet-ComplexTypeWithSplitterUseHierachyForName' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -3106,7 +3106,7 @@ public class GeneratedTestModel
     public required int Age;
 }
 ```
-<sup><a href='/src/Excelsior.Tests/SourceGeneratorIntegrationTests.cs#L107-L116' title='Snippet source file'>snippet source</a> | <a href='#snippet-SourceGeneratedModel' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/SourceGeneratorIntegrationTests.cs#L106-L115' title='Snippet source file'>snippet source</a> | <a href='#snippet-SourceGeneratedModel' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 This generates typed extension methods for each property, such as `NameColumn`, `NameOrder`, `AgeWidth`, etc.
@@ -3148,7 +3148,7 @@ sheet.AgeOrder(1);
 sheet.NameOrder(2);
 sheet.AgeWidth(15);
 ```
-<sup><a href='/src/Excelsior.Tests/SourceGeneratorIntegrationTests.cs#L7-L31' title='Snippet source file'>snippet source</a> | <a href='#snippet-SourceGeneratedUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/SourceGeneratorIntegrationTests.cs#L6-L30' title='Snippet source file'>snippet source</a> | <a href='#snippet-SourceGeneratedUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -3194,7 +3194,7 @@ using (var doc = WordprocessingDocument.Create(stream, WordprocessingDocumentTyp
     var body = mainPart.Document.Body!;
     body.Append(table);
 ```
-<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L14-L28' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableUsage' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L13-L27' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableUsage' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Column configuration (headings, ordering, render, etc.) works the same as with `BookBuilder`:
@@ -3234,7 +3234,7 @@ var builder = new WordTableBuilder<Employee>(
         _.Font.Underline = true;
     });
 ```
-<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L226-L239' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableHeadingStyle' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L225-L238' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableHeadingStyle' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 A per-column `HeadingStyle` on `ColumnConfig` composes on top of the table-level style, so individual headers can override or extend the shared look:
@@ -3249,7 +3249,7 @@ var builder = new WordTableBuilder<Employee>(
         _ => _.Name,
         _ => _.HeadingStyle = cell => cell.BackgroundColor = "FF0000");
 ```
-<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L247-L256' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableColumnHeadingStyle' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L246-L255' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableColumnHeadingStyle' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Colors accept a leading `#` (e.g. `"#4472C4"`) and it will be stripped before being written to OpenXml.
@@ -3270,7 +3270,7 @@ var builder = new WordTableBuilder<Employee>(
         _.Font.Name = "Arial";
     });
 ```
-<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L745-L755' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableBodyStyle' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L744-L754' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableBodyStyle' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 A per-column `CellStyle` on `ColumnConfig` composes on top, and — because it receives the model and value — can style cells conditionally (e.g. bold a salary over a threshold, shade a status cell). Font and alignment are written to the cell's runs/paragraph; background and vertical alignment to the cell properties.
@@ -3291,7 +3291,7 @@ var builder = new WordTableBuilder<Employee>(SampleData.Employees())
     .HeadingParagraphStyle("TBLHeading")
     .BodyParagraphStyle("TBLText");
 ```
-<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L846-L852' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableParagraphStyles' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L845-L851' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableParagraphStyles' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Unlike the run-level `headingStyle`/`bodyStyle` callbacks, a paragraph style is applied to **every** cell paragraph — including `IsHtml` and `Link` cells — so the style's font, size, and spacing reach all content. The referenced style ids must exist in the host document's styles part. This is the cleanest way to brand an Excelsior table from a template: define the look once as `TBLHeading`/`TBLText` (or any names) and point the table at them.
@@ -3308,7 +3308,7 @@ var table = new WordTableBuilder<Employee>([])
     .TableStyle("LinedColumns")
     .Build(mainPart);
 ```
-<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L367-L373' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableStyle' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Word/WordTableBuilderTests.cs#L366-L372' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordTableStyle' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 `TableGrid` is inserted into the host's styles part when it is missing, because it is a Word built-in with a known definition. A template's own style is not: it must already be defined there, since inventing a definition for it would style the table as something other than what the template says. Column widths are unaffected — the style drives borders and margins, the columns drive layout, and the two compose.
@@ -3345,7 +3345,7 @@ var table = new WordTableBuilder<Reading>(readings)
         isHtml: true)
     .Build(mainPart);
 ```
-<sup><a href='/src/Excelsior.Tests/Word/WordRowMergeTests.cs#L163-L173' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordRowMerge' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Word/WordRowMergeTests.cs#L162-L172' title='Snippet source file'>snippet source</a> | <a href='#snippet-WordRowMerge' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 `when` picks the rows that merge; every other row is untouched. `after` names the last column that keeps its own cell on a merged row — the one that identifies it, typically — anchored to the property rather than a position, so reordering columns cannot quietly move the boundary. Every column after it becomes one cell spanning the rest of the row, saying whatever `content` returns for that row.

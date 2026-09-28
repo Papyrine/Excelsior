@@ -1,5 +1,4 @@
-﻿[TestFixture]
-public class WhitespaceTests
+﻿public class WhitespaceTests
 {
     [Test]
     public async Task Whitespace()

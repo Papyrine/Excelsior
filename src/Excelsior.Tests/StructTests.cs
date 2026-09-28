@@ -1,5 +1,4 @@
-﻿[TestFixture]
-public class StructTests
+﻿public class StructTests
 {
     [Test]
     public async Task Test()

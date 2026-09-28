@@ -1,5 +1,4 @@
 // ReSharper disable NotAccessedPositionalProperty.Local
-[TestFixture]
 public class BookReaderConstructionTests
 {
     static async Task<MemoryStream> Write<T>(params IEnumerable<T> rows)
@@ -27,13 +26,11 @@ public class BookReaderConstructionTests
         var sheet = reader.AddSheet<PersonRecord>();
         reader.Convert(stream);
 
-        Assert.That(
-            sheet.Rows,
-            Is.EqualTo<PersonRecord>(
+        await Assert.That(sheet.Rows).IsEquivalentTo(
             [
-                new("Alice", 30),
+                new PersonRecord("Alice", 30),
                 new("Bob", 25)
-            ]));
+            ], CollectionOrdering.Matching);
     }
 
     #endregion
@@ -65,17 +62,14 @@ public class BookReaderConstructionTests
         var sheet = reader.AddSheet<CtorByName>();
         reader.Convert(stream);
 
-        Assert.That(
-            sheet.Rows.Select(_ => _.Name),
-            Is.EqualTo([
+        await Assert.That(sheet.Rows.Select(_ => _.Name)).IsEquivalentTo([
                 "Alice",
                 "Bob"
-            ]));
-        Assert.That(sheet.Rows.Select(_ => _.Age),
-            Is.EqualTo([
+            ], CollectionOrdering.Matching);
+        await Assert.That(sheet.Rows.Select(_ => _.Age)).IsEquivalentTo([
                 30,
                 25
-            ]));
+            ], CollectionOrdering.Matching);
     }
 
     public class ParameterlessWins
@@ -109,8 +103,8 @@ public class BookReaderConstructionTests
         var sheet = reader.AddSheet<ParameterlessWins>();
         reader.Convert(stream);
 
-        Assert.That(sheet.Rows[0].Name, Is.EqualTo("Alice"));
-        Assert.That(sheet.Rows[0].Age, Is.EqualTo(30));
+        await Assert.That(sheet.Rows[0].Name).IsEqualTo("Alice");
+        await Assert.That(sheet.Rows[0].Age).IsEqualTo(30);
     }
 
     public class PrivateParameterless
@@ -135,7 +129,7 @@ public class BookReaderConstructionTests
         var sheet = reader.AddSheet<PrivateParameterless>();
         reader.Convert(stream);
 
-        Assert.That(sheet.Rows[0].Name, Is.EqualTo("Alice"));
+        await Assert.That(sheet.Rows[0].Name).IsEqualTo("Alice");
     }
 
     public class PartialCtor
@@ -161,8 +155,8 @@ public class BookReaderConstructionTests
         var sheet = reader.AddSheet<PartialCtor>();
         reader.Convert(stream);
 
-        Assert.That(sheet.Rows[0].Name, Is.EqualTo("Alice"));
-        Assert.That(sheet.Rows[0].Notes, Is.EqualTo("VIP"));
+        await Assert.That(sheet.Rows[0].Name).IsEqualTo("Alice");
+        await Assert.That(sheet.Rows[0].Notes).IsEqualTo("VIP");
     }
 
     public class CaseMismatch(string name)
@@ -181,7 +175,7 @@ public class BookReaderConstructionTests
 
         // Property is "Name"; ctor param is "name". Lookup is case-sensitive,
         // so the ctor receives the default value (null).
-        Assert.That(sheet.Rows[0].Name, Is.Null);
+        await Assert.That(sheet.Rows[0].Name).IsNull();
     }
 
     public class HasName
@@ -212,7 +206,7 @@ public class BookReaderConstructionTests
         var reader = new BookReader();
         reader.AddSheet<NoUsableCtor>();
 
-        var exception = Assert.Throws<Exception>(() => reader.Convert(stream))!;
-        Assert.That(exception.Message, Does.Contain("no usable constructor"));
+        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<Exception>()!;
+        await Assert.That(exception!.Message).Contains("no usable constructor");
     }
 }

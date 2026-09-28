@@ -55,7 +55,7 @@ When a Verify-based test produces a `*.received.{txt,png,xlsx}` file, rename it 
 - Per-column delegate conversion: `sheet.Convert(_ => _.Prop, cell => ...)` — the user delegate receives the raw OpenXml `Cell`.
 
 ### Test projects
-- `Excelsior.Tests` — main suite, NUnit + Verify
+- `Excelsior.Tests` — main suite, TUnit + Verify
 - `Excelsior.SourceGenerator.Tests` — source generator tests
 - `StaticSettingsTests` — tests for global static settings (date formats, whitespace trimming, enum rendering); separate process to avoid `ValueRenderer` global-state contamination
 - `SheetRender` — .NET Framework 4.8 utility using Excel Interop. `RenderExcel` opens all `.verified.xlsx` files, renders each sheet's used range to a bitmap, saves as `_SheetName.png`. Tests are `[Explicit]` (manual run only).

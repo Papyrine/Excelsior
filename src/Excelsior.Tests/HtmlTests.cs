@@ -1,5 +1,4 @@
-﻿[TestFixture]
-public class HtmlTests
+﻿public class HtmlTests
 {
     public record Target(string Value1, string Value2 = "sss");
 
@@ -84,28 +83,28 @@ public class HtmlTests
 #pragma warning restore EXCEL003
 
     [Test]
-    public void AttributeAndStringSyntaxMismatchThrows()
+    public async Task AttributeAndStringSyntaxMismatchThrows()
     {
         var bookBuilder = new BookBuilder();
-        var exception = Assert.Catch(() => bookBuilder.AddSheet(new List<ColumnFalseSyntaxHtmlTarget>()));
+        var exception = await Assert.That(() => bookBuilder.AddSheet(new List<ColumnFalseSyntaxHtmlTarget>())).Throws<Exception>();
 
         var inner = exception is TypeInitializationException tie ? tie.InnerException! : exception;
-        Assert.That(inner!.Message, Does.Contain("mismatched IsHtml"));
+        await Assert.That(inner!.Message).Contains("mismatched IsHtml");
     }
 
     public record AttributeHtmlTrueTarget([Column(IsHtml = true)] string Value);
 
     [Test]
-    public void AttributeTrueFluentFalseThrows()
+    public async Task AttributeTrueFluentFalseThrows()
     {
         var bookBuilder = new BookBuilder();
         var sheetBuilder = bookBuilder.AddSheet(new List<AttributeHtmlTrueTarget>());
 
-        var exception = Assert.Catch(() =>
+        var exception = await Assert.That(() =>
             sheetBuilder.Column(
                 _ => _.Value,
-                _ => _.IsHtml = false));
-        Assert.That(exception!.Message, Does.Contain("mismatched IsHtml"));
+                _ => _.IsHtml = false)).Throws<Exception>();
+        await Assert.That(exception!.Message).Contains("mismatched IsHtml");
     }
 
     [Test]

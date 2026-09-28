@@ -3,7 +3,6 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Validation;
 
-[TestFixture]
 public class BannerTests
 {
     static Row BannerRow(SpreadsheetDocument book) =>
@@ -168,7 +167,10 @@ public class BannerTests
         // the default row height already fits. Asserting the upper bound rather than an exact
         // value so estimator tuning doesn't make this brittle; Verify captures the actual height.
         var row = BannerRow(book);
-        Assert.That(row.Height?.Value, Is.Null.Or.LessThanOrEqualTo(60));
+        if (row.Height?.Value is { } height)
+        {
+            await Assert.That(height).IsLessThanOrEqualTo(60);
+        }
 
         await Verify(book);
     }
@@ -184,8 +186,8 @@ public class BannerTests
 
         // Merged cells do not auto-size, so the row is grown to fit all three lines (~15pt each).
         var row = BannerRow(book);
-        Assert.That(row.CustomHeight!.Value, Is.True);
-        Assert.That(row.Height!.Value, Is.EqualTo(45).Within(0.001));
+        await Assert.That(row.CustomHeight!.Value).IsTrue();
+        await Assert.That(row.Height!.Value).IsEqualTo(45).Within(0.001);
 
         // The snapshot's .csv shows the wrapped banner text; the .xlsx carries the grown height.
         await Verify(book);
@@ -201,7 +203,7 @@ public class BannerTests
         using var book = await builder.Build();
 
         // Eight lines would need ~120pt; maxHeight clips the row at 30.
-        Assert.That(BannerRow(book).Height!.Value, Is.EqualTo(30).Within(0.001));
+        await Assert.That(BannerRow(book).Height!.Value).IsEqualTo(30).Within(0.001);
 
         await Verify(book);
     }
@@ -285,7 +287,7 @@ public class BannerTests
         var result = reader.TryConvert(stream);
 
         // Empty template — what matters is that the header resolved (no "column not found" errors).
-        Assert.That(result.Errors, Is.Empty);
+        await Assert.That(result.Errors).IsEmpty();
     }
 
     [Test]
@@ -344,6 +346,6 @@ public class BannerTests
             .Validate(document)
             .Select(_ => $"{_.Part?.Uri}: {_.Description}");
 
-        Assert.That(errors, Is.Empty);
+        await Assert.That(errors).IsEmpty();
     }
 }

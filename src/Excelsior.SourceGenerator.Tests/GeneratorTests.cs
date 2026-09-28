@@ -1,4 +1,3 @@
-[TestFixture]
 public class GeneratorTests
 {
     [Test]
@@ -266,7 +265,7 @@ public class GeneratorTests
     }
 
     [Test]
-    public void PrivateNestedTypeProducesError()
+    public async Task PrivateNestedTypeProducesError()
     {
         var source = """
             using Excelsior;
@@ -281,10 +280,10 @@ public class GeneratorTests
         var result = RunGenerator(source);
         var diagnostics = result.Diagnostics;
 
-        Assert.That(result.Results.SelectMany(_ => _.GeneratedSources), Is.Empty);
-        Assert.That(diagnostics, Has.Length.EqualTo(1));
-        Assert.That(diagnostics[0].Id, Is.EqualTo("EXCEL002"));
-        Assert.That(diagnostics[0].Severity, Is.EqualTo(DiagnosticSeverity.Error));
+        await Assert.That(result.Results.SelectMany(_ => _.GeneratedSources)).IsEmpty();
+        await Assert.That(diagnostics).Count().IsEqualTo(1);
+        await Assert.That(diagnostics[0].Id).IsEqualTo("EXCEL002");
+        await Assert.That(diagnostics[0].Severity).IsEqualTo(DiagnosticSeverity.Error);
     }
 
     [Test]

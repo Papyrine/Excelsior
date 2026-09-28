@@ -1,11 +1,11 @@
-[TestFixture]
+[NotInParallel]
 public class ValueRendererForEnumsHumanizer
 {
-    [SetUp]
+    [Before(HookType.Test)]
     public void Setup() =>
         ValueRenderer.ForEnums(_ => _.Humanize());
 
-    [TearDown]
+    [After(HookType.Test)]
     public void Teardown() =>
         ValueRenderer.Reset();
 

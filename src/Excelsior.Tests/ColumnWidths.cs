@@ -1,5 +1,4 @@
-﻿[TestFixture]
-public class ColumnWidths
+﻿public class ColumnWidths
 {
     [Test]
     public async Task Fluent()
@@ -182,7 +181,7 @@ public class ColumnWidths
     }
 
     [Test]
-    public void MinWidthEqualsMaxWidthThrows()
+    public async Task MinWidthEqualsMaxWidthThrows()
     {
         var employees = SampleData.Employees();
 
@@ -196,12 +195,12 @@ public class ColumnWidths
                     _.MaxWidth = 25;
                 });
 
-        var exception = Assert.ThrowsAsync<Exception>(() => builder.Build());
-        Assert.That(exception!.Message, Does.Contain("Use Width instead"));
+        var exception = await Assert.That(async () => await builder.Build()).ThrowsExactly<Exception>();
+        await Assert.That(exception!.Message).Contains("Use Width instead");
     }
 
     [Test]
-    public void MinWidthGreaterThanMaxWidthThrows()
+    public async Task MinWidthGreaterThanMaxWidthThrows()
     {
         var employees = SampleData.Employees();
 
@@ -215,12 +214,12 @@ public class ColumnWidths
                     _.MaxWidth = 10;
                 });
 
-        var exception = Assert.ThrowsAsync<Exception>(() => builder.Build());
-        Assert.That(exception!.Message, Does.Contain("MinWidth (30) is greater than MaxWidth (10)"));
+        var exception = await Assert.That(async () => await builder.Build()).ThrowsExactly<Exception>();
+        await Assert.That(exception!.Message).Contains("MinWidth (30) is greater than MaxWidth (10)");
     }
 
     [Test]
-    public void WidthWithMinWidthThrows()
+    public async Task WidthWithMinWidthThrows()
     {
         var employees = SampleData.Employees();
 
@@ -234,12 +233,12 @@ public class ColumnWidths
                     _.MinWidth = 10;
                 });
 
-        var exception = Assert.ThrowsAsync<Exception>(() => builder.Build());
-        Assert.That(exception!.Message, Does.Contain("Width cannot be combined with MinWidth/MaxWidth"));
+        var exception = await Assert.That(async () => await builder.Build()).ThrowsExactly<Exception>();
+        await Assert.That(exception!.Message).Contains("Width cannot be combined with MinWidth/MaxWidth");
     }
 
     [Test]
-    public void WidthWithMaxWidthThrows()
+    public async Task WidthWithMaxWidthThrows()
     {
         var employees = SampleData.Employees();
 
@@ -253,12 +252,12 @@ public class ColumnWidths
                     _.MaxWidth = 50;
                 });
 
-        var exception = Assert.ThrowsAsync<Exception>(() => builder.Build());
-        Assert.That(exception!.Message, Does.Contain("Width cannot be combined with MinWidth/MaxWidth"));
+        var exception = await Assert.That(async () => await builder.Build()).ThrowsExactly<Exception>();
+        await Assert.That(exception!.Message).Contains("Width cannot be combined with MinWidth/MaxWidth");
     }
 
     [Test]
-    public void WidthExceedsExcelMaxThrows()
+    public async Task WidthExceedsExcelMaxThrows()
     {
         var employees = SampleData.Employees();
 
@@ -268,12 +267,12 @@ public class ColumnWidths
                 _ => _.Name,
                 _ => _.Width = 256);
 
-        var exception = Assert.ThrowsAsync<Exception>(() => builder.Build());
-        Assert.That(exception!.Message, Does.Contain("exceeds the Excel maximum of 255"));
+        var exception = await Assert.That(async () => await builder.Build()).ThrowsExactly<Exception>();
+        await Assert.That(exception!.Message).Contains("exceeds the Excel maximum of 255");
     }
 
     [Test]
-    public void MinWidthExceedsExcelMaxThrows()
+    public async Task MinWidthExceedsExcelMaxThrows()
     {
         var employees = SampleData.Employees();
 
@@ -283,12 +282,12 @@ public class ColumnWidths
                 _ => _.Name,
                 _ => _.MinWidth = 256);
 
-        var exception = Assert.ThrowsAsync<Exception>(() => builder.Build());
-        Assert.That(exception!.Message, Does.Contain("MinWidth (256) exceeds the Excel maximum of 255"));
+        var exception = await Assert.That(async () => await builder.Build()).ThrowsExactly<Exception>();
+        await Assert.That(exception!.Message).Contains("MinWidth (256) exceeds the Excel maximum of 255");
     }
 
     [Test]
-    public void MaxWidthExceedsExcelMaxThrows()
+    public async Task MaxWidthExceedsExcelMaxThrows()
     {
         var employees = SampleData.Employees();
 
@@ -298,8 +297,8 @@ public class ColumnWidths
                 _ => _.Name,
                 _ => _.MaxWidth = 256);
 
-        var exception = Assert.ThrowsAsync<Exception>(() => builder.Build());
-        Assert.That(exception!.Message, Does.Contain("MaxWidth (256) exceeds the Excel maximum of 255"));
+        var exception = await Assert.That(async () => await builder.Build()).ThrowsExactly<Exception>();
+        await Assert.That(exception!.Message).Contains("MaxWidth (256) exceeds the Excel maximum of 255");
     }
 
     [Test]
@@ -308,7 +307,7 @@ public class ColumnWidths
         var plain = await GetFirstDataColumnWidth(_ => { });
         var bold = await GetFirstDataColumnWidth(style => style.Font.Bold = true);
 
-        Assert.That(bold, Is.GreaterThan(plain), $"bold {bold} should exceed plain {plain}");
+        await Assert.That(bold).IsGreaterThan(plain).Because($"bold {bold} should exceed plain {plain}");
     }
 
     [Test]
@@ -318,7 +317,7 @@ public class ColumnWidths
         var size22 = await GetFirstDataColumnWidth(style => style.Font.Size = 22);
 
         // Doubling the point size should roughly double the per-char width contribution.
-        Assert.That(size22, Is.GreaterThan(size11 * 1.5), $"size 22 {size22} should be much wider than size 11 {size11}");
+        await Assert.That(size22).IsGreaterThan(size11 * 1.5).Because($"size 22 {size22} should be much wider than size 11 {size11}");
     }
 
     [Test]
@@ -332,13 +331,13 @@ public class ColumnWidths
         boldBuilder.AddSheet(SampleData.Employees());
         var bold = await GetAllColumnWidths(boldBuilder);
 
-        Assert.That(bold.Length, Is.EqualTo(plain.Length));
+        await Assert.That(bold.Length).IsEqualTo(plain.Length);
         for (var i = 0; i < plain.Length; i++)
         {
-            Assert.That(bold[i], Is.GreaterThanOrEqualTo(plain[i]), $"column {i}: bold {bold[i]} should be >= plain {plain[i]}");
+            await Assert.That(bold[i]).IsGreaterThanOrEqualTo(plain[i]).Because($"column {i}: bold {bold[i]} should be >= plain {plain[i]}");
         }
 
-        Assert.That(bold.Zip(plain, (b, p) => b > p).Any(), Is.True, "at least one column should grow under global bold");
+        await Assert.That(bold.Zip(plain, (b, p) => b > p).Any()).IsTrue().Because("at least one column should grow under global bold");
     }
 
     [Test]
@@ -362,7 +361,7 @@ public class ColumnWidths
 
         // Raw "1234567" is 7 chars; formatted "1,234,567.00" is 12 chars. The formatted
         // column must be wider, otherwise Excel renders "########".
-        Assert.That(formattedWidth, Is.GreaterThan(rawWidth), $"formatted {formattedWidth} should exceed raw {rawWidth}");
+        await Assert.That(formattedWidth).IsGreaterThan(rawWidth).Because($"formatted {formattedWidth} should exceed raw {rawWidth}");
     }
 
     public class NumberRow

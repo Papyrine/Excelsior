@@ -1,4 +1,3 @@
-[TestFixture]
 public class BookReaderDelegateTests
 {
     public class Source
@@ -57,8 +56,8 @@ public class BookReaderDelegateTests
 
         #endregion
 
-        Assert.That(sheet.Rows.Select(_ => _.Priority), Is.EqualTo([Priority.Low, Priority.High, Priority.Medium]));
-        Assert.That(sheet.Rows.Select(_ => _.Code), Is.EqualTo(["A", "B", "C"]));
+        await Assert.That(sheet.Rows.Select(_ => _.Priority)).IsEquivalentTo([Priority.Low, Priority.High, Priority.Medium], CollectionOrdering.Matching);
+        await Assert.That(sheet.Rows.Select(_ => _.Code)).IsEquivalentTo(["A", "B", "C"], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -98,9 +97,9 @@ public class BookReaderDelegateTests
 
         #endregion
 
-        Assert.That(sheet.Rows[0]["Code"], Is.EqualTo("A"));
-        Assert.That(sheet.Rows[0]["Priority"], Is.EqualTo(1));
-        Assert.That(sheet.Rows[1]["Code"], Is.EqualTo("B"));
-        Assert.That(sheet.Rows[1]["Priority"], Is.EqualTo(3));
+        await Assert.That(sheet.Rows[0]["Code"]).IsEqualTo("A");
+        await Assert.That(sheet.Rows[0]["Priority"]).IsEqualTo(1);
+        await Assert.That(sheet.Rows[1]["Code"]).IsEqualTo("B");
+        await Assert.That(sheet.Rows[1]["Priority"]).IsEqualTo(3);
     }
 }
