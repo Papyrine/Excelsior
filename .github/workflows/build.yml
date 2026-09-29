@@ -61,8 +61,14 @@ jobs:
         # Consumes the nupkg just produced, at the same version.
         run: dotnet build IntegrationTests --configuration Release ${{ env.VERSION_ARGUMENT }}
 
-      - name: Test
-        run: dotnet test --solution src/Excelsior.slnx --configuration Release --no-build --no-restore --report-trx --results-directory TestResults
+      - name: Test Excelsior.Tests
+        run: dotnet test --project src/Excelsior.Tests/Excelsior.Tests.csproj --configuration Release --no-build --no-restore --report-trx --results-directory TestResults
+
+      - name: Test Excelsior.SourceGenerator.Tests
+        run: dotnet test --project src/Excelsior.SourceGenerator.Tests/Excelsior.SourceGenerator.Tests.csproj --configuration Release --no-build --no-restore --report-trx --results-directory TestResults
+
+      - name: Test StaticSettingsTests
+        run: dotnet test --project src/StaticSettingsTests/StaticSettingsTests.csproj --configuration Release --no-build --no-restore --report-trx --results-directory TestResults
 
       - name: Run integration tests
         run: dotnet test --solution IntegrationTests/IntegrationTests.slnx --configuration Release --no-build --no-restore --report-trx --results-directory TestResults
