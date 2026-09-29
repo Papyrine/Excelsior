@@ -776,12 +776,20 @@ builder.AddSheet(employees)
         _ => _.Render = (employee, name) => name.ToUpper())
     .Column(
         _ => _.IsActive,
-        _ => _.Render = (employee, active) => active ? "Active" : "Inactive")
+        _ => _.Render = (employee, active) =>
+        {
+            if (active)
+            {
+                return "Active";
+            }
+
+            return "Inactive";
+        })
     .Column(
         _ => _.HireDate,
         _ => _.Format = "yyyy-MM-dd");
 ```
-<sup><a href='/src/Excelsior.Tests/Render.cs#L9-L23' title='Snippet source file'>snippet source</a> | <a href='#snippet-CustomRender' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Render.cs#L9-L31' title='Snippet source file'>snippet source</a> | <a href='#snippet-CustomRender' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
