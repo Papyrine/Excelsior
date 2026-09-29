@@ -79,5 +79,4 @@ public class RedundantColumnHeadingAnalyzer : DiagnosticAnalyzer
             }
         }
     }
-
 }

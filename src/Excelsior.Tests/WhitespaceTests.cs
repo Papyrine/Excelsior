@@ -24,5 +24,4 @@
 
         await Verify(book);
     }
-
 }

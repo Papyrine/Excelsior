@@ -36,5 +36,4 @@ static class CellWrite
 
         return value.Replace("\r\n", "\n").Replace('\r', '\n');
     }
-
 }
