@@ -291,7 +291,12 @@ static class CellConverter
     static string Display(Type type)
     {
         var underlying = Nullable.GetUnderlyingType(type);
-        return underlying != null ? $"{underlying.Name}?" : type.Name;
+        if (underlying != null)
+        {
+            return $"{underlying.Name}?";
+        }
+
+        return type.Name;
     }
 
     static bool TryParseBool(string? raw, out bool value)

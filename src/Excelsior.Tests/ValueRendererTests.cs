@@ -112,7 +112,15 @@ public class ValueRendererTests
     [Test]
     public async Task For_Bool_Throws()
     {
-        var exception = await Assert.That(() => ValueRenderer.For<bool>(_ => _ ? "Yes" : "No")).ThrowsExactly<Exception>();
+        var exception = await Assert.That(() => ValueRenderer.For<bool>(_ =>
+        {
+            if (_)
+            {
+                return "Yes";
+            }
+
+            return "No";
+        })).ThrowsExactly<Exception>();
         await Assert.That(exception!.Message).Contains("BoolDisplay");
     }
 

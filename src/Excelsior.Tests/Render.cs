@@ -15,7 +15,15 @@ public class Render
                 _ => _.Render = (employee, name) => name.ToUpper())
             .Column(
                 _ => _.IsActive,
-                _ => _.Render = (employee, active) => active ? "Active" : "Inactive")
+                _ => _.Render = (employee, active) =>
+                {
+                    if (active)
+                    {
+                        return "Active";
+                    }
+
+                    return "Inactive";
+                })
             .Column(
                 _ => _.HireDate,
                 _ => _.Format = "yyyy-MM-dd");

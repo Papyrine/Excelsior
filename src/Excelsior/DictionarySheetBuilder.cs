@@ -155,7 +155,15 @@ class DictionarySheetBuilder :
     internal List<ColumnConfig<IReadOnlyDictionary<string, object?>>> OrderedColumns() =>
         Columns
             .Where(_ => _.Include)
-            .OrderBy(_ => _.Order.HasValue ? 0 : 1)
+            .OrderBy(_ =>
+            {
+                if (_.Order.HasValue)
+                {
+                    return 0;
+                }
+
+                return 1;
+            })
             .ThenBy(_ => _.Order ?? _.DeclarationIndex)
             .ToList();
 }

@@ -21,7 +21,18 @@ class Renderer<TModel>(
 
     // Number of rows inserted above the header. A banner occupies one; everything below
     // (header, data, validations, notes, freeze pane) shifts down by this amount.
-    int BannerRows => Banner == null ? 0 : 1;
+    int BannerRows
+    {
+        get
+        {
+            if (Banner == null)
+            {
+                return 0;
+            }
+
+            return 1;
+        }
+    }
 
     StyleManager? styleManager;
     Dictionary<Cell, CellStyle> cellStyles = [];
@@ -1299,10 +1310,15 @@ class Renderer<TModel>(
     /// <see cref="ColumnConfig{TModel}.Format"/>, or the <see cref="ValueRenderer"/> default
     /// for the column's temporal kind.
     /// </summary>
-    static string EffectiveDateFormat(ColumnConfig<TModel> column) =>
-        column.Format is {Length: > 0} format
-            ? format
-            : ValueRenderer.DefaultFormatFor(column.Temporal!.Value);
+    static string EffectiveDateFormat(ColumnConfig<TModel> column)
+    {
+        if (column.Format is {Length: > 0} format)
+        {
+            return format;
+        }
+
+        return ValueRenderer.DefaultFormatFor(column.Temporal!.Value);
+    }
 
     static void ApplyRangeOperator(DataValidation validation, decimal? min, decimal? max)
     {
@@ -1415,7 +1431,12 @@ class Renderer<TModel>(
             }
         }
 
-        return hasContent ? lines : 1;
+        if (hasContent)
+        {
+            return lines;
+        }
+
+        return 1;
     }
 
     static IEnumerable<string> EnumerateCellTexts(Cell cell)

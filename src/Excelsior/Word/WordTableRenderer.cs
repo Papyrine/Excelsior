@@ -591,17 +591,32 @@ static class WordTableRenderer<TModel>
             hasAny = true;
         }
 
-        return hasAny ? properties : null;
+        if (hasAny)
+        {
+            return properties;
+        }
+
+        return null;
     }
 
     // w:shd/@w:fill and w:color/@w:val are both ST_HexColor - six digits, or "auto". An
     // eight-digit ARGB value is neither, and CellStyle accepts one: the readme's own sample uses
     // FFEFEFEF. Stripping a '#' was all this used to do, so such a value reached the file
     // unchanged and failed validation. Parsing drops the alpha Word has no place for.
-    static string NormaliseColor(string color) =>
-        KitColor.TryParseArgb(color, out var parsed)
-            ? parsed.ToHex()
-            : color.StartsWith('#') ? color[1..] : color;
+    static string NormaliseColor(string color)
+    {
+        if (KitColor.TryParseArgb(color, out var parsed))
+        {
+            return parsed.ToHex();
+        }
+
+        if (color.StartsWith('#'))
+        {
+            return color[1..];
+        }
+
+        return color;
+    }
 
     static W.TableRow BuildDataRow(
         List<ColumnConfig<TModel>> columns,

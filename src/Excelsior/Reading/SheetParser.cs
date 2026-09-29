@@ -343,6 +343,11 @@ static class SheetParser
             }
         }
 
-        return length == 0 ? -1 : index - 1;
+        if (length == 0)
+        {
+            return -1;
+        }
+
+        return index - 1;
     }
 }

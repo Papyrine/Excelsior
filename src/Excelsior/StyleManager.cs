@@ -323,10 +323,15 @@ class StyleManager
     // poking at the string means #RGB shorthand expands and an already-8-digit value is understood
     // rather than passed through on faith. Anything unreadable falls back to what this did before,
     // so a value that used to reach the file still does.
-    static string NormaliseColor(string color) =>
-        KitColor.TryParseArgb(color, out var parsed) && parsed.ToArgbHex() is { } argb
-            ? argb
-            : Fallback(color);
+    static string NormaliseColor(string color)
+    {
+        if (KitColor.TryParseArgb(color, out var parsed) && parsed.ToArgbHex() is { } argb)
+        {
+            return argb;
+        }
+
+        return Fallback(color);
+    }
 
     static string Fallback(string color)
     {
@@ -335,6 +340,11 @@ class StyleManager
             color = color[1..];
         }
 
-        return color.Length == 6 ? $"FF{color}" : color;
+        if (color.Length == 6)
+        {
+            return $"FF{color}";
+        }
+
+        return color;
     }
 }

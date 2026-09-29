@@ -1097,12 +1097,20 @@ public class SheetBuilderGenerator :
                 OriginalDefinition.SpecialType: SpecialType.System_Nullable_T
             } nullable)
         {
-            return nullable.TypeArguments[0] is INamedTypeSymbol { TypeKind: TypeKind.Enum } inner
-                ? inner
-                : null;
+            if (nullable.TypeArguments[0] is INamedTypeSymbol { TypeKind: TypeKind.Enum } inner)
+            {
+                return inner;
+            }
+
+            return null;
         }
 
-        return type is INamedTypeSymbol { TypeKind: TypeKind.Enum } named ? named : null;
+        if (type is INamedTypeSymbol { TypeKind: TypeKind.Enum } named)
+        {
+            return named;
+        }
+
+        return null;
     }
 
     /// <summary>

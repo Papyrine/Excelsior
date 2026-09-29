@@ -75,7 +75,15 @@
         members
             .GroupBy(_ => _.Name)
             .Select(_ => _.Aggregate(
-                (most, candidate) => most.DeclaringType!.IsAssignableFrom(candidate.DeclaringType!) ? candidate : most));
+                (most, candidate) =>
+                {
+                    if (most.DeclaringType!.IsAssignableFrom(candidate.DeclaringType!))
+                    {
+                        return candidate;
+                    }
+
+                    return most;
+                }));
 
     public static bool IsNumericType(this Type type)
     {

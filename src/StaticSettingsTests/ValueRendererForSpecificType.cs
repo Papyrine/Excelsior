@@ -5,7 +5,15 @@ public class ValueRendererForSpecificType
     public void Setup()
     {
         ValueRenderer.For<Enum>(_ => _.ToString().ToUpper());
-        ValueRenderer.For<Color>(_ => _ == Color.AntiqueWhite ? "White-ish" : _.ToString());
+        ValueRenderer.For<Color>(_ =>
+        {
+            if (_ == Color.AntiqueWhite)
+            {
+                return "White-ish";
+            }
+
+            return _.ToString();
+        });
     }
 
     [After(HookType.Test)]
