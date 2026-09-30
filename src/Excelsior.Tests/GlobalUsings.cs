@@ -6,4 +6,3 @@ global using System.Xml.Linq;
 global using Excelsior;
 global using Microsoft.EntityFrameworkCore;
 global using NaughtyStrings;
-global using VerifyTests.DiffPlex;
