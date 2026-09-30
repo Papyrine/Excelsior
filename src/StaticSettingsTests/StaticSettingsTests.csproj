@@ -5,7 +5,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Humanizer.Core" />
-    <PackageReference Include="Verify.DiffPlex" />
     <PackageReference Include="Verify.TUnit" />
     <PackageReference Include="Verify.OpenXML" />
     <PackageReference Include="Argon" />
