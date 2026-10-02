@@ -10,7 +10,8 @@ public class BookBuilder
         int? defaultMinColumnWidth = null,
         int defaultMaxColumnWidth = 50,
         int? maxRowHeight = null,
-        SheetProtectionOptions? protection = null)
+        SheetProtectionOptions? protection = null,
+        PrintSetup? print = null)
     {
         ValueRenderer.SetBookBuilderUsed();
         UseAlternatingRowColors = useAlternatingRowColors;
@@ -21,6 +22,7 @@ public class BookBuilder
         DefaultMaxColumnWidth = defaultMaxColumnWidth;
         MaxRowHeight = maxRowHeight;
         Protection = protection;
+        Print = print;
     }
 
     public bool UseAlternatingRowColors { get; }
@@ -34,6 +36,13 @@ public class BookBuilder
     public Action<CellStyle>? GlobalStyle { get; }
     public SheetProtectionOptions? Protection { get; }
     internal bool IsProtected => Protection != null;
+
+    /// <summary>
+    /// How every sheet prints, unless the sheet sets its own options. A sheet with print options
+    /// also has its print area limited to its own columns, so a banner - merged across the whole
+    /// row - cannot widen what prints.
+    /// </summary>
+    public PrintSetup? Print { get; }
 
     internal StyleManager StyleManager { get; } = new();
 
@@ -126,7 +135,8 @@ public class BookBuilder
             {
                 AutoFilter = columns.AutoFilter,
                 AutoInputMessages = columns.AutoInputMessages,
-                Banner = columns.BannerRow
+                Banner = columns.BannerRow,
+                Print = columns.PrintSettings
             };
 
             return renderer.AddSheet(book, cancel);
@@ -172,7 +182,8 @@ public class BookBuilder
             {
                 AutoFilter = builder.AutoFilter,
                 AutoInputMessages = builder.AutoInputMessages,
-                Banner = builder.BannerRow
+                Banner = builder.BannerRow,
+                Print = builder.PrintSettings
             };
 
             return renderer.AddSheet(book, cancel);
@@ -217,7 +228,8 @@ public class BookBuilder
             {
                 AutoFilter = builder.AutoFilter,
                 AutoInputMessages = builder.AutoInputMessages,
-                Banner = builder.BannerRow
+                Banner = builder.BannerRow,
+                Print = builder.PrintSettings
             };
 
             return renderer.AddSheet(book, cancel);
@@ -333,18 +345,21 @@ public class BookBuilder
         stylesPart.Stylesheet = StyleManager.BuildStylesheet();
     }
 
+    // Clone opens the copy it writes as a package of its own, and hands it back. Each is disposed
+    // straight away: left open, it still holds the stream, so a caller that goes on to edit the
+    // bytes - patching in a custom property, say - would be editing underneath a live package.
     public async Task ToStream(Stream stream, Cancel cancel = default)
     {
         using var document = await Build(cancel);
 
         if (stream.CanRead)
         {
-            document.Clone(stream);
+            document.Clone(stream).Dispose();
         }
         else
         {
             using var temp = new MemoryStream();
-            document.Clone(temp);
+            document.Clone(temp).Dispose();
             temp.Position = 0;
             await temp.CopyToAsync(stream, cancel);
         }
@@ -360,7 +375,7 @@ public class BookBuilder
     {
         using var document = await Build(cancel);
         using var stream = new MemoryStream();
-        document.Clone(stream);
+        document.Clone(stream).Dispose();
         return stream.ToArray();
     }
 
@@ -368,7 +383,7 @@ public class BookBuilder
     {
         using var document = await Build(cancel);
         var stream = new MemoryStream();
-        document.Clone(stream);
+        document.Clone(stream).Dispose();
         stream.Position = 0;
         return stream;
     }

@@ -14,10 +14,14 @@ class Renderer<TModel>(
     const string requiredHighlightColor = "FFFFC7CE";
     // Excel's column upper bound is column XFD (1-indexed = 16,384; 0-indexed = 16,383).
     const int maxExcelColumnIndex = 16383;
+    const int maxHeaderFooterLength = 255;
 
     internal bool AutoFilter { get; set; } = true;
     internal bool AutoInputMessages { get; set; } = true;
     internal Banner? Banner { get; set; }
+
+    // The sheet's own print setup; null falls back to the book's.
+    internal PrintSetup? Print { get; set; }
 
     // Number of rows inserted above the header. A banner occupies one; everything below
     // (header, data, validations, notes, freeze pane) shifts down by this amount.
@@ -86,8 +90,121 @@ class Renderer<TModel>(
         MergeBanner(sheet);
         EmitConditionalFormatting(sheet);
         EmitDataValidations(sheet);
+        // After the validations and before the notes: pageMargins, pageSetup and headerFooter sit
+        // between <hyperlinks> and <legacyDrawing> in the CT_Worksheet sequence.
+        EmitPrintSettings(book, sheet);
         EmitComments(sheet);
         RegisterMetadata();
+    }
+
+    void EmitPrintSettings(SpreadsheetDocument book, SheetContext sheet)
+    {
+        var options = Print ?? bookBuilder.Print;
+        if (options == null)
+        {
+            return;
+        }
+
+        // Excel's defaults, written out because the header and footer print inside these margins.
+        sheet.Worksheet.Append(
+            new PageMargins
+            {
+                Left = 0.7,
+                Right = 0.7,
+                Top = 0.75,
+                Bottom = 0.75,
+                Header = 0.3,
+                Footer = 0.3
+            });
+
+        if (options.Orientation != null ||
+            options.PaperSize != null)
+        {
+            var setup = new PageSetup();
+            if (options.PaperSize != null)
+            {
+                setup.PaperSize = (uint)options.PaperSize.Value;
+            }
+
+            if (options.Orientation != null)
+            {
+                setup.Orientation = ToOrientation(options.Orientation.Value);
+            }
+
+            sheet.Worksheet.Append(setup);
+        }
+
+        if (options.Header != null ||
+            options.Footer != null)
+        {
+            var headerFooter = new HeaderFooter();
+            if (options.Header != null)
+            {
+                headerFooter.Append(new OddHeader(HeaderFooterText(options.Header, nameof(options.Header))));
+            }
+
+            if (options.Footer != null)
+            {
+                headerFooter.Append(new OddFooter(HeaderFooterText(options.Footer, nameof(options.Footer))));
+            }
+
+            sheet.Worksheet.Append(headerFooter);
+        }
+
+        SetPrintArea(book, sheet);
+    }
+
+    static OrientationValues ToOrientation(PrintOrientation orientation)
+    {
+        if (orientation == PrintOrientation.Landscape)
+        {
+            return OrientationValues.Landscape;
+        }
+
+        return OrientationValues.Portrait;
+    }
+
+    // "&C" puts the text in the centre section. Any other & in it would be read as the start of a
+    // header code - &P is the page number, &D the date - so a literal one is doubled.
+    static string HeaderFooterText(string text, string member)
+    {
+        var escaped = $"&C{text.Replace("&", "&&")}";
+        if (escaped.Length > maxHeaderFooterLength)
+        {
+            throw new($"PrintSetup.{member} is {escaped.Length} characters once escaped, and Excel holds at most {maxHeaderFooterLength} in a header or footer.");
+        }
+
+        return escaped;
+    }
+
+    // The print area is the sheet's own columns, all of them, down to whatever row is last used. A
+    // banner is merged across the whole row (A1:XFD1), and left to work out the area itself Excel
+    // can count that merge as used, printing page after empty page to the right of the data.
+    void SetPrintArea(SpreadsheetDocument book, SheetContext sheet)
+    {
+        if (columns.Count == 0)
+        {
+            return;
+        }
+
+        var workbook = book.WorkbookPart!.Workbook!;
+        var definedNames = workbook.GetFirstChild<DefinedNames>();
+        if (definedNames == null)
+        {
+            definedNames = new();
+            // definedNames follows <sheets> in the CT_Workbook sequence.
+            workbook.InsertAfter(definedNames, workbook.GetFirstChild<Sheets>());
+        }
+
+        var lastColumn = SheetContext.GetColumnLetter(columns.Count - 1);
+        // A sheet name is quoted in a reference, with any quote inside it doubled.
+        var quotedName = $"'{name.Replace("'", "''")}'";
+        definedNames.Append(
+            new DefinedName($"{quotedName}!$A:${lastColumn}")
+            {
+                Name = "_xlnm.Print_Area",
+                LocalSheetId = (uint)sheet.Index
+            });
     }
 
     void RegisterMetadata()
@@ -466,16 +583,16 @@ class Renderer<TModel>(
         worksheetPart.Worksheet = new(new SheetData());
 
         var sheets = workbookPart.Workbook!.GetFirstChild<Sheets>()!;
-        var sheetId = (uint)(sheets.Count() + 1);
+        var index = sheets.Count();
         sheets.Append(
             new Sheet
             {
                 Id = workbookPart.GetIdOfPart(worksheetPart),
-                SheetId = sheetId,
+                SheetId = (uint)(index + 1),
                 Name = name
             });
 
-        return new(worksheetPart);
+        return new(worksheetPart, index);
     }
 
     void FreezeHeader(SheetContext sheet)
@@ -489,20 +606,27 @@ class Renderer<TModel>(
             return;
         }
 
-        var sheetViews = new SheetViews(
-            new SheetView(
-                new Pane
-                {
-                    VerticalSplit = freezeRows,
-                    TopLeftCell = $"A{freezeRows + 1}",
-                    ActivePane = PaneValues.BottomLeft,
-                    State = PaneStateValues.Frozen
-                })
+        var view = new SheetView(
+            new Pane
             {
-                TabSelected = true,
-                WorkbookViewId = 0
-            });
-        sheet.Worksheet.InsertBefore(sheetViews, sheet.SheetData);
+                VerticalSplit = freezeRows,
+                TopLeftCell = $"A{freezeRows + 1}",
+                ActivePane = PaneValues.BottomLeft,
+                State = PaneStateValues.Frozen
+            })
+        {
+            WorkbookViewId = 0
+        };
+
+        // Only the first sheet is selected. Excel opens a workbook with more than one selected tab
+        // as a group - "[Group]" in the title bar - and an edit made to one sheet lands on all of
+        // them.
+        if (sheet.Index == 0)
+        {
+            view.TabSelected = true;
+        }
+
+        sheet.Worksheet.InsertBefore(new SheetViews(view), sheet.SheetData);
     }
 
     static void SetCellValue(Cell cell, object value)

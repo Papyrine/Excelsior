@@ -116,6 +116,12 @@ class SheetBuilder<TModel>(Columns<TModel> columns) :
         return this;
     }
 
+    public ISheetBuilder<TModel> Print(PrintSetup setup)
+    {
+        columns.PrintSettings = setup;
+        return this;
+    }
+
     public void Include<TProperty>(
         Expression<Func<TModel, TProperty>> property,
         bool value) =>

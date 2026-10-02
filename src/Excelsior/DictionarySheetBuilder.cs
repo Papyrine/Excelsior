@@ -5,6 +5,7 @@ class DictionarySheetBuilder :
     public bool AutoFilter { get; private set; } = true;
     public bool AutoInputMessages { get; private set; } = true;
     public Banner? BannerRow { get; private set; }
+    public PrintSetup? PrintSettings { get; private set; }
 
     public IDictionarySheetBuilder Column<TProperty>(
         string key,
@@ -118,6 +119,12 @@ class DictionarySheetBuilder :
             Freeze = freeze,
             MaxHeight = maxHeight
         };
+        return this;
+    }
+
+    public IDictionarySheetBuilder Print(PrintSetup setup)
+    {
+        PrintSettings = setup;
         return this;
     }
 

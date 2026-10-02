@@ -5,6 +5,7 @@ class Columns<TModel>
     public bool AutoFilter { get; set; } = true;
     public bool AutoInputMessages { get; set; } = true;
     public Banner? BannerRow { get; set; }
+    public PrintSetup? PrintSettings { get; set; }
 
     public Columns(bool inferValidationFromTypes = false)
     {
