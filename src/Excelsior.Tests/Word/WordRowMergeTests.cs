@@ -132,7 +132,7 @@ public class WordRowMergeTests
                 after: _ => _.Note,
                 content: _ => "nothing recorded");
 
-        var exception = await Assert.That(() => builder.Build()).ThrowsExactly<Exception>()!;
+        var exception = await Assert.That(() => builder.Build()).ThrowsExactly<Exception>();
         await Assert.That(exception!.Message).Contains("nothing after it to merge");
     }
 
@@ -145,7 +145,7 @@ public class WordRowMergeTests
             builder.MergeRemainder(
                 when: _ => _.Scope == null,
                 after: _ => _.Name,
-                content: _ => "again")).ThrowsExactly<Exception>()!;
+                content: _ => "again")).ThrowsExactly<Exception>();
         await Assert.That(exception!.Message).Contains("already configured");
     }
 

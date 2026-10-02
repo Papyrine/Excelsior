@@ -258,13 +258,13 @@ public class WordTableBuilderTests
     }
 
     [Test]
-    public async Task HeadingBackgroundAcceptsLeadingHash()
+    public Task HeadingBackgroundAcceptsLeadingHash()
     {
         var builder = new WordTableBuilder<Employee>(
             SampleData.Employees(),
             _ => _.BackgroundColor = "#ABCDEF");
 
-        await VerifyTable(builder);
+        return VerifyTable(builder);
     }
 
     static async Task VerifyTable<T>(WordTableBuilder<T> builder)
@@ -613,13 +613,13 @@ public class WordTableBuilderTests
     }
 
     [Test]
-    public async Task InheritsBordersFromHostCustomizedTableGrid()
+    public Task InheritsBordersFromHostCustomizedTableGrid()
     {
         // The supported way to rebrand Excelsior tables is to customize TableGrid in the host
         // template — Excelsior emits a tblStyle reference, so any borders/cell-margin overrides
         // declared on TableGrid in the host's styles part flow straight through.
         var builder = new WordTableBuilder<Employee>(SampleData.Employees());
-        await VerifyTableInDocWithCustomizedTableGrid(builder);
+        return VerifyTableInDocWithCustomizedTableGrid(builder);
     }
 
     static void AddCustomizedTableGridStyle(MainDocumentPart mainPart)

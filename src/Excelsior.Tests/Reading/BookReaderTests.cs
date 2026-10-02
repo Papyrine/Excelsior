@@ -163,7 +163,7 @@ public class BookReaderTests
         reader.Convert(stream);
 
         await Assert.That(reader.TryGetMetadata<BookHeader>(out var _)).IsFalse();
-        await Assert.That(() => reader.GetMetadata<BookHeader>()).ThrowsExactly<Exception>();
+        await Assert.That(reader.GetMetadata<BookHeader>).ThrowsExactly<Exception>();
     }
 
     [Test]

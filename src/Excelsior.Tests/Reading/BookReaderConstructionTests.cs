@@ -206,7 +206,7 @@ public class BookReaderConstructionTests
         var reader = new BookReader();
         reader.AddSheet<NoUsableCtor>();
 
-        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<Exception>()!;
+        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<Exception>();
         await Assert.That(exception!.Message).Contains("no usable constructor");
     }
 }

@@ -169,7 +169,7 @@ public class ExcelsiorReadersTests
     {
         var (handler, errors) = ErrorCollector();
         var result = ExcelsiorReaders.ReadDateTime(Cell("2026-05-07T10:30:00"), null, 0, handler);
-        await Assert.That(result).IsEqualTo(new DateTime(2026, 5, 7, 10, 30, 0));
+        await Assert.That(result).IsEqualTo(new(2026, 5, 7, 10, 30, 0));
         await Assert.That(errors).IsEmpty();
     }
 
@@ -179,7 +179,7 @@ public class ExcelsiorReadersTests
         var oa = new DateTime(2026, 5, 7).ToOADate().ToString(CultureInfo.InvariantCulture);
         var (handler, errors) = ErrorCollector();
         var result = ExcelsiorReaders.ReadDateTime(Cell(oa), null, 0, handler);
-        await Assert.That(result).IsEqualTo(new DateTime(2026, 5, 7));
+        await Assert.That(result).IsEqualTo(new(2026, 5, 7));
         await Assert.That(errors).IsEmpty();
     }
 
@@ -189,7 +189,7 @@ public class ExcelsiorReadersTests
         var oa = new DateTime(2026, 5, 7).ToOADate().ToString(CultureInfo.InvariantCulture);
         var (handler, _) = ErrorCollector();
         var result = ExcelsiorReaders.ReadDate(Cell(oa), null, 0, handler);
-        await Assert.That(result).IsEqualTo(new Date(2026, 5, 7));
+        await Assert.That(result).IsEqualTo(new(2026, 5, 7));
     }
 
     [Test]

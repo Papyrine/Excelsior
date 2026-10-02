@@ -11,7 +11,7 @@ public class FieldSupportTests
         [Column(Heading = "Custom Heading", Width = 80)]
         public decimal Amount;
 
-        [Excelsior.Ignore]
+        [Ignore]
         public string Ignored = "";
 
         public const int Constant = 42;

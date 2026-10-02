@@ -322,7 +322,7 @@ public class PropertiesTests
     {
         public string? Include { get; set; }
 
-        [Excelsior.Ignore]
+        [Ignore]
         public string? Ignore { get; set; }
     }
 
@@ -332,7 +332,7 @@ public class PropertiesTests
 
     record RecordPrimaryConstructorWithIgnore(
         string? Include,
-        [Excelsior.Ignore]
+        [Ignore]
         string? Ignore)
     {
         // ReSharper disable once IntroduceOptionalParameters.Local

@@ -46,7 +46,7 @@ public class BookReaderErrorTests
         var reader = new BookReader();
         reader.AddSheet<IntTarget>();
 
-        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>()!;
+        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>();
         var errors = exception!.Errors;
         await Assert.That(errors).Count().IsEqualTo(1);
         await Assert.That(errors[0].ColumnName).IsEqualTo("Number");
@@ -96,7 +96,7 @@ public class BookReaderErrorTests
 
         var reader2 = new BookReader();
         reader2.AddSheet<IntTarget>();
-        var exception = await Assert.That(() => reader2.Convert(stream2)).ThrowsExactly<ReadException>()!;
+        var exception = await Assert.That(() => reader2.Convert(stream2)).ThrowsExactly<ReadException>();
 
         await Assert.That(exception!.Errors.Select(_ => _.Message)).IsEquivalentTo(tryResult.Errors.Select(_ => _.Message), CollectionOrdering.Matching);
     }
@@ -137,7 +137,7 @@ public class BookReaderErrorTests
         var reader = new BookReader();
         reader.AddSheet<TwoCols>();
 
-        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>()!;
+        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>();
         await Assert.That(exception!.Errors).Count().IsEqualTo(1);
         var error = exception.Errors[0];
         await Assert.That(error.ColumnName).IsEqualTo("B");
@@ -152,7 +152,7 @@ public class BookReaderErrorTests
         var reader = new BookReader();
         reader.AddSheet<ThreeCols>();
 
-        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>()!;
+        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>();
         await Assert.That(exception!.Errors).Count().IsEqualTo(2);
         await Assert.That(exception.Errors.Select(_ => _.ColumnName)).IsEquivalentTo(["B", "C"]);
     }
@@ -166,7 +166,7 @@ public class BookReaderErrorTests
         var sheet = reader.AddSheet();
         sheet.Column<string>("Nope");
 
-        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>()!;
+        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>();
         var errors = exception!.Errors;
         await Assert.That(errors).Count().IsEqualTo(2);
         await Assert.That(errors.Any(_ => _.ColumnName == "Nope" &&
@@ -198,7 +198,7 @@ public class BookReaderErrorTests
         var sheet = reader.AddSheet();
         sheet.Column<int>("Value");
 
-        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>()!;
+        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>();
         var errors = exception!.Errors;
         await Assert.That(errors).Count().IsEqualTo(2);
         await Assert.That(errors.Any(_ => _.ColumnName == "Value" &&
@@ -231,7 +231,7 @@ public class BookReaderErrorTests
         var first = reader.AddSheet<TwoCols>("First");
         var second = reader.AddSheet<OneCol>("Second");
 
-        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>()!;
+        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>();
         // Mismatch in "First" emits one error and skips its rows;
         // "Second" still parses successfully.
         await Assert.That(exception!.Errors).Count().IsEqualTo(1);
@@ -311,7 +311,7 @@ public class BookReaderErrorTests
         var reader = new BookReader();
         reader.AddSheet<OneCol>();
 
-        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>()!;
+        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>();
         await Assert.That(exception!.Errors).Count().IsEqualTo(1);
         var error = exception.Errors[0];
         await Assert.That(error.ColumnName).IsEqualTo("A");
@@ -341,7 +341,7 @@ public class BookReaderErrorTests
         var reader = new BookReader();
         reader.AddSheet<OneCol>();
 
-        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>()!;
+        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>();
         await Assert.That(exception!.Errors).Count().IsEqualTo(1);
         var error = exception.Errors[0];
         await Assert.That(error.ColumnName).IsEqualTo("A");
@@ -372,7 +372,7 @@ public class BookReaderErrorTests
         var reader = new BookReader();
         reader.AddSheet<IntRow>();
 
-        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>()!;
+        var exception = await Assert.That(() => reader.Convert(stream)).ThrowsExactly<ReadException>();
         var errors = exception!.Errors;
         await Assert.That(errors).Count().IsEqualTo(3);
         await Assert.That(errors.Select(_ => _.ColumnName)).IsEquivalentTo(["Value", "Value", "Value"], CollectionOrdering.Matching);

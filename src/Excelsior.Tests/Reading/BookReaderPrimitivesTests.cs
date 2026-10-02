@@ -82,21 +82,21 @@ public class BookReaderPrimitivesTests
             new() {Byte = 250, SByte = 100, Short = -32000, UShort = 60000, Int = -1000, UInt = 4_000_000_000, Long = -50_000_000_000, ULong = 9_000_000_000});
 
         await Assert.That(rows[0].Byte).IsEqualTo((byte)1);
-        await Assert.That(rows[0].SByte).IsEqualTo((sbyte)(-1));
+        await Assert.That(rows[0].SByte).IsEqualTo((sbyte)-1);
         await Assert.That(rows[0].Short).IsEqualTo((short)2);
         await Assert.That(rows[0].UShort).IsEqualTo((ushort)3);
         await Assert.That(rows[0].Int).IsEqualTo(4);
         await Assert.That(rows[0].UInt).IsEqualTo((uint)5);
-        await Assert.That(rows[0].Long).IsEqualTo((long)6);
+        await Assert.That(rows[0].Long).IsEqualTo(6);
         await Assert.That(rows[0].ULong).IsEqualTo((ulong)7);
 
         await Assert.That(rows[1].Byte).IsEqualTo((byte)250);
         await Assert.That(rows[1].SByte).IsEqualTo((sbyte)100);
-        await Assert.That(rows[1].Short).IsEqualTo((short)(-32000));
+        await Assert.That(rows[1].Short).IsEqualTo((short)-32000);
         await Assert.That(rows[1].UShort).IsEqualTo((ushort)60000);
         await Assert.That(rows[1].Int).IsEqualTo(-1000);
-        await Assert.That(rows[1].UInt).IsEqualTo((uint)4_000_000_000);
-        await Assert.That(rows[1].Long).IsEqualTo((long)(-50_000_000_000));
+        await Assert.That(rows[1].UInt).IsEqualTo(4_000_000_000);
+        await Assert.That(rows[1].Long).IsEqualTo(-50_000_000_000);
         await Assert.That(rows[1].ULong).IsEqualTo((ulong)9_000_000_000);
     }
 
@@ -176,8 +176,8 @@ public class BookReaderPrimitivesTests
             {
                 Value = new(1999, 12, 31, 23, 59, 59)
             });
-        await Assert.That(rows[0].Value).IsEqualTo(new DateTime(2020, 1, 15, 10, 30, 45));
-        await Assert.That(rows[1].Value).IsEqualTo(new DateTime(1999, 12, 31, 23, 59, 59));
+        await Assert.That(rows[0].Value).IsEqualTo(new(2020, 1, 15, 10, 30, 45));
+        await Assert.That(rows[1].Value).IsEqualTo(new(1999, 12, 31, 23, 59, 59));
     }
 
     public class DateTimeRow
@@ -197,8 +197,8 @@ public class BookReaderPrimitivesTests
             {
                 Value = new(2021, 7, 4)
             });
-        await Assert.That(rows[0].Value).IsEqualTo(new Date(2020, 1, 15));
-        await Assert.That(rows[1].Value).IsEqualTo(new Date(2021, 7, 4));
+        await Assert.That(rows[0].Value).IsEqualTo(new(2020, 1, 15));
+        await Assert.That(rows[1].Value).IsEqualTo(new(2021, 7, 4));
     }
 
     public class DateRow
@@ -229,11 +229,11 @@ public class BookReaderPrimitivesTests
             new DateTimeOffsetRow {Value = negativeHalf});
 
         await Assert.That(rows[0].Value).IsEqualTo(india);
-        await Assert.That(rows[0].Value.Offset).IsEqualTo(new TimeSpan(5, 30, 0));
+        await Assert.That(rows[0].Value.Offset).IsEqualTo(new(5, 30, 0));
         await Assert.That(rows[1].Value).IsEqualTo(nepal);
-        await Assert.That(rows[1].Value.Offset).IsEqualTo(new TimeSpan(5, 45, 0));
+        await Assert.That(rows[1].Value.Offset).IsEqualTo(new(5, 45, 0));
         await Assert.That(rows[2].Value).IsEqualTo(negativeHalf);
-        await Assert.That(rows[2].Value.Offset).IsEqualTo(new TimeSpan(-3, -30, 0));
+        await Assert.That(rows[2].Value.Offset).IsEqualTo(new(-3, -30, 0));
     }
 
     public class DateTimeOffsetRow
@@ -257,9 +257,9 @@ public class BookReaderPrimitivesTests
             {
                 Value = new(23, 59, 59)
             });
-        await Assert.That(rows[0].Value).IsEqualTo(new Time(10, 30, 45));
-        await Assert.That(rows[1].Value).IsEqualTo(new Time(0, 0, 0));
-        await Assert.That(rows[2].Value).IsEqualTo(new Time(23, 59, 59));
+        await Assert.That(rows[0].Value).IsEqualTo(new(10, 30, 45));
+        await Assert.That(rows[1].Value).IsEqualTo(new(0, 0, 0));
+        await Assert.That(rows[2].Value).IsEqualTo(new(23, 59, 59));
     }
 
     public class TimeRow
@@ -283,9 +283,9 @@ public class BookReaderPrimitivesTests
             {
                 Value = new(0, 0, 5, 30)
             });
-        await Assert.That(rows[0].Value).IsEqualTo(new TimeSpan(1, 2, 30, 45));
+        await Assert.That(rows[0].Value).IsEqualTo(new(1, 2, 30, 45));
         await Assert.That(rows[1].Value).IsEqualTo(TimeSpan.Zero);
-        await Assert.That(rows[2].Value).IsEqualTo(new TimeSpan(0, 0, 5, 30));
+        await Assert.That(rows[2].Value).IsEqualTo(new(0, 0, 5, 30));
     }
 
     public class TimeSpanRow
