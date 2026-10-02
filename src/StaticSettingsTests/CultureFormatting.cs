@@ -6,7 +6,7 @@ using XlRow = DocumentFormat.OpenXml.Spreadsheet.Row;
 [NotInParallel]
 public class CultureFormatting
 {
-    [After(HookType.Test)]
+    [After(Test)]
     public void Teardown() =>
         ValueRenderer.Reset();
 

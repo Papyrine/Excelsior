@@ -1,7 +1,7 @@
 [NotInParallel]
 public class EnumRenderBoxedDispatcher
 {
-    [After(HookType.Test)]
+    [After(Test)]
     public void Teardown() =>
         ValueRenderer.Reset();
 

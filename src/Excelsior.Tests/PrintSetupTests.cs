@@ -86,7 +86,7 @@ public class PrintSetupTests
         builder.AddSheet(SampleData.Employees());
 
         // 254 characters, plus the "&C" that centres them.
-        await Assert.That(() => (Task) builder.Build())
+        await Assert.That(Task () => builder.Build())
             .Throws<Exception>()
             .WithMessageContaining("Excel holds at most 255");
     }
