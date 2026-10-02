@@ -1,11 +1,11 @@
 [NotInParallel]
 public class DisableWhitespaceTrimmingTests
 {
-    [Before(HookType.Test)]
+    [Before(Test)]
     public void Setup() =>
         ValueRenderer.DisableWhitespaceTrimming();
 
-    [After(HookType.Test)]
+    [After(Test)]
     public void Teardown() =>
         ValueRenderer.Reset();
 

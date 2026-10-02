@@ -6,6 +6,7 @@ class TemplateSheetBuilder :
     public bool AutoFilter { get; private set; } = true;
     public bool AutoInputMessages { get; private set; } = true;
     public Banner? BannerRow { get; private set; }
+    public PrintSetup? PrintSettings { get; private set; }
 
     public TemplateSheetBuilder(bool inferValidationFromTypes = true) =>
         this.inferValidationFromTypes = inferValidationFromTypes;
@@ -110,6 +111,12 @@ class TemplateSheetBuilder :
             Freeze = freeze,
             MaxHeight = maxHeight
         };
+        return this;
+    }
+
+    public ITemplateSheetBuilder Print(PrintSetup setup)
+    {
+        PrintSettings = setup;
         return this;
     }
 

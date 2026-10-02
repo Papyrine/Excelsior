@@ -139,6 +139,13 @@ public interface ISheetBuilder<TModel>
     public ISheetBuilder<TModel> Banner(Action<Cell> render, bool freeze = true, int? maxHeight = null);
 
     /// <summary>
+    /// How this sheet prints, in place of the book's <see cref="BookBuilder.Print"/> setup. The
+    /// sheet's print area is limited to its own columns.
+    /// </summary>
+    /// <returns>The builder instance for fluent chaining.</returns>
+    public ISheetBuilder<TModel> Print(PrintSetup setup);
+
+    /// <summary>
     /// Include or exclude a specific column from the output.
     /// </summary>
     public void Include<TProperty>(

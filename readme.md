@@ -190,7 +190,7 @@ builder.AddSheet(data);
 var stream = new MemoryStream();
 await builder.ToStream(stream);
 ```
-<sup><a href='/src/Excelsior.Tests/Saving.cs#L9-L17' title='Snippet source file'>snippet source</a> | <a href='#snippet-ToStream' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Saving.cs#L12-L20' title='Snippet source file'>snippet source</a> | <a href='#snippet-ToStream' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -206,7 +206,7 @@ builder.AddSheet(data);
 
 var bytes = await builder.ToBytes();
 ```
-<sup><a href='/src/Excelsior.Tests/Saving.cs#L27-L34' title='Snippet source file'>snippet source</a> | <a href='#snippet-ToBytes' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Saving.cs#L30-L37' title='Snippet source file'>snippet source</a> | <a href='#snippet-ToBytes' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -222,7 +222,7 @@ builder.AddSheet(data);
 
 var stream = await builder.ToMemoryStream();
 ```
-<sup><a href='/src/Excelsior.Tests/Saving.cs#L44-L51' title='Snippet source file'>snippet source</a> | <a href='#snippet-ToMemoryStream' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Excelsior.Tests/Saving.cs#L47-L54' title='Snippet source file'>snippet source</a> | <a href='#snippet-ToMemoryStream' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -1344,6 +1344,35 @@ builder.AddSheet(SampleData.Employees())
 <!-- endSnippet -->
 
 Banners work on every sheet kind (data-bound, dictionary, and template). The banner row count is recorded in the workbook's column metadata, so `BookReader` skips past it automatically and a bannered sheet round-trips cleanly.
+
+
+### Print Setup
+
+`PrintSetup` controls how a sheet prints: text centred in the header and footer of every printed page, the orientation, and the paper size. Pass it to the `BookBuilder` to apply to every sheet:
+
+<!-- snippet: Print -->
+<a id='snippet-Print'></a>
+```cs
+var builder = new BookBuilder(
+    print: new()
+    {
+        Header = "OFFICIAL: Sensitive",
+        Footer = "OFFICIAL: Sensitive",
+        Orientation = PrintOrientation.Landscape,
+        PaperSize = PrintPaperSize.A4
+    });
+builder.AddSheet(SampleData.Employees());
+
+using var book = await builder.Build();
+```
+<sup><a href='/src/Excelsior.Tests/PrintSetupTests.cs#L11-L25' title='Snippet source file'>snippet source</a> | <a href='#snippet-Print' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+A sheet's own `.Print(...)` replaces the book's setup for that sheet. It works on every sheet kind (data-bound, dictionary, and template). Members left `null` keep Excel's defaults.
+
+Header and footer text is written as given: an `&` is escaped, not read as one of Excel's header codes such as `&P` for the page number. Excel holds at most 255 characters in a header or footer, so a longer one throws.
+
+A sheet with a print setup also has its print area set to its own columns. That stops a [banner](#banner-row), which is merged across the whole row, from widening what prints.
 
 
 ### Complex Types

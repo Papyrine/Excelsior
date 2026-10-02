@@ -49,4 +49,11 @@ public interface IDictionarySheetBuilder
     /// leaves only Excel's hard maximum (409) in effect.</param>
     /// <returns>The builder instance for fluent chaining.</returns>
     IDictionarySheetBuilder Banner(Action<Cell> render, bool freeze = true, int? maxHeight = null);
+
+    /// <summary>
+    /// How this sheet prints, in place of the book's <see cref="BookBuilder.Print"/> setup. The
+    /// sheet's print area is limited to its own columns.
+    /// </summary>
+    /// <returns>The builder instance for fluent chaining.</returns>
+    IDictionarySheetBuilder Print(PrintSetup setup);
 }

@@ -10,9 +10,16 @@ public class SheetContext
     internal SheetData SheetData { get; }
     internal int RowCount { get; private set; }
 
-    internal SheetContext(WorksheetPart worksheetPart)
+    /// <summary>
+    /// The sheet's 0-based position in the workbook, which is also the <c>localSheetId</c> a
+    /// sheet-scoped defined name refers to it by.
+    /// </summary>
+    internal int Index { get; }
+
+    internal SheetContext(WorksheetPart worksheetPart, int index)
     {
         WorksheetPart = worksheetPart;
+        Index = index;
         SheetData = worksheetPart.Worksheet!.GetFirstChild<SheetData>()!;
     }
 
