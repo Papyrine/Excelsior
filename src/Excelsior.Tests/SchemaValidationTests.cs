@@ -21,7 +21,7 @@ public class SchemaValidationTests
     [MethodDataSource(nameof(Snapshots))]
     public async Task SnapshotMatchesTheSchema(string snapshot)
     {
-        var errors = Validate(Path.Combine(ProjectDirectory, snapshot));
+        var errors = Validate(Path.Combine(ProjectFiles.ProjectDirectory, snapshot));
 
         await Assert.That(errors).IsEmpty().Because(string.Join('\n', errors));
     }
@@ -50,16 +50,12 @@ public class SchemaValidationTests
             .ToList();
 
     public static IEnumerable<string> Snapshots() =>
-        Directory.EnumerateFiles(ProjectDirectory, "*.verified.*", SearchOption.AllDirectories)
+        Directory.EnumerateFiles(ProjectFiles.ProjectDirectory, "*.verified.*", SearchOption.AllDirectories)
             .Where(_ => _.EndsWith(".docx", StringComparison.OrdinalIgnoreCase) ||
                         _.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
-            .Select(_ => Path.GetRelativePath(ProjectDirectory, _).Replace(Path.DirectorySeparatorChar, '/'))
+            .Select(_ => Path.GetRelativePath(ProjectFiles.ProjectDirectory, _).Replace(Path.DirectorySeparatorChar, '/'))
             // Build output carries copies of the snapshots; they are the same files twice over.
             .Where(_ => !_.StartsWith("bin/", StringComparison.Ordinal) &&
                         !_.StartsWith("obj/", StringComparison.Ordinal))
             .Order(StringComparer.Ordinal);
-
-    static string ProjectDirectory { get; } = Path.GetDirectoryName(SourcePath())!;
-
-    static string SourcePath([CallerFilePath] string path = "") => path;
 }
