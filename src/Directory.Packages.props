@@ -13,22 +13,22 @@
     <SponsorExemption Include="OpenSource" Message="Open source projects that do not generate revenue are exempt. Voluntary donations and sponsorships are not revenue." MaxTermMonths="12" />
     <PackageVersion Include="Humanizer.Core" Version="3.0.10" />
     <PackageVersion Include="Verify.OpenXML" Version="1.28.0" />
-    <PackageVersion Include="Morph.Skia" Version="1.17.0" />
+    <PackageVersion Include="Morph.Skia" Version="1.18.0" />
     <PackageVersion Include="MarkdownSnippets.MsBuild" Version="28.5.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.12" />
     <PackageVersion Include="Microsoft.Office.Interop.Excel" Version="16.0.18925.20022" Pinned="true" />
     <PackageVersion Include="Polyfill" Version="11.4.1" />
     <PackageVersion Include="ProjectDefaults" Version="1.0.182" />
-    <PackageVersion Include="ProjectFiles" Version="1.4.0" />
+    <PackageVersion Include="ProjectFiles" Version="1.6.0" />
     <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageVersion Include="Verify" Version="33.2.0" />
     <PackageVersion Include="Verify.TUnit" Version="33.2.0" />
     <PackageVersion Include="OpenXmlHtml" Version="1.7.0" />
-    <PackageVersion Include="TUnit" Version="1.72.10" />
+    <PackageVersion Include="TUnit" Version="1.72.16" />
     <PackageVersion Include="Argon" Version="0.37.0" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="DiffEngine" Version="20.6.0" />
-    <PackageVersion Include="EmptyFiles" Version="8.19.0" />
+    <PackageVersion Include="EmptyFiles" Version="8.20.0" />
     <PackageVersion Include="SimpleInfoName" Version="3.2.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="5.9.0" />
