@@ -1,19 +1,22 @@
 ﻿{
-  Sheets: [
-    {
-      Name: Sheet1,
-      Columns: [
-        {
-          Name: Value,
-          Metadata: {
-            property: Value
-          },
-          Width: 10.0,
-          ContainsRichText: true,
-          RequiredHighlight: false
-        }
-      ]
-    }
-  ],
-  WorksheetCount: 1
+  Document: {
+    Sheets: [
+      {
+        Name: Sheet1,
+        Columns: [
+          {
+            Name: Value,
+            Metadata: {
+              property: Value
+            },
+            Width: 10.0,
+            ContainsRichText: true,
+            RequiredHighlight: false
+          }
+        ]
+      }
+    ],
+    WorksheetCount: 1
+  },
+  PageCount: 1
 }

@@ -1,31 +1,34 @@
 ﻿{
-  Sheets: [
-    {
-      Name: Sheet1,
-      Metadata: {
-        banner: true
-      },
-      Columns: [
-        {
-          Name: Name,
-          Metadata: {
-            property: Name
-          },
-          Width: 9.0,
-          ContainsRichText: false,
-          RequiredHighlight: false
+  Document: {
+    Sheets: [
+      {
+        Name: Sheet1,
+        Metadata: {
+          banner: true
         },
-        {
-          Name: Team,
-          Metadata: {
-            property: Team
+        Columns: [
+          {
+            Name: Name,
+            Metadata: {
+              property: Name
+            },
+            Width: 9.0,
+            ContainsRichText: false,
+            RequiredHighlight: false
           },
-          Width: 9.0,
-          ContainsRichText: false,
-          RequiredHighlight: false
-        }
-      ]
-    }
-  ],
-  WorksheetCount: 1
+          {
+            Name: Team,
+            Metadata: {
+              property: Team
+            },
+            Width: 9.0,
+            ContainsRichText: false,
+            RequiredHighlight: false
+          }
+        ]
+      }
+    ],
+    WorksheetCount: 1
+  },
+  PageCount: 1
 }

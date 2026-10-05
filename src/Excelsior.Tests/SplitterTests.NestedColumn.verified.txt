@@ -1,28 +1,31 @@
 ﻿{
-  Sheets: [
-    {
-      Name: Sheet1,
-      Columns: [
-        {
-          Name: Property,
-          Metadata: {
-            property: Property
+  Document: {
+    Sheets: [
+      {
+        Name: Sheet1,
+        Columns: [
+          {
+            Name: Property,
+            Metadata: {
+              property: Property
+            },
+            Width: 16.0,
+            ContainsRichText: false,
+            RequiredHighlight: false
           },
-          Width: 16.0,
-          ContainsRichText: false,
-          RequiredHighlight: false
-        },
-        {
-          Name: Custom,
-          Metadata: {
-            property: Nested.NestedProperty
-          },
-          Width: 23.0,
-          ContainsRichText: false,
-          RequiredHighlight: false
-        }
-      ]
-    }
-  ],
-  WorksheetCount: 1
+          {
+            Name: Custom,
+            Metadata: {
+              property: Nested.NestedProperty
+            },
+            Width: 23.0,
+            ContainsRichText: false,
+            RequiredHighlight: false
+          }
+        ]
+      }
+    ],
+    WorksheetCount: 1
+  },
+  PageCount: 1
 }
