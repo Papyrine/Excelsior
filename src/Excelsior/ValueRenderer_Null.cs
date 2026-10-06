@@ -9,7 +9,7 @@ public static partial class ValueRenderer
     {
         if (typeof(T) == typeof(bool))
         {
-            throw new("Cannot register a null display for bool. Use ValueRenderer.BoolDisplay(trueDisplay, falseDisplay, nullDisplay) instead — that keeps non-null cells as native Excel booleans while supplying a display for null cells.");
+            throw new("Cannot register a null display for bool. Use ValueRenderer.BoolDisplay(trueDisplay, falseDisplay, nullDisplay) instead — that keeps non-null cells as the numbers 1 and 0 while supplying a display for null cells.");
         }
 
         ThrowIfBookBuilderUsed();

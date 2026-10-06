@@ -601,22 +601,26 @@ class Renderer<TModel>(
         // freezes any banner above it. A banner with Freeze=false therefore frees the whole top
         // region (the header cannot stay pinned while the banner above it scrolls).
         var freezeRows = Banner is { Freeze: false } ? 0 : 1 + BannerRows;
-        if (freezeRows == 0)
-        {
-            return;
-        }
 
-        var view = new SheetView(
-            new Pane
-            {
-                VerticalSplit = freezeRows,
-                TopLeftCell = $"A{freezeRows + 1}",
-                ActivePane = PaneValues.BottomLeft,
-                State = PaneStateValues.Frozen
-            })
+        // Every sheet gets a view, frozen or not. Given a sheet with no view, Excel on a scaled
+        // display opens a row that has a fixed height - the banner's - shorter than it was written
+        // (75pt as 60pt at 125%), which cuts off the banner's last lines.
+        var view = new SheetView
         {
             WorkbookViewId = 0
         };
+
+        if (freezeRows > 0)
+        {
+            view.Append(
+                new Pane
+                {
+                    VerticalSplit = freezeRows,
+                    TopLeftCell = $"A{freezeRows + 1}",
+                    ActivePane = PaneValues.BottomLeft,
+                    State = PaneStateValues.Frozen
+                });
+        }
 
         // Only the first sheet is selected. Excel opens a workbook with more than one selected tab
         // as a group - "[Group]" in the title bar - and an edit made to one sheet lands on all of
@@ -1752,15 +1756,20 @@ class Renderer<TModel>(
         if (value is bool boolean)
         {
             ThrowIfHtml();
-            var format = column.Format ?? ValueRenderer.BoolFormat;
-            if (format != null)
-            {
-                style.NumberFormat = format;
-            }
-
-            SetCellValue(cell, boolean);
             var (trueDisplay, falseDisplay) = ValueRenderer.GetBoolDisplayValues();
             cellDisplayLengths[cell] = boolean ? trueDisplay.Length : falseDisplay.Length;
+            var format = column.Format ?? ValueRenderer.BoolFormat;
+            if (format == null)
+            {
+                SetCellValue(cell, boolean);
+                return;
+            }
+
+            // Excel ignores the number format of a boolean cell and shows TRUE or FALSE whatever
+            // it says. So a bool that has a display is written as the number 1 or 0, which the
+            // format does apply to. The readers take 1 and 0 back as a bool.
+            style.NumberFormat = format;
+            SetCellValue(cell, boolean ? 1d : 0d);
             return;
         }
 

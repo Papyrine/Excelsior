@@ -2037,7 +2037,7 @@ using var book = await builder.Build();
 Per-column overrides always win — set `Required = false` or `DisableAllowedValues = true` to opt out for one column.
 
 <a id="bool-dropdown-vs-strict-boolean"></a>
-**Note on the bool dropdown.** Excel does have a native Boolean cell type (OOXML `t="b"`) and Excelsior writes `bool` values that way. The auto-derived dropdown is a *string list* of `TRUE,FALSE`, so when a user picks an entry Excel inserts the literal text — in practice it auto-coerces back to a Boolean cell on edit, but the result can be mixed cell types in the same column (Booleans written by Excelsior vs. strings the user picked) which can affect formulas like `=A2*1` or `COUNTIF(A:A, TRUE)`. For strict Boolean enforcement, set `DisableAllowedValues = true` on the column — this drops the dropdown so a custom `=ISLOGICAL(A2)` constraint can be supplied via a custom data validation. For typical data-entry templates the dropdown is the better UX.
+**Note on the bool dropdown.** Excel does have a native Boolean cell type (OOXML `t="b"`) and Excelsior writes `bool` values that way, unless they have a display (see [`ValueRenderer.BoolDisplay`](#valuerendererbooldisplay)). The auto-derived dropdown is a *string list* of `TRUE,FALSE`, so when a user picks an entry Excel inserts the literal text — in practice it auto-coerces back to a Boolean cell on edit, but the result can be mixed cell types in the same column (Booleans written by Excelsior vs. strings the user picked) which can affect formulas like `=A2*1` or `COUNTIF(A:A, TRUE)`. For strict Boolean enforcement, set `DisableAllowedValues = true` on the column — this drops the dropdown so a custom `=ISLOGICAL(A2)` constraint can be supplied via a custom data validation. For typical data-entry templates the dropdown is the better UX.
 
 #### Auto-Derived Enum Dropdowns
 
@@ -2669,7 +2669,7 @@ builder.AddSheet(data);
 `ValueRenderer.For<T>` can be used to control the rendering for all instances of a specific type. See [ValueRendererForSpecificType](/src/StaticSettingsTests/ValueRendererForSpecificType.cs) for an example with custom enums.
 
 > [!NOTE]
-> `ValueRenderer.For<bool>` and `ValueRenderer.NullDisplayFor<bool>` throw — replacing the cell value with a string would lose Excel's native boolean type, so formulas like `=IF(A2, ...)` and `COUNTIF(A:A, TRUE)` would stop working. Use [`ValueRenderer.BoolDisplay`](#valuerendererbooldisplay) instead, which keeps cells as native booleans and applies the display via a number format.
+> `ValueRenderer.For<bool>` and `ValueRenderer.NullDisplayFor<bool>` throw — replacing the cell value with a string would leave a formula nothing to test, so formulas like `=IF(A2, ...)` and `=AND(A2, B2)` would stop working. Use [`ValueRenderer.BoolDisplay`](#valuerendererbooldisplay) instead, which writes cells as the numbers `1` and `0` and applies the display via a number format.
 
 
 #### Type specificity
@@ -2679,7 +2679,10 @@ When multiple `For<T>` registrations match a property type, the most specific ty
 
 ### ValueRenderer.BoolDisplay
 
-`ValueRenderer.BoolDisplay` controls how `bool` and `bool?` columns render in Excel. Cells stay native booleans (`t="b"`) so Excel formulas continue to recognize them as boolean values; the display strings are applied via the number format `[=1]"trueDisplay";[=0]"falseDisplay"`. The optional third argument supplies a display for `null` cells in `bool?` columns.
+`ValueRenderer.BoolDisplay` controls how `bool` and `bool?` columns render in Excel. Cells are written as the numbers `1` and `0`, and the display strings are applied via the number format `[=1]"trueDisplay";[=0]"falseDisplay"`. The optional third argument supplies a display for `null` cells in `bool?` columns.
+
+> [!NOTE]
+> With a display, the cells are not native booleans (`t="b"`): Excel ignores the number format of a boolean cell and shows `TRUE` or `FALSE` whatever it says. Formulas such as `=IF(A2, ...)`, `=AND(A2, B2)` and `=SUM(A:A)` work on the numbers; one that compares with a boolean, such as `COUNTIF(A:A, TRUE)`, needs `1` in its place. The same applies to a `bool` column given its own `Format`. Without either, cells stay native booleans.
 
 
 #### Config in a ModuleInitializer
@@ -2690,7 +2693,7 @@ When multiple `For<T>` registrations match a property type, the most specific ty
 static void ConfigureBoolDisplay() =>
     ValueRenderer.BoolDisplay("Yes", "No", "Unknown");
 ```
-<sup><a href='/src/StaticSettingsTests/ValueRendererForBool.cs#L12-L17' title='Snippet source file'>snippet source</a> | <a href='#snippet-ValueRendererForBoolInit' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/StaticSettingsTests/ValueRendererForBool.cs#L15-L20' title='Snippet source file'>snippet source</a> | <a href='#snippet-ValueRendererForBoolInit' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -2724,7 +2727,7 @@ List<Target> data =
 ];
 builder.AddSheet(data);
 ```
-<sup><a href='/src/StaticSettingsTests/ValueRendererForBool.cs#L22-L49' title='Snippet source file'>snippet source</a> | <a href='#snippet-ValueRendererForBool' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/StaticSettingsTests/ValueRendererForBool.cs#L25-L52' title='Snippet source file'>snippet source</a> | <a href='#snippet-ValueRendererForBool' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 

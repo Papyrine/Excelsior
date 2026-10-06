@@ -23,8 +23,8 @@ public class SheetSelectionTests
         ]);
     }
 
-    // An unfrozen first sheet has no sheet view at all, so nothing is selected, and Excel opens on
-    // the first sheet as it does for any workbook that names none.
+    // An unfrozen sheet still has a sheet view, so the first one is selected whether or not its
+    // rows are frozen.
     [Test]
     public async Task FirstSheetNotFrozen()
     {
@@ -37,9 +37,43 @@ public class SheetSelectionTests
 
         await Assert.That(Selected(book)).IsEquivalentTo(
         [
-            "First: False",
+            "First: True",
             "Second: False"
         ]);
+    }
+
+    // Given a sheet with no view, Excel on a scaled display opens the banner's row shorter than it
+    // was written, which cuts off the banner's last lines.
+    [Test]
+    public async Task EverySheetHasAView()
+    {
+        var builder = new BookBuilder();
+        builder.AddSheet(SampleData.Employees(), "Frozen");
+        builder.AddSheet(SampleData.Employees(), "Unfrozen")
+            .Banner("Line one.\nLine two.\nLine three.", freeze: false);
+
+        using var book = await builder.Build();
+
+        await Assert.That(Views(book)).IsEquivalentTo(
+        [
+            "Frozen: 1 view, frozen",
+            "Unfrozen: 1 view, not frozen"
+        ]);
+    }
+
+    static List<string> Views(SpreadsheetDocument book)
+    {
+        var workbookPart = book.WorkbookPart!;
+        return workbookPart.Workbook!.Sheets!.Elements<Sheet>()
+            .Select(_ =>
+            {
+                var worksheet = ((WorksheetPart) workbookPart.GetPartById(_.Id!)).Worksheet!;
+                var views = worksheet.Descendants<SheetView>().ToList();
+                var frozen = views.Any(_ => _.Pane?.State?.Value == PaneStateValues.Frozen);
+                var state = frozen ? "frozen" : "not frozen";
+                return $"{_.Name}: {views.Count} view, {state}";
+            })
+            .ToList();
     }
 
     static List<string> Selected(SpreadsheetDocument book)

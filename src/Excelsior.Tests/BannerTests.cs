@@ -65,6 +65,26 @@ public class BannerTests
     }
 
     [Test]
+    public async Task NotFrozenMultiline()
+    {
+        var builder = new BookBuilder();
+        builder.AddSheet(SampleData.Employees())
+            .Banner("Line one.\nLine two.\nLine three.", freeze: false);
+
+        using var book = await builder.Build();
+
+        // The row is grown to fit three lines, and the sheet has a view although nothing is
+        // frozen: without one, Excel on a scaled display opens the row shorter than that and the
+        // last line is cut off.
+        await Assert.That(BannerRow(book).Height!.Value).IsEqualTo(45).Within(0.001);
+        var worksheet = book.WorkbookPart!.WorksheetParts.Single().Worksheet!;
+        var view = worksheet.Descendants<SheetView>().Single();
+        await Assert.That(view.Pane).IsNull();
+
+        await Verify(book);
+    }
+
+    [Test]
     public async Task ReadOnlyUnderProtection()
     {
         var builder = new BookBuilder(
