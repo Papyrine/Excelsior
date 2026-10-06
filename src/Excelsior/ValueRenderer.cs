@@ -50,7 +50,7 @@ public static partial class ValueRenderer
     {
         if (typeof(T) == typeof(bool))
         {
-            throw new("Cannot register a custom render for bool. Use ValueRenderer.BoolDisplay(...) instead — that keeps cells as native Excel booleans (so formulas like IF/AND/COUNTIF still work) and applies the display via a number format.");
+            throw new("Cannot register a custom render for bool. Use ValueRenderer.BoolDisplay(...) instead — that writes cells as the numbers 1 and 0 (so formulas like IF/AND/SUM still work) and applies the display via a number format.");
         }
 
         ThrowIfBookBuilderUsed();
@@ -62,16 +62,21 @@ public static partial class ValueRenderer
     static (string trueDisplay, string falseDisplay, string? nullDisplay)? boolDisplay;
 
     /// <summary>
-    /// Configure how <c>bool</c> and <c>bool?</c> columns display in Excel. Cells remain
-    /// native booleans (<c>t="b"</c>) so formulas like <c>IF</c>, <c>AND</c>, and
-    /// <c>COUNTIF(...,TRUE)</c> continue to work; the display strings are applied via the
-    /// Excel number format <c>[=1]"trueDisplay";[=0]"falseDisplay"</c>.
+    /// Configure how <c>bool</c> and <c>bool?</c> columns display in Excel. Cells are written as
+    /// the numbers <c>1</c> and <c>0</c>, and the display strings are applied via the Excel
+    /// number format <c>[=1]"trueDisplay";[=0]"falseDisplay"</c>.
     /// </summary>
+    /// <remarks>
+    /// The cells are not native booleans (<c>t="b"</c>) because Excel ignores the number format
+    /// of a boolean cell and shows <c>TRUE</c> or <c>FALSE</c> whatever it says. Formulas such
+    /// as <c>IF</c>, <c>AND</c> and <c>SUM</c> work on the numbers; one that compares with a
+    /// boolean, such as <c>COUNTIF(...,TRUE)</c>, needs <c>1</c> in its place.
+    /// </remarks>
     /// <param name="trueDisplay">Text shown in cells whose value is <c>true</c>.</param>
     /// <param name="falseDisplay">Text shown in cells whose value is <c>false</c>.</param>
     /// <param name="nullDisplay">Optional text written into <c>bool?</c> cells whose value is
-    /// <c>null</c>. Null cells are written as inline strings rather than booleans (since
-    /// <c>null</c> is not a boolean value), so this text is the literal display.</param>
+    /// <c>null</c>. Null cells are written as inline strings rather than numbers, so this text
+    /// is the literal display.</param>
     public static void BoolDisplay(string trueDisplay, string falseDisplay, string? nullDisplay = null)
     {
         ThrowIfBookBuilderUsed();
