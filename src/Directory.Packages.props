@@ -21,8 +21,8 @@
     <PackageVersion Include="ProjectDefaults" Version="1.0.184" />
     <PackageVersion Include="ProjectFiles" Version="1.6.0" />
     <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
-    <PackageVersion Include="Verify" Version="33.3.1" />
-    <PackageVersion Include="Verify.TUnit" Version="33.3.1" />
+    <PackageVersion Include="Verify" Version="33.3.2-beta.1" />
+    <PackageVersion Include="Verify.TUnit" Version="33.3.2-beta.1" />
     <PackageVersion Include="OpenXmlHtml" Version="1.7.1" />
     <PackageVersion Include="TUnit" Version="1.72.16" />
     <PackageVersion Include="Argon" Version="0.38.0" />
