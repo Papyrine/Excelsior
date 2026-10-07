@@ -22,6 +22,25 @@
     }
 
     [Test]
+    public async Task ParagraphWrappedListItems()
+    {
+        var bookBuilder = new BookBuilder();
+
+        List<Target> data =
+        [
+            new("<ul><li><p>123515</p></li><li><p>asf</p></li><li><p>asf</p></li><li><p>asf</p></li></ul><p>asf</p>"),
+        ];
+        var sheetBuilder = bookBuilder.AddSheet(data);
+
+        sheetBuilder.Column(
+            _ => _.Value1,
+            _ => _.IsHtml = true);
+        var book = await bookBuilder.Build();
+
+        await Verify(book);
+    }
+
+    [Test]
     public async Task LongText()
     {
         var bookBuilder = new BookBuilder();
