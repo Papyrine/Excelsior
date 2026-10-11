@@ -30,7 +30,7 @@ file static class DocRowReaderRegistration
 {
   [ModuleInitializer]
   internal static void Register() =>
-    GeneratedRowReaders.Register<global::Doc>(ReadRow);
+    GeneratedRowReaders.Register<global::Doc>(ReadRow, new string[] { "Name", "Perms" });
 
   static global::Doc ReadRow(global::DocumentFormat.OpenXml.Spreadsheet.Cell?[] cells, string?[]? sharedStrings, global::System.Action<int, string> onError)
   {

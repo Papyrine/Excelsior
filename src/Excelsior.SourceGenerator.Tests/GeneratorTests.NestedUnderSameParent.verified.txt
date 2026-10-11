@@ -30,7 +30,7 @@ file static class ModelsEmployeeRowReaderRegistration
 {
   [ModuleInitializer]
   internal static void Register() =>
-    GeneratedRowReaders.Register<global::Models.Employee>(ReadRow);
+    GeneratedRowReaders.Register<global::Models.Employee>(ReadRow, new string[] { "Email", "Age" });
 
   static global::Models.Employee ReadRow(global::DocumentFormat.OpenXml.Spreadsheet.Cell?[] cells, string?[]? sharedStrings, global::System.Action<int, string> onError)
   {
@@ -183,7 +183,7 @@ file static class ModelsProductRowReaderRegistration
 {
   [ModuleInitializer]
   internal static void Register() =>
-    GeneratedRowReaders.Register<global::Models.Product>(ReadRow);
+    GeneratedRowReaders.Register<global::Models.Product>(ReadRow, new string[] { "Name", "Price" });
 
   static global::Models.Product ReadRow(global::DocumentFormat.OpenXml.Spreadsheet.Cell?[] cells, string?[]? sharedStrings, global::System.Action<int, string> onError)
   {

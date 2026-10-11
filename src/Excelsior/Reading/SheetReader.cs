@@ -32,15 +32,38 @@ class SheetReader<TModel> :
         }
     }
 
+    // The members the writer makes columns of, so that a sheet written from a model can be read
+    // back into it. A member the writer leaves out has no column to find.
     static IEnumerable<MemberInfo> GetReadableMembers(Type type)
     {
         const BindingFlags flags = BindingFlags.Public | BindingFlags.Instance;
+        // The constructor the writer takes parameter attributes from.
+        var parameters = type.GetConstructors(flags)
+            .Select(_ => _.GetParameters())
+            .MaxBy(_ => _.Length);
         return type.GetProperties(flags)
             .Where(_ => _.IsReadable)
             .Cast<MemberInfo>()
             .Concat(type.GetFields(flags))
             .DistinctByMostDerived()
-            .Where(_ => _.Attribute<IgnoreAttribute>() == null);
+            .Where(_ => !IsExcluded(_, parameters?.FirstOrDefault(parameter => parameter.Name == _.Name)));
+    }
+
+    static bool IsExcluded(MemberInfo member, ParameterInfo? parameter)
+    {
+        if (member.Attribute<IgnoreAttribute>() != null ||
+            parameter.HasAttribute<IgnoreAttribute>())
+        {
+            return true;
+        }
+
+        if (GeneratedColumnAttributes.TryGet(member.DeclaringType!, member.Name) is { } generated)
+        {
+            return generated.Include == false;
+        }
+
+        var column = member.Attribute<ColumnAttribute>() ?? parameter?.Attribute<ColumnAttribute>();
+        return column is { IncludeHasValue: true, Include: false };
     }
 
     static string ResolveHeading(MemberInfo info)
@@ -156,7 +179,7 @@ class SheetReader<TModel> :
         convertersBySlot = converters;
         slotToCtorArgIndex = ctorArgs;
         slotToSetter = setters;
-        rowReader = GeneratedRowReaders.TryGet<TModel>();
+        rowReader = GeneratedRowReaders.TryGet<TModel>(names);
         useGeneratedRowReader = rowReader != null && !anyConverter;
     }
 
