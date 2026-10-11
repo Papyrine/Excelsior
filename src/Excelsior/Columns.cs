@@ -126,42 +126,9 @@ class Columns<TModel>
         }
     }
 
-    const int maxExcelColumnWidth = 255;
-
     public List<ColumnConfig<TModel>> OrderedColumns()
     {
-        foreach (var column in columns.Values)
-        {
-            ValidateWidth(column, column.Width, "Width");
-            ValidateWidth(column, column.MinWidth, "MinWidth");
-            ValidateWidth(column, column.MaxWidth, "MaxWidth");
-
-            if (column.Width is not null &&
-                (column.MinWidth is not null ||
-                 column.MaxWidth is not null))
-            {
-                throw new($"Column '{column.Name}': Width cannot be combined with MinWidth/MaxWidth. Use either Width for an exact size, or MinWidth/MaxWidth for auto-sizing with bounds.");
-            }
-
-            if (column is not
-                {
-                    MinWidth: { } min,
-                    MaxWidth: { } max
-                })
-            {
-                continue;
-            }
-
-            if (min == max)
-            {
-                throw new($"Column '{column.Name}': MinWidth and MaxWidth are both {min}. Use Width instead.");
-            }
-
-            if (min > max)
-            {
-                throw new($"Column '{column.Name}': MinWidth ({min}) is greater than MaxWidth ({max}).");
-            }
-        }
+        ColumnWidths.Validate(columns.Values);
 
         return columns
             .Values
@@ -177,13 +144,5 @@ class Columns<TModel>
             })
             .ThenBy(_ => _.Order ?? _.DeclarationIndex)
             .ToList();
-    }
-
-    static void ValidateWidth(ColumnConfig<TModel> column, int? value, string name)
-    {
-        if (value > maxExcelColumnWidth)
-        {
-            throw new($"Column '{column.Name}': {name} ({value}) exceeds the Excel maximum of {maxExcelColumnWidth}.");
-        }
     }
 }

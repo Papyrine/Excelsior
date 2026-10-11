@@ -44,10 +44,14 @@ static class ModelActivator<T>
             ?.GetParameters()
             .Select(_ => _.Name ?? "")
             .ToArray() ?? [];
-        ctorArgIndexByName = new(ctorParamNames.Length, StringComparer.Ordinal);
+        // Looked up by property name, and a constructor parameter is conventionally the camelCase
+        // of the property it fills (`name` for `Name`). A record's positional parameters match
+        // exactly, which an ordinal comparison alone would have been enough for. TryAdd so that
+        // of two parameters differing only by case, the first keeps the name.
+        ctorArgIndexByName = new(ctorParamNames.Length, StringComparer.OrdinalIgnoreCase);
         for (var i = 0; i < ctorParamNames.Length; i++)
         {
-            ctorArgIndexByName[ctorParamNames[i]] = i;
+            ctorArgIndexByName.TryAdd(ctorParamNames[i], i);
         }
     }
 
