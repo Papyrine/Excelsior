@@ -57,6 +57,7 @@ public static partial class ValueRenderer
 
         renders[typeof(T)] = _ => func((T) _);
         itemRenders[typeof(T)] = _ => func((T) _);
+        CellConverter.ResetEnumCache();
     }
 
     static (string trueDisplay, string falseDisplay, string? nullDisplay)? boolDisplay;
