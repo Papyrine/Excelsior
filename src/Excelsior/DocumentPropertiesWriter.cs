@@ -134,6 +134,11 @@ static class DocumentPropertiesWriter
             long l => new VTInt64(l.ToString(CultureInfo.InvariantCulture)),
             short s => new VTInt32(((int)s).ToString(CultureInfo.InvariantCulture)),
             byte b => new VTInt32(((int)b).ToString(CultureInfo.InvariantCulture)),
+            sbyte s => new VTInt32(((int)s).ToString(CultureInfo.InvariantCulture)),
+            ushort u => new VTInt32(((int)u).ToString(CultureInfo.InvariantCulture)),
+            // Past what an i4 holds, so the next size up.
+            uint u => new VTInt64(((long)u).ToString(CultureInfo.InvariantCulture)),
+            ulong u => new VTUnsignedInt64(u.ToString(CultureInfo.InvariantCulture)),
             double d => new VTDouble(d.ToString(CultureInfo.InvariantCulture)),
             float f => new VTDouble(((double)f).ToString(CultureInfo.InvariantCulture)),
             decimal m => new VTDouble(m.ToString(CultureInfo.InvariantCulture)),
