@@ -39,8 +39,16 @@ class Renderer<TModel>(
     }
 
     StyleManager? styleManager;
-    Dictionary<Cell, CellStyle> cellStyles = [];
-    Dictionary<Cell, int> cellDisplayLengths = [];
+    // The widest content seen in each column so far, in column-width units, and whether any
+    // column needs it. Kept as cells are committed rather than worked out afterwards from the
+    // sheet: that took a second walk over every cell, and a style and a display length held
+    // for each one in the meantime.
+    double[] autoWidths = [];
+    bool measureWidths;
+
+    // The length a cell shows at, where that differs from the length of what it stores - a date
+    // is stored as a number. Set as the value is written and taken when the cell is committed.
+    int displayLength = -1;
     Dictionary<int, double> finalColumnWidths = [];
     Dictionary<int, uint> columnLevelStyles = [];
     Cell? bannerCell;
@@ -48,15 +56,15 @@ class Renderer<TModel>(
     internal async Task AddSheet(SpreadsheetDocument book, Cancel cancel)
     {
         ValidateFormulaColumnWidths();
+        // With an explicit width on every column there is nothing to measure.
+        measureWidths = !columns.All(_ => _.Width != null);
+        autoWidths = new double[columns.Count];
+        Array.Fill(autoWidths, minAutoWidth);
         var sheet = BuildSheet(book);
         CreateBanner(sheet);
         CreateHeadings(sheet);
         FreezeHeader(sheet);
         await PopulateData(sheet, cancel);
-        if (bookBuilder.GlobalStyle != null)
-        {
-            ApplyGlobalStyling(bookBuilder.GlobalStyle);
-        }
 
         var first = -1;
         var last = -1;
@@ -81,7 +89,7 @@ class Renderer<TModel>(
             ApplyFilter(sheet, first, last);
         }
 
-        AutoSizeColumns(sheet);
+        AutoSizeColumns();
         BuildColumnLevelStyles();
         ResizeRows(sheet);
         ApplyMaxRowHeight(sheet);
@@ -260,7 +268,7 @@ class Renderer<TModel>(
 
         var cell = sheet.GetCell(0, 0);
         bannerCell = cell;
-        var style = GetStyle(cell);
+        var style = new CellStyle();
         style.Alignment.Horizontal = HorizontalAlignmentValues.Left;
         style.Alignment.Vertical = VerticalAlignmentValues.Top;
         style.Alignment.WrapText = true;
@@ -281,7 +289,9 @@ class Renderer<TModel>(
         }
 
         Banner.Style?.Invoke(style);
-        CommitStyle(cell, style);
+        // The banner spans every column (merged), so its text must not drive any single
+        // column's width.
+        CommitStyle(cell, style, columnIndex: null);
     }
 
     // Spans the banner cell across the entire spreadsheet row (A1:XFD1) rather than only the
@@ -383,13 +393,13 @@ class Renderer<TModel>(
             var cell = sheet.GetCell(BannerRows, i);
 
             SetCellValue(cell, column.Heading);
-            var style = GetStyle(cell);
+            var style = new CellStyle();
             ApplyHeadingStyling(column, style);
             if (column.Heading.AsSpan().IndexOfAny('\n', '\r') >= 0)
             {
                 style.Alignment.WrapText = true;
             }
-            CommitStyle(cell, style);
+            CommitStyle(cell, style, i);
         }
     }
 
@@ -439,55 +449,12 @@ class Renderer<TModel>(
         finalColumnWidths[index] = width;
     }
 
-    void AutoSizeColumns(SheetContext sheet)
+    void AutoSizeColumns()
     {
-        var autoWidths = ComputeAutoWidths(sheet);
         for (var index = 0; index < columns.Count; index++)
         {
-            ResizeColumn(index, columns[index], autoWidths.GetValueOrDefault(index, 8d));
+            ResizeColumn(index, columns[index], autoWidths[index]);
         }
-    }
-
-    // One pass over the sheet accumulating the widest rendered content per column. Replaces a
-    // per-column rescan that located each column's cell with a linear FirstOrDefault over the row
-    // (O(rows x columns^2)) with a single O(rows x columns) walk.
-    Dictionary<int, double> ComputeAutoWidths(SheetContext sheet)
-    {
-        var widths = new Dictionary<int, double>();
-        if (columns.All(_ => _.Width != null))
-        {
-            // Every column has an explicit width; there is nothing to measure.
-            return widths;
-        }
-
-        foreach (var row in sheet.SheetData.Elements<Row>())
-        {
-            if (Banner != null &&
-                row.RowIndex?.Value == 1)
-            {
-                // The banner spans every column (merged), so its text must not drive any single
-                // column's width.
-                continue;
-            }
-
-            foreach (var cell in row.Elements<Cell>())
-            {
-                var reference = cell.CellReference?.Value;
-                if (reference == null)
-                {
-                    continue;
-                }
-
-                var estimated = GetCellContentLength(cell) * CharWidthFactor(cell) + 2;
-                var columnIndex = SheetContext.GetColumnIndex(reference);
-                if (estimated > widths.GetValueOrDefault(columnIndex, 8d))
-                {
-                    widths[columnIndex] = estimated;
-                }
-            }
-        }
-
-        return widths;
     }
 
     async Task PopulateData(SheetContext sheet, Cancel cancel)
@@ -507,7 +474,7 @@ class Renderer<TModel>(
             {
                 var column = columns[columnIndex];
                 var cell = sheet.GetCell(rowIndex, columnIndex);
-                var style = GetStyle(cell);
+                var style = new CellStyle();
                 style.Alignment.Horizontal = HorizontalAlignmentValues.Left;
                 style.Alignment.Vertical = VerticalAlignmentValues.Top;
                 style.Alignment.WrapText = true;
@@ -557,22 +524,38 @@ class Renderer<TModel>(
                 }
 
                 column.CellStyle?.Invoke(style, item, value);
-                CommitStyle(cell, style);
+                CommitStyle(cell, style, columnIndex);
             }
 
             itemIndex++;
         }
     }
 
-    CellStyle GetStyle(Cell cell)
+    // The last thing done to a cell: the global style goes over whatever the cell was given,
+    // the result becomes the cell's style index, and the cell is measured for its column.
+    void CommitStyle(Cell cell, CellStyle style, int? columnIndex)
     {
-        var style = new CellStyle();
-        cellStyles[cell] = style;
-        return style;
-    }
-
-    void CommitStyle(Cell cell, CellStyle style) =>
+        bookBuilder.GlobalStyle?.Invoke(style);
         cell.StyleIndex = styleManager!.GetOrCreateStyleIndex(style);
+
+        if (columnIndex is { } index &&
+            measureWidths)
+        {
+            var length = displayLength;
+            if (length < 0)
+            {
+                length = GetCellContentLength(cell);
+            }
+
+            var estimated = length * CharWidthFactor(style) + 2;
+            if (estimated > autoWidths[index])
+            {
+                autoWidths[index] = estimated;
+            }
+        }
+
+        displayLength = -1;
+    }
 
     SheetContext BuildSheet(SpreadsheetDocument book)
     {
@@ -768,15 +751,6 @@ class Renderer<TModel>(
             });
     }
 
-    void ApplyGlobalStyling(Action<CellStyle> globalStyle)
-    {
-        foreach (var (cell, style) in cellStyles)
-        {
-            globalStyle(style);
-            cell.StyleIndex = styleManager!.GetOrCreateStyleIndex(style);
-        }
-    }
-
     void ApplyFilter(SheetContext sheet, int firstColumn, int lastColumn)
     {
         if (sheet.RowCount == 0)
@@ -796,17 +770,15 @@ class Renderer<TModel>(
                 sheet.SheetData);
     }
 
-    double CharWidthFactor(Cell cell)
+    // The width a column gets when nothing in it is wider.
+    const double minAutoWidth = 8;
+
+    static double CharWidthFactor(CellStyle style)
     {
         // Per-char width factor for default Calibri 11 regular. Scaled up for larger fonts
         // (linear in point size) and bold text (~5% wider). Without this, columns sized for
         // bold headings or non-default font sizes clip to "########".
         const double baseFactor = 1.1;
-        if (!cellStyles.TryGetValue(cell, out var style))
-        {
-            return baseFactor;
-        }
-
         var size = style.Font.Size ?? defaultExcelFontSize;
         var factor = baseFactor * (size / defaultExcelFontSize);
         if (style.Font.Bold)
@@ -839,24 +811,44 @@ class Renderer<TModel>(
         }
     }
 
-    void RecordDateDisplayLength(Cell cell, DateTime value, string format) =>
-        cellDisplayLengths[cell] = value.ToString(format, ValueRenderer.Culture).Length;
+    void RecordDateDisplayLength(DateTime value, string format) =>
+        displayLength = value.ToString(format, ValueRenderer.Culture).Length;
 
-    int GetCellContentLength(Cell cell)
+    // The length of what a cell holds: its runs where it has any, else its text, else its value.
+    // Walked child by child rather than through the typed accessors (cell.InlineString and the
+    // like), each of which allocates, and this is asked of every cell.
+    static int GetCellContentLength(Cell cell)
     {
-        if (cellDisplayLengths.TryGetValue(cell, out var displayLength))
+        InlineString? inline = null;
+        CellValue? cellValue = null;
+        for (var child = cell.FirstChild; child != null; child = child.NextSibling())
         {
-            return displayLength;
+            if (child is InlineString inlineChild)
+            {
+                inline ??= inlineChild;
+            }
+            else if (child is CellValue valueChild)
+            {
+                cellValue ??= valueChild;
+            }
         }
 
-        if (cell.InlineString != null)
+        if (inline != null)
         {
             var length = 0;
             var hasRuns = false;
-            foreach (var run in cell.InlineString.Elements<Run>())
+            Text? text = null;
+            for (var child = inline.FirstChild; child != null; child = child.NextSibling())
             {
-                hasRuns = true;
-                length += run.Text?.Text.Length ?? 0;
+                if (child is Run run)
+                {
+                    hasRuns = true;
+                    length += GetRunTextLength(run);
+                }
+                else if (child is Text textChild)
+                {
+                    text ??= textChild;
+                }
             }
 
             if (hasRuns)
@@ -864,13 +856,26 @@ class Renderer<TModel>(
                 return length;
             }
 
-            if (cell.InlineString.Text != null)
+            if (text != null)
             {
-                return cell.InlineString.Text.Text.Length;
+                return text.Text.Length;
             }
         }
 
-        return cell.CellValue?.Text.Length ?? 0;
+        return cellValue?.Text.Length ?? 0;
+    }
+
+    static int GetRunTextLength(Run run)
+    {
+        for (var child = run.FirstChild; child != null; child = child.NextSibling())
+        {
+            if (child is Text text)
+            {
+                return text.Text.Length;
+            }
+        }
+
+        return 0;
     }
 
     void ResizeRows(SheetContext sheet)
@@ -1713,7 +1718,7 @@ class Renderer<TModel>(
             var format = column.Format ?? ValueRenderer.DefaultDateTimeFormat;
             style.NumberFormat = format;
             SetCellValue(cell, dateTime);
-            RecordDateDisplayLength(cell, dateTime, format);
+            RecordDateDisplayLength(dateTime, format);
 
             return;
         }
@@ -1736,7 +1741,7 @@ class Renderer<TModel>(
             style.NumberFormat = format;
             var asDateTime = date.ToDateTime(new(0, 0));
             SetCellValue(cell, asDateTime);
-            RecordDateDisplayLength(cell, asDateTime, format);
+            RecordDateDisplayLength(asDateTime, format);
 
             return;
         }
@@ -1748,7 +1753,7 @@ class Renderer<TModel>(
             style.NumberFormat = format;
             var asDateTime = DateTime.FromOADate(0).Add(time.ToTimeSpan());
             SetCellValue(cell, asDateTime);
-            RecordDateDisplayLength(cell, asDateTime, format);
+            RecordDateDisplayLength(asDateTime, format);
 
             return;
         }
@@ -1757,7 +1762,7 @@ class Renderer<TModel>(
         {
             ThrowIfHtml();
             var (trueDisplay, falseDisplay) = ValueRenderer.GetBoolDisplayValues();
-            cellDisplayLengths[cell] = boolean ? trueDisplay.Length : falseDisplay.Length;
+            displayLength = boolean ? trueDisplay.Length : falseDisplay.Length;
             var format = column.Format ?? ValueRenderer.BoolFormat;
             if (format == null)
             {
@@ -1780,7 +1785,7 @@ class Renderer<TModel>(
             if (column.Format != null)
             {
                 style.NumberFormat = column.Format;
-                cellDisplayLengths[cell] = asDouble.ToString(column.Format, ValueRenderer.Culture).Length;
+                displayLength = asDouble.ToString(column.Format, ValueRenderer.Culture).Length;
             }
 
             SetCellValue(cell, asDouble);
