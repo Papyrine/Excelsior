@@ -69,7 +69,20 @@ class DictionarySheetBuilder :
         if (config.CellStyle != null)
         {
             var userCellStyle = config.CellStyle;
-            column.CellStyle = (style, row, value) => userCellStyle(style, row, (TProperty)value!);
+            column.CellStyle = (style, row, value) =>
+            {
+                // A row need not have every key, and the cell is then left empty. Where the
+                // column is a value type there is no null to hand the callback either, so it is
+                // not called: unboxing one would throw, and a made-up default would style the
+                // cell for a value the row does not have.
+                if (value == null &&
+                    default(TProperty) != null)
+                {
+                    return;
+                }
+
+                userCellStyle(style, row, (TProperty)value!);
+            };
         }
 
         if (config.Render != null)
