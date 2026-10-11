@@ -2,4 +2,5 @@
     string Name,
     string Heading,
     Type Type,
-    Func<Cell, object?>? Convert);
+    Func<Cell, object?>? Convert,
+    string? NullDisplay = null);
