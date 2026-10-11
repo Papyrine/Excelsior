@@ -57,7 +57,7 @@ file static class EmployeeRowReaderRegistration
 {
   [ModuleInitializer]
   internal static void Register() =>
-    GeneratedRowReaders.Register<global::Employee>(ReadRow);
+    GeneratedRowReaders.Register<global::Employee>(ReadRow, new string[] { "Id", "Name", "Email", "HireDate", "Notes", "Department", "Age" });
 
   static global::Employee ReadRow(global::DocumentFormat.OpenXml.Spreadsheet.Cell?[] cells, string?[]? sharedStrings, global::System.Action<int, string> onError)
   {
@@ -68,8 +68,7 @@ file static class EmployeeRowReaderRegistration
     instance.HireDate = global::Excelsior.ExcelsiorReaders.ReadString(cells[3], sharedStrings);
     instance.Notes = global::Excelsior.ExcelsiorReaders.ReadString(cells[4], sharedStrings);
     instance.Department = global::Excelsior.ExcelsiorReaders.ReadString(cells[5], sharedStrings);
-    instance.Internal = global::Excelsior.ExcelsiorReaders.ReadString(cells[6], sharedStrings);
-    instance.Age = global::Excelsior.ExcelsiorReaders.ReadInt(cells[7], sharedStrings, 7, onError);
+    instance.Age = global::Excelsior.ExcelsiorReaders.ReadInt(cells[6], sharedStrings, 6, onError);
     return instance;
   }
 },

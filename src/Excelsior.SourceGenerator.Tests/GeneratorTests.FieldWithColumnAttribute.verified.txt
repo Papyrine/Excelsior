@@ -46,7 +46,7 @@ file static class ProductRowReaderRegistration
 {
   [ModuleInitializer]
   internal static void Register() =>
-    GeneratedRowReaders.Register<global::Product>(ReadRow);
+    GeneratedRowReaders.Register<global::Product>(ReadRow, new string[] { "Name", "Price" });
 
   static global::Product ReadRow(global::DocumentFormat.OpenXml.Spreadsheet.Cell?[] cells, string?[]? sharedStrings, global::System.Action<int, string> onError)
   {

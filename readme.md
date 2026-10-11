@@ -2853,7 +2853,7 @@ Excel is directed (using a format string) to render the value using the followin
  * `yyyy-MM-dd` for `DateOnly`s
  * `HH:mm:ss` for `TimeOnly`s
 
-Excel has no direct support for `DateTimeOffset` — a cell is either a number (formatted as a date) or a string, and the offset cannot be represented natively. So `DateTimeOffset`s are stored as strings using the `yyyy-MM-dd HH:mm:ss z` format and `CultureInfo.InvariantCulture`. This preserves the offset on round-trip, but the cell is plain text — Excel will not treat it as a date for sorting, filtering, or arithmetic, and the format string is applied at write time rather than via Excel's cell number format.
+Excel has no direct support for `DateTimeOffset` — a cell is either a number (formatted as a date) or a string, and the offset cannot be represented natively. So `DateTimeOffset`s are stored as strings using the `yyyy-MM-dd HH:mm:ss zzz` format and `ValueRenderer.Culture`, which is the current culture unless it has been set. This preserves the offset on round-trip, but the cell is plain text — Excel will not treat it as a date for sorting, filtering, or arithmetic, and the format string is applied at write time rather than via Excel's cell number format.
 
 
 ### Custom Date formats

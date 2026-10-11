@@ -84,28 +84,75 @@ public static class ExcelsiorReaders
         return null;
     }
 
-    public static byte ReadByte(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsable<byte>(cell, ss, slot, onError, "Byte");
-    public static byte? ReadByteNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsableNullable<byte>(cell, ss, slot, onError, "Byte");
-    public static sbyte ReadSByte(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsable<sbyte>(cell, ss, slot, onError, "SByte");
-    public static sbyte? ReadSByteNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsableNullable<sbyte>(cell, ss, slot, onError, "SByte");
-    public static short ReadShort(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsable<short>(cell, ss, slot, onError, "Int16");
-    public static short? ReadShortNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsableNullable<short>(cell, ss, slot, onError, "Int16");
-    public static ushort ReadUShort(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsable<ushort>(cell, ss, slot, onError, "UInt16");
-    public static ushort? ReadUShortNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsableNullable<ushort>(cell, ss, slot, onError, "UInt16");
-    public static int ReadInt(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsable<int>(cell, ss, slot, onError, "Int32");
-    public static int? ReadIntNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsableNullable<int>(cell, ss, slot, onError, "Int32");
-    public static uint ReadUInt(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsable<uint>(cell, ss, slot, onError, "UInt32");
-    public static uint? ReadUIntNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsableNullable<uint>(cell, ss, slot, onError, "UInt32");
-    public static long ReadLong(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsable<long>(cell, ss, slot, onError, "Int64");
-    public static long? ReadLongNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsableNullable<long>(cell, ss, slot, onError, "Int64");
-    public static ulong ReadULong(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsable<ulong>(cell, ss, slot, onError, "UInt64");
-    public static ulong? ReadULongNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsableNullable<ulong>(cell, ss, slot, onError, "UInt64");
-    public static float ReadFloat(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsable<float>(cell, ss, slot, onError, "Single");
-    public static float? ReadFloatNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsableNullable<float>(cell, ss, slot, onError, "Single");
-    public static double ReadDouble(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsable<double>(cell, ss, slot, onError, "Double");
-    public static double? ReadDoubleNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsableNullable<double>(cell, ss, slot, onError, "Double");
-    public static decimal ReadDecimal(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsable<decimal>(cell, ss, slot, onError, "Decimal");
-    public static decimal? ReadDecimalNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsableNullable<decimal>(cell, ss, slot, onError, "Decimal");
+    static T ReadNumber<T>(
+        Cell? cell,
+        string?[]? sharedStrings,
+        int slot,
+        Action<int, string> onError,
+        string typeName)
+        where T : struct, System.Numerics.INumber<T>
+    {
+        var raw = Raw(cell, sharedStrings);
+        if (string.IsNullOrEmpty(raw))
+        {
+            onError(slot, $"Cell is empty but target type {typeName} is not nullable.");
+            return default;
+        }
+
+        if (T.TryParse(raw, CellConverter.numberStyles, CultureInfo.InvariantCulture, out var value))
+        {
+            return value;
+        }
+
+        onError(slot, $"Could not parse '{raw}' as {typeName}.");
+        return default;
+    }
+
+    static T? ReadNumberNullable<T>(
+        Cell? cell,
+        string?[]? sharedStrings,
+        int slot,
+        Action<int, string> onError,
+        string typeName)
+        where T : struct, System.Numerics.INumber<T>
+    {
+        var raw = Raw(cell, sharedStrings);
+        if (IsNull<T?>(raw))
+        {
+            return null;
+        }
+
+        if (T.TryParse(raw, CellConverter.numberStyles, CultureInfo.InvariantCulture, out var value))
+        {
+            return value;
+        }
+
+        onError(slot, $"Could not parse '{raw}' as {typeName}?.");
+        return null;
+    }
+
+    public static byte ReadByte(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumber<byte>(cell, ss, slot, onError, "Byte");
+    public static byte? ReadByteNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumberNullable<byte>(cell, ss, slot, onError, "Byte");
+    public static sbyte ReadSByte(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumber<sbyte>(cell, ss, slot, onError, "SByte");
+    public static sbyte? ReadSByteNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumberNullable<sbyte>(cell, ss, slot, onError, "SByte");
+    public static short ReadShort(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumber<short>(cell, ss, slot, onError, "Int16");
+    public static short? ReadShortNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumberNullable<short>(cell, ss, slot, onError, "Int16");
+    public static ushort ReadUShort(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumber<ushort>(cell, ss, slot, onError, "UInt16");
+    public static ushort? ReadUShortNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumberNullable<ushort>(cell, ss, slot, onError, "UInt16");
+    public static int ReadInt(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumber<int>(cell, ss, slot, onError, "Int32");
+    public static int? ReadIntNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumberNullable<int>(cell, ss, slot, onError, "Int32");
+    public static uint ReadUInt(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumber<uint>(cell, ss, slot, onError, "UInt32");
+    public static uint? ReadUIntNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumberNullable<uint>(cell, ss, slot, onError, "UInt32");
+    public static long ReadLong(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumber<long>(cell, ss, slot, onError, "Int64");
+    public static long? ReadLongNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumberNullable<long>(cell, ss, slot, onError, "Int64");
+    public static ulong ReadULong(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumber<ulong>(cell, ss, slot, onError, "UInt64");
+    public static ulong? ReadULongNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumberNullable<ulong>(cell, ss, slot, onError, "UInt64");
+    public static float ReadFloat(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumber<float>(cell, ss, slot, onError, "Single");
+    public static float? ReadFloatNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumberNullable<float>(cell, ss, slot, onError, "Single");
+    public static double ReadDouble(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumber<double>(cell, ss, slot, onError, "Double");
+    public static double? ReadDoubleNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumberNullable<double>(cell, ss, slot, onError, "Double");
+    public static decimal ReadDecimal(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumber<decimal>(cell, ss, slot, onError, "Decimal");
+    public static decimal? ReadDecimalNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadNumberNullable<decimal>(cell, ss, slot, onError, "Decimal");
     public static Guid ReadGuid(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsable<Guid>(cell, ss, slot, onError, "Guid");
     public static Guid? ReadGuidNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError) => ReadParsableNullable<Guid>(cell, ss, slot, onError, "Guid");
 
