@@ -213,7 +213,7 @@ public class BookReader
         using var document = SpreadsheetDocument.Open(stream, false);
         var workbookPart = document.WorkbookPart!;
         var sharedStrings = CellConverter.BuildSharedStrings(workbookPart.SharedStringTablePart?.SharedStringTable);
-        var metadata = SheetParser.ReadMetadata(workbookPart, out userMetadataJson);
+        var metadata = SheetParser.ReadMetadata(workbookPart, out userMetadataJson, out var written);
         // Read while the package is still open; the values are needed after it is disposed.
         customProperties = DocumentPropertiesReader.ReadCustom(document);
 
@@ -244,11 +244,45 @@ public class BookReader
 
             var worksheetPart = (WorksheetPart) workbookPart.GetPartById(match.Id!.Value!);
             var resolvedName = match.Name?.Value ?? name ?? $"#{i}";
-            metadata.TryGetValue(resolvedName, out var sheetMetadata);
+            if (!metadata.TryGetValue(resolvedName, out var sheetMetadata))
+            {
+                sheetMetadata = FindRenamed(match, written, metadata, workbookSheets!);
+            }
+
             SheetParser.Parse(sheet, resolvedName, worksheetPart, sharedStrings, sheetMetadata?.ColumnMap, sheetMetadata?.HasBanner ?? false, errors);
         }
 
         return errors;
+    }
+
+    // The metadata knows a sheet by the name it was written under, and a tab is easily renamed.
+    // What survives a rename is the sheet's id: BookBuilder numbers the sheets from one in the
+    // order it writes them, the same order the metadata lists them in, and Excel keeps an id
+    // through a rename or a reorder. Without this a renamed sheet lost its column mapping and,
+    // worse, its banner flag, leaving the banner row to be read as the header.
+    //
+    // Only for a name the workbook no longer has. A name still in use is some other sheet's, and
+    // this one is then a sheet the writer never wrote.
+    static SheetParser.SheetMetadata? FindRenamed(
+        Sheet sheet,
+        List<string> written,
+        Dictionary<string, SheetParser.SheetMetadata> metadata,
+        List<Sheet> workbookSheets)
+    {
+        if (sheet.SheetId?.Value is not { } id ||
+            id < 1 ||
+            id > written.Count)
+        {
+            return null;
+        }
+
+        var writtenName = written[(int)id - 1];
+        if (workbookSheets.Any(_ => _.Name?.Value == writtenName))
+        {
+            return null;
+        }
+
+        return metadata[writtenName];
     }
 
     static Sheet? ResolveSheet(IReaderSheet sheet, int index, List<Sheet>? sheets)

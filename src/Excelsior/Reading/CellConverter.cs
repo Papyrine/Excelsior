@@ -13,7 +13,8 @@ static class CellConverter
         string?[]? sharedStrings,
         int slot,
         Action<int, string> onError,
-        out object? value)
+        out object? value,
+        string? nullDisplay = null)
     {
         if (converter != null &&
             cell != null)
@@ -31,7 +32,19 @@ static class CellConverter
             }
         }
 
-        if (TryConvert(cell, targetType, sharedStrings, out value, out var error))
+        var raw = ReadRaw(cell, sharedStrings);
+
+        // The null text of the column itself, which the writer put there for a null. It can only
+        // be taken back as one where the target has a null to give.
+        if (nullDisplay != null &&
+            raw == nullDisplay &&
+            CanBeNull(targetType))
+        {
+            value = null;
+            return true;
+        }
+
+        if (TryConvertRaw(raw, targetType, out value, out var error))
         {
             return true;
         }
@@ -101,6 +114,15 @@ static class CellConverter
             return false;
         }
 
+        // The text ValueRenderer writes for a null of this type reads back as that null.
+        if (isNullable &&
+            ValueRenderer.IsNullDisplay(targetType, raw))
+        {
+            value = null;
+            error = null;
+            return true;
+        }
+
         try
         {
             if (effective == typeof(bool))
@@ -119,56 +141,56 @@ static class CellConverter
 
             if (effective == typeof(byte))
             {
-                value = byte.Parse(raw, CultureInfo.InvariantCulture);
+                value = byte.Parse(raw, numberStyles, CultureInfo.InvariantCulture);
                 error = null;
                 return true;
             }
 
             if (effective == typeof(sbyte))
             {
-                value = sbyte.Parse(raw, CultureInfo.InvariantCulture);
+                value = sbyte.Parse(raw, numberStyles, CultureInfo.InvariantCulture);
                 error = null;
                 return true;
             }
 
             if (effective == typeof(short))
             {
-                value = short.Parse(raw, CultureInfo.InvariantCulture);
+                value = short.Parse(raw, numberStyles, CultureInfo.InvariantCulture);
                 error = null;
                 return true;
             }
 
             if (effective == typeof(ushort))
             {
-                value = ushort.Parse(raw, CultureInfo.InvariantCulture);
+                value = ushort.Parse(raw, numberStyles, CultureInfo.InvariantCulture);
                 error = null;
                 return true;
             }
 
             if (effective == typeof(int))
             {
-                value = int.Parse(raw, CultureInfo.InvariantCulture);
+                value = int.Parse(raw, numberStyles, CultureInfo.InvariantCulture);
                 error = null;
                 return true;
             }
 
             if (effective == typeof(uint))
             {
-                value = uint.Parse(raw, CultureInfo.InvariantCulture);
+                value = uint.Parse(raw, numberStyles, CultureInfo.InvariantCulture);
                 error = null;
                 return true;
             }
 
             if (effective == typeof(long))
             {
-                value = long.Parse(raw, CultureInfo.InvariantCulture);
+                value = long.Parse(raw, numberStyles, CultureInfo.InvariantCulture);
                 error = null;
                 return true;
             }
 
             if (effective == typeof(ulong))
             {
-                value = ulong.Parse(raw, CultureInfo.InvariantCulture);
+                value = ulong.Parse(raw, numberStyles, CultureInfo.InvariantCulture);
                 error = null;
                 return true;
             }
@@ -189,7 +211,7 @@ static class CellConverter
 
             if (effective == typeof(decimal))
             {
-                value = decimal.Parse(raw, CultureInfo.InvariantCulture);
+                value = decimal.Parse(raw, numberStyles, CultureInfo.InvariantCulture);
                 error = null;
                 return true;
             }
@@ -287,6 +309,16 @@ static class CellConverter
             return false;
         }
     }
+
+    static bool CanBeNull(Type type) =>
+        !type.IsValueType ||
+        Nullable.GetUnderlyingType(type) != null;
+
+    // A numeric cell holds a double written out as text, and that text takes an exponent once the
+    // value is small or large enough: 0.00001 is "1E-05". The integer and decimal parsers refuse
+    // an exponent unless asked, so they are asked. A value that is not whole still fails for an
+    // integer target, as it should.
+    internal const NumberStyles numberStyles = NumberStyles.Float | NumberStyles.AllowThousands;
 
     static string Display(Type type)
     {

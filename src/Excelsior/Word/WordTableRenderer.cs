@@ -383,7 +383,9 @@ static class WordTableRenderer<TModel>
 
     static void AppendTextWithLineBreaks(W.Run run, string value)
     {
-        var normalized = value.Replace("\r\n", "\n").Replace('\r', '\n');
+        // Stripped of what XML cannot hold, as a spreadsheet cell is: left in, such a character
+        // makes saving the document throw.
+        var normalized = XmlChars.Strip(value.Replace("\r\n", "\n").Replace('\r', '\n'));
         var lines = normalized.Split('\n');
         for (var i = 0; i < lines.Length; i++)
         {
@@ -824,7 +826,7 @@ static class WordTableRenderer<TModel>
 
     static W.Paragraph BuildHyperlinkParagraph(Link link, MainDocumentPart mainPart)
     {
-        var display = link.Text ?? link.Url;
+        var display = XmlChars.Strip(link.Text ?? link.Url);
         var relId = mainPart.AddHyperlinkRelationship(new(link.Url, UriKind.RelativeOrAbsolute), true).Id;
 
         // Color and underline mirror Excelsior's spreadsheet hyperlink styling (#0563C1, underline)
