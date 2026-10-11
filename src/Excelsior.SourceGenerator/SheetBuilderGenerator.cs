@@ -58,7 +58,7 @@ public class SheetBuilderGenerator :
 
                 if (model.RowReaderSlots is { } slots)
                 {
-                    var rowReaderSource = GenerateRowReader(model, slots);
+                    var rowReaderSource = GenerateRowReader(model, slots, model.Activator!.Value.CtorParams);
                     productionContext.AddSource($"{model.TypeName}RowReader.g.cs", rowReaderSource);
                 }
 
@@ -122,7 +122,7 @@ public class SheetBuilderGenerator :
             return null;
         }
 
-        var ctorParamSet = new HashSet<string>(plan.CtorParams.Select(_ => _.Name), StringComparer.Ordinal);
+        var ctorParamSet = new HashSet<string>(plan.CtorParams.Select(_ => _.MemberName), StringComparer.Ordinal);
         var initSet = new HashSet<string>(plan.InitProps.Select(_ => _.Name), StringComparer.Ordinal);
         var setSet = new HashSet<string>(plan.SetProps.Select(_ => _.Name), StringComparer.Ordinal);
 
@@ -247,14 +247,21 @@ public class SheetBuilderGenerator :
                 return null;
             }
 
+            // A parameter is matched to the member it fills ignoring case: `name` for `Name` is
+            // how a class that is not a record spells it.
+            var memberNames = type.EnumerateColumnMembers()
+                .Where(_ => !HasAttribute(_.Symbol, "IgnoreAttribute"))
+                .Select(_ => _.Name)
+                .ToList();
             ctorParams = chosen.Parameters
-                .Select(_ => new ActivatorParam(
-                    _.Name,
-                    _.Type.ToDisplayString(nullableQualified)))
+                .Select(parameter => new ActivatorParam(
+                    parameter.Name,
+                    parameter.Type.ToDisplayString(nullableQualified),
+                    memberNames.FirstOrDefault(_ => string.Equals(_, parameter.Name, StringComparison.OrdinalIgnoreCase)) ?? parameter.Name))
                 .ToImmutableArray();
         }
 
-        var ctorParamNames = new HashSet<string>(ctorParams.Select(_ => _.Name), StringComparer.Ordinal);
+        var ctorParamNames = new HashSet<string>(ctorParams.Select(_ => _.MemberName), StringComparer.Ordinal);
 
         var initBuilder = ImmutableArray.CreateBuilder<ActivatorAssign>();
         var setBuilder = ImmutableArray.CreateBuilder<ActivatorAssign>();
@@ -817,7 +824,7 @@ public class SheetBuilderGenerator :
         {
             var param = plan.CtorParams[i];
             var argName = $"arg{i}";
-            builder.AppendLine($"    values.TryGetValue(\"{param.Name}\", out var {argName});");
+            builder.AppendLine($"    values.TryGetValue(\"{param.MemberName}\", out var {argName});");
             ctorArgs.Add($"({param.TypeFullName}){argName}!");
         }
 
@@ -866,7 +873,7 @@ public class SheetBuilderGenerator :
         return builder.ToString();
     }
 
-    static string GenerateRowReader(ModelInfo model, EquatableArray<RowReaderSlot> slots)
+    static string GenerateRowReader(ModelInfo model, EquatableArray<RowReaderSlot> slots, EquatableArray<ActivatorParam> ctorParams)
     {
         var builder = new StringBuilder(
             $$"""
@@ -891,14 +898,37 @@ public class SheetBuilderGenerator :
         var initSlots = new List<(int Slot, RowReaderSlot Info)>();
         var setterSlots = new List<(int Slot, RowReaderSlot Info)>();
 
+        // One argument per parameter, in the constructor's order: the slots are in member order,
+        // which need not be the same. A parameter with no slot - its member is [Ignore]d, or it
+        // has none - is passed its default, as the reflection path does.
+        foreach (var param in ctorParams)
+        {
+            var index = -1;
+            for (var i = 0; i < slots.Length; i++)
+            {
+                if (slots[i].Assignment == SlotAssignment.CtorArg &&
+                    slots[i].Name == param.MemberName)
+                {
+                    index = i;
+                    break;
+                }
+            }
+
+            if (index == -1)
+            {
+                ctorArgs.Add("default!");
+            }
+            else
+            {
+                ctorArgs.Add(EmitReader(slots[index], index));
+            }
+        }
+
         for (var i = 0; i < slots.Length; i++)
         {
             var slot = slots[i];
             switch (slot.Assignment)
             {
-                case SlotAssignment.CtorArg:
-                    ctorArgs.Add(EmitReader(slot, i));
-                    break;
                 case SlotAssignment.Init:
                     initSlots.Add((i, slot));
                     break;
