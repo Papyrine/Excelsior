@@ -159,8 +159,11 @@ class DictionarySheetBuilder :
         return null;
     }
 
-    internal List<ColumnConfig<IReadOnlyDictionary<string, object?>>> OrderedColumns() =>
-        Columns
+    internal List<ColumnConfig<IReadOnlyDictionary<string, object?>>> OrderedColumns()
+    {
+        ColumnWidths.Validate(Columns);
+
+        return Columns
             .Where(_ => _.Include)
             .OrderBy(_ =>
             {
@@ -173,4 +176,5 @@ class DictionarySheetBuilder :
             })
             .ThenBy(_ => _.Order ?? _.DeclarationIndex)
             .ToList();
+    }
 }

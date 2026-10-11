@@ -151,8 +151,11 @@ class TemplateSheetBuilder :
         return null;
     }
 
-    internal List<ColumnConfig<TemplateRow>> OrderedColumns() =>
-        Columns
+    internal List<ColumnConfig<TemplateRow>> OrderedColumns()
+    {
+        ColumnWidths.Validate(Columns);
+
+        return Columns
             .OrderBy(_ =>
             {
                 if (_.Order.HasValue)
@@ -164,4 +167,5 @@ class TemplateSheetBuilder :
             })
             .ThenBy(_ => _.Order ?? _.DeclarationIndex)
             .ToList();
+    }
 }
