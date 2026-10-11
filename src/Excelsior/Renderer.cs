@@ -1678,6 +1678,18 @@ class Renderer<TModel>(
         }
     }
 
+    // 2^53. Every integer up to it has a double of its own; past it they start to share.
+    const long maxExactInteger = 9007199254740992;
+
+    static bool IsBeyondDoublePrecision(object value) =>
+        value switch
+        {
+            long number => number is > maxExactInteger or < -maxExactInteger,
+            ulong number => number > maxExactInteger,
+            decimal number => number is > maxExactInteger or < -maxExactInteger,
+            _ => false
+        };
+
     void SetCellValue(
         Cell cell,
         SheetContext sheet,
@@ -1859,6 +1871,15 @@ class Renderer<TModel>(
         if (column.IsNumber)
         {
             ThrowIfHtml();
+            if (IsBeyondDoublePrecision(value))
+            {
+                // A numeric cell is a double, and Excel shows 15 significant digits of it. An
+                // integer too big for that - a 64-bit id, typically - would be stored as its
+                // nearest double and read back as a different number. Text keeps every digit.
+                SetCellValue(cell, Convert.ToString(value, CultureInfo.InvariantCulture)!);
+                return;
+            }
+
             var asDouble = Convert.ToDouble(value);
             if (column.Format != null)
             {
