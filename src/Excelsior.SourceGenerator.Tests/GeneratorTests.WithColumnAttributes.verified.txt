@@ -68,8 +68,7 @@ file static class EmployeeRowReaderRegistration
     instance.HireDate = global::Excelsior.ExcelsiorReaders.ReadString(cells[3], sharedStrings);
     instance.Notes = global::Excelsior.ExcelsiorReaders.ReadString(cells[4], sharedStrings);
     instance.Department = global::Excelsior.ExcelsiorReaders.ReadString(cells[5], sharedStrings);
-    instance.Internal = global::Excelsior.ExcelsiorReaders.ReadString(cells[6], sharedStrings);
-    instance.Age = global::Excelsior.ExcelsiorReaders.ReadInt(cells[7], sharedStrings, 7, onError);
+    instance.Age = global::Excelsior.ExcelsiorReaders.ReadInt(cells[6], sharedStrings, 6, onError);
     return instance;
   }
 },

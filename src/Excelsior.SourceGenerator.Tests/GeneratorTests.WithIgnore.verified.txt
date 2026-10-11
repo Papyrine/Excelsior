@@ -35,7 +35,7 @@ file static class EmployeeRowReaderRegistration
 
   static global::Employee ReadRow(global::DocumentFormat.OpenXml.Spreadsheet.Cell?[] cells, string?[]? sharedStrings, global::System.Action<int, string> onError)
   {
-    return new global::Employee(global::Excelsior.ExcelsiorReaders.ReadString(cells[0], sharedStrings), global::Excelsior.ExcelsiorReaders.ReadInt(cells[1], sharedStrings, 1, onError), global::Excelsior.ExcelsiorReaders.ReadString(cells[2], sharedStrings));
+    return new global::Employee(global::Excelsior.ExcelsiorReaders.ReadString(cells[0], sharedStrings), default!, global::Excelsior.ExcelsiorReaders.ReadString(cells[1], sharedStrings));
   }
 },
   EmployeeSheetBuilderExtensions.g.cs:
@@ -98,59 +98,6 @@ public static class EmployeeSheetBuilderExtensions
 
   public static void EmailExclude(this ISheetBuilder<global::Employee> builder)
     => builder.Exclude(_ => _.Email);
-
-  public static ISheetBuilder<global::Employee> AgeColumn(
-    this ISheetBuilder<global::Employee> builder,
-    Action<ColumnConfig<global::Employee, int>> configuration)
-    => builder.Column(_ => _.Age, configuration);
-
-  public static void AgeHeadingText(this ISheetBuilder<global::Employee> builder, string value)
-    => builder.HeadingText(_ => _.Age, value);
-
-  public static void AgeOrder(this ISheetBuilder<global::Employee> builder, int? value)
-    => builder.Order(_ => _.Age, value);
-
-  public static void AgeWidth(this ISheetBuilder<global::Employee> builder, int? value)
-    => builder.Width(_ => _.Age, value);
-
-  public static void AgeMinWidth(this ISheetBuilder<global::Employee> builder, int? value)
-    => builder.MinWidth(_ => _.Age, value);
-
-  public static void AgeMaxWidth(this ISheetBuilder<global::Employee> builder, int? value)
-    => builder.MaxWidth(_ => _.Age, value);
-
-  public static void AgeHeadingStyle(this ISheetBuilder<global::Employee> builder, Action<Excelsior.CellStyle> value)
-    => builder.HeadingStyle(_ => _.Age, value);
-
-  public static void AgeCellStyle(this ISheetBuilder<global::Employee> builder, Action<Excelsior.CellStyle, global::Employee, int> value)
-    => builder.CellStyle(_ => _.Age, value);
-
-  public static void AgeFormat(this ISheetBuilder<global::Employee> builder, string value)
-    => builder.Format(_ => _.Age, value);
-
-  public static void AgeNullDisplay(this ISheetBuilder<global::Employee> builder, string value)
-    => builder.NullDisplay(_ => _.Age, value);
-
-  public static void AgeIsHtml(this ISheetBuilder<global::Employee> builder)
-    => builder.IsHtml(_ => _.Age);
-
-  public static void AgeRender(this ISheetBuilder<global::Employee> builder, Func<global::Employee, int, string?> value)
-    => builder.Render(_ => _.Age, value);
-
-  public static void AgeFormula(this ISheetBuilder<global::Employee> builder, Func<global::Employee, FormulaContext<global::Employee>, string> value)
-    => builder.Formula(_ => _.Age, value);
-
-  public static void AgeFormula(this ISheetBuilder<global::Employee> builder, Func<FormulaContext<global::Employee>, string> value)
-    => builder.Formula(_ => _.Age, value);
-
-  public static void AgeFilter(this ISheetBuilder<global::Employee> builder)
-    => builder.Filter(_ => _.Age);
-
-  public static void AgeInclude(this ISheetBuilder<global::Employee> builder, bool value)
-    => builder.Include(_ => _.Age, value);
-
-  public static void AgeExclude(this ISheetBuilder<global::Employee> builder)
-    => builder.Exclude(_ => _.Age);
 
   public static ISheetBuilder<global::Employee> NameColumn(
     this ISheetBuilder<global::Employee> builder,

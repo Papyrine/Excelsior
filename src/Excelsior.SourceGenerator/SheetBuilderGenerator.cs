@@ -129,7 +129,13 @@ public class SheetBuilderGenerator :
         var slots = new List<RowReaderSlot>();
         foreach (var member in type.EnumerateColumnMembers())
         {
-            if (HasAttribute(member.Symbol, "IgnoreAttribute"))
+            if (IsIgnored(member.Symbol))
+            {
+                continue;
+            }
+
+            // A column the writer leaves out is one the runtime reader has no slot for.
+            if (GetColumnData(member.Symbol) is { Include: false })
             {
                 continue;
             }
@@ -250,7 +256,7 @@ public class SheetBuilderGenerator :
             // A parameter is matched to the member it fills ignoring case: `name` for `Name` is
             // how a class that is not a record spells it.
             var memberNames = type.EnumerateColumnMembers()
-                .Where(_ => !HasAttribute(_.Symbol, "IgnoreAttribute"))
+                .Where(_ => !IsIgnored(_.Symbol))
                 .Select(_ => _.Name)
                 .ToList();
             ctorParams = chosen.Parameters
@@ -268,7 +274,7 @@ public class SheetBuilderGenerator :
 
         foreach (var member in type.EnumerateColumnMembers())
         {
-            if (HasAttribute(member.Symbol, "IgnoreAttribute"))
+            if (IsIgnored(member.Symbol))
             {
                 continue;
             }
@@ -341,7 +347,7 @@ public class SheetBuilderGenerator :
     {
         foreach (var member in type.EnumerateColumnMembers())
         {
-            if (HasAttribute(member.Symbol, "IgnoreAttribute"))
+            if (IsIgnored(member.Symbol))
             {
                 continue;
             }
@@ -387,6 +393,35 @@ public class SheetBuilderGenerator :
 
     static AttributeData? FindAttribute(ImmutableArray<AttributeData> attributes, string name) =>
         attributes.FirstOrDefault(_ => IsAttribute(_.AttributeClass, name));
+
+    // [Ignore] on the member, or on the constructor parameter of the same name: the runtime
+    // leaves a member out for either.
+    static bool IsIgnored(ISymbol member)
+    {
+        if (HasAttribute(member, "IgnoreAttribute"))
+        {
+            return true;
+        }
+
+        if (member.ContainingType is not { } type)
+        {
+            return false;
+        }
+
+        foreach (var constructor in type.Constructors)
+        {
+            foreach (var parameter in constructor.Parameters)
+            {
+                if (parameter.Name == member.Name &&
+                    HasAttribute(parameter, "IgnoreAttribute"))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 
     static AttributeData? FindColumnAttribute(ISymbol member)
     {
@@ -1064,7 +1099,7 @@ public class SheetBuilderGenerator :
     {
         foreach (var member in type.EnumerateColumnMembers())
         {
-            if (HasAttribute(member.Symbol, "IgnoreAttribute"))
+            if (IsIgnored(member.Symbol))
             {
                 continue;
             }
