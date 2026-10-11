@@ -134,11 +134,17 @@ static class DocumentPropertiesWriter
             long l => new VTInt64(l.ToString(CultureInfo.InvariantCulture)),
             short s => new VTInt32(((int)s).ToString(CultureInfo.InvariantCulture)),
             byte b => new VTInt32(((int)b).ToString(CultureInfo.InvariantCulture)),
+            sbyte s => new VTInt32(((int)s).ToString(CultureInfo.InvariantCulture)),
+            ushort u => new VTInt32(((int)u).ToString(CultureInfo.InvariantCulture)),
+            // Past what an i4 holds, so the next size up.
+            uint u => new VTInt64(((long)u).ToString(CultureInfo.InvariantCulture)),
+            ulong u => new VTUnsignedInt64(u.ToString(CultureInfo.InvariantCulture)),
             double d => new VTDouble(d.ToString(CultureInfo.InvariantCulture)),
             float f => new VTDouble(((double)f).ToString(CultureInfo.InvariantCulture)),
             decimal m => new VTDouble(m.ToString(CultureInfo.InvariantCulture)),
             DateTime time => new VTFileTime(time.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture)),
-            Date date => new VTFileTime($"{date:yyyy-MM-dd}T00:00:00Z"),
+            // Invariant, as the DateTime above is: the current culture would bring its calendar.
+            Date date => new VTFileTime(date.ToString("yyyy-MM-dd'T00:00:00Z'", CultureInfo.InvariantCulture)),
             // Written as text rather than the clsid variant: Excel's Advanced Properties dialog
             // only surfaces Text/Date/Number/Yes-No, so a string shows as an editable property
             // whereas clsid would not appear at all.

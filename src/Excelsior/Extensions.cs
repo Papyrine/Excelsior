@@ -85,8 +85,11 @@
                     return most;
                 }));
 
+    // A Nullable<T> has TypeCode.Object, so it is unwrapped first: an int? column holds numbers
+    // just as an int column does.
     public static bool IsNumericType(this Type type)
     {
+        type = Nullable.GetUnderlyingType(type) ?? type;
         if (type.IsEnum)
         {
             return false;
@@ -112,6 +115,7 @@
 
     public static TemporalKind? GetTemporalKind(this Type type)
     {
+        type = Nullable.GetUnderlyingType(type) ?? type;
         if (type == typeof(DateTime))
         {
             return TemporalKind.DateTime;

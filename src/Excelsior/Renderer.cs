@@ -700,7 +700,7 @@ class Renderer<TModel>(
         cell.DataType = CellValues.InlineString;
         cell.InlineString = new(BuildText(display));
 
-        var rel = sheet.WorksheetPart.AddHyperlinkRelationship(new(link.Url), true);
+        var rel = sheet.WorksheetPart.AddHyperlinkRelationship(new(link.Url, UriKind.RelativeOrAbsolute), true);
         var hyperlinks = sheet.Worksheet.GetFirstChild<Hyperlinks>();
         if (hyperlinks == null)
         {
@@ -753,7 +753,7 @@ class Renderer<TModel>(
             return;
         }
 
-        var rel = sheet.WorksheetPart.AddHyperlinkRelationship(new(hyperlinkUrl), true);
+        var rel = sheet.WorksheetPart.AddHyperlinkRelationship(new(hyperlinkUrl, UriKind.RelativeOrAbsolute), true);
         var hyperlinks = sheet.Worksheet.GetFirstChild<Hyperlinks>();
         if (hyperlinks == null)
         {
@@ -1601,17 +1601,63 @@ class Renderer<TModel>(
         }
     }
 
+    // Asked of every data cell when a max row height is set, so it reads the cell by walking its
+    // children and counts lines over a span. The typed accessors (cell.InlineString and the
+    // like) allocate on each call, and Split made an array and a string per line.
     static double EstimateVisualLines(Cell cell, double columnWidth)
     {
         var charsPerLine = Math.Max(1d, (columnWidth - 2) / 1.1);
+
+        InlineString? inline = null;
+        CellValue? cellValue = null;
+        for (var child = cell.FirstChild; child != null; child = child.NextSibling())
+        {
+            if (child is InlineString inlineChild)
+            {
+                inline ??= inlineChild;
+            }
+            else if (child is CellValue valueChild)
+            {
+                cellValue ??= valueChild;
+            }
+        }
+
         double lines = 0;
         var hasContent = false;
-        foreach (var text in EnumerateCellTexts(cell))
+        if (inline == null)
         {
-            hasContent = true;
-            foreach (var line in text.Split('\n'))
+            if (cellValue?.Text is { } valueText)
             {
-                lines += Math.Max(1d, Math.Ceiling(line.Length / charsPerLine));
+                hasContent = true;
+                lines = CountVisualLines(valueText, charsPerLine);
+            }
+        }
+        else
+        {
+            var hasRuns = false;
+            Text? text = null;
+            for (var child = inline.FirstChild; child != null; child = child.NextSibling())
+            {
+                if (child is Run run)
+                {
+                    hasRuns = true;
+                    if (GetRunText(run) is { } runText)
+                    {
+                        hasContent = true;
+                        lines += CountVisualLines(runText, charsPerLine);
+                    }
+                }
+                else if (child is Text textChild)
+                {
+                    text ??= textChild;
+                }
+            }
+
+            if (!hasRuns &&
+                text?.Text is { } inlineText)
+            {
+                hasContent = true;
+                lines = CountVisualLines(inlineText, charsPerLine);
             }
         }
 
@@ -1621,6 +1667,43 @@ class Renderer<TModel>(
         }
 
         return 1;
+    }
+
+    static string? GetRunText(Run run)
+    {
+        for (var child = run.FirstChild; child != null; child = child.NextSibling())
+        {
+            if (child is Text text)
+            {
+                return text.Text;
+            }
+        }
+
+        return null;
+    }
+
+    // Each line of the text takes at least one visual line, and one more for every
+    // charsPerLine it runs past.
+    static double CountVisualLines(ReadOnlySpan<char> text, double charsPerLine)
+    {
+        double lines = 0;
+        while (true)
+        {
+            var newline = text.IndexOf('\n');
+            var length = newline;
+            if (newline < 0)
+            {
+                length = text.Length;
+            }
+
+            lines += Math.Max(1d, Math.Ceiling(length / charsPerLine));
+            if (newline < 0)
+            {
+                return lines;
+            }
+
+            text = text[(newline + 1)..];
+        }
     }
 
     static IEnumerable<string> EnumerateCellTexts(Cell cell)
@@ -1650,6 +1733,18 @@ class Renderer<TModel>(
             yield return cellValueText;
         }
     }
+
+    // 2^53. Every integer up to it has a double of its own; past it they start to share.
+    const long maxExactInteger = 9007199254740992;
+
+    static bool IsBeyondDoublePrecision(object value) =>
+        value switch
+        {
+            long number => number is > maxExactInteger or < -maxExactInteger,
+            ulong number => number > maxExactInteger,
+            decimal number => number is > maxExactInteger or < -maxExactInteger,
+            _ => false
+        };
 
     void SetCellValue(
         Cell cell,
@@ -1832,6 +1927,15 @@ class Renderer<TModel>(
         if (column.IsNumber)
         {
             ThrowIfHtml();
+            if (IsBeyondDoublePrecision(value))
+            {
+                // A numeric cell is a double, and Excel shows 15 significant digits of it. An
+                // integer too big for that - a 64-bit id, typically - would be stored as its
+                // nearest double and read back as a different number. Text keeps every digit.
+                SetCellValue(cell, Convert.ToString(value, CultureInfo.InvariantCulture)!);
+                return;
+            }
+
             var asDouble = Convert.ToDouble(value);
             if (column.Format != null)
             {
