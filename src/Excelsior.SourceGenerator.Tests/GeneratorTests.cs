@@ -244,6 +244,49 @@ public class GeneratorTests
         return Verify(generated);
     }
 
+    // The generated files are named for the type, with no namespace. Two models of one name
+    // asked for the same file, and Roslyn failed the generator for every model in the project.
+    [Test]
+    public async Task SameNameInDifferentNamespaces()
+    {
+        var source = """
+            using Excelsior;
+
+            namespace Sales
+            {
+                [SheetModel]
+                public record Order(int Id);
+            }
+
+            namespace Purchasing
+            {
+                [SheetModel]
+                public record Order(string Supplier);
+            }
+
+            [SheetModel]
+            public record Unrelated(string Name);
+            """;
+
+        var result = RunGenerator(source);
+
+        await Assert.That(result.Results.Single().Exception).IsNull();
+        var hintNames = result.Results
+            .SelectMany(_ => _.GeneratedSources)
+            .Select(_ => _.HintName)
+            .Where(_ => _.EndsWith("SheetBuilderExtensions.g.cs"))
+            .Order()
+            .ToList();
+        await Assert.That(hintNames).IsEquivalentTo(
+            [
+                "Purchasing_OrderSheetBuilderExtensions.g.cs",
+                "Sales_OrderSheetBuilderExtensions.g.cs",
+                // A model that shares its name with no other keeps the name it always had.
+                "UnrelatedSheetBuilderExtensions.g.cs"
+            ],
+            CollectionOrdering.Matching);
+    }
+
     [Test]
     public Task NullableReferenceTypes()
     {
