@@ -16,7 +16,7 @@ file static class DocActivatorRegistration
   {
     values.TryGetValue("Name", out var arg0);
     values.TryGetValue("Perms", out var arg1);
-    return new global::Doc((string)arg0!, (global::Permissions)arg1!);
+    return new global::Doc((string)(arg0 ?? default(string)!)!, (global::Permissions)(arg1 ?? default(global::Permissions)!)!);
   }
 },
   DocRowReader.g.cs:

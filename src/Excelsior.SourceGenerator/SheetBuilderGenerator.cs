@@ -825,7 +825,10 @@ public class SheetBuilderGenerator :
             var param = plan.CtorParams[i];
             var argName = $"arg{i}";
             builder.AppendLine($"    values.TryGetValue(\"{param.MemberName}\", out var {argName});");
-            ctorArgs.Add($"({param.TypeFullName}){argName}!");
+            // A cell that failed to convert leaves no value behind, and unboxing that null to a
+            // value type throws. The parameter gets its default, as on the reflection path; the
+            // failure itself has already been reported against the cell.
+            ctorArgs.Add($"({param.TypeFullName})({argName} ?? default({param.TypeFullName})!)!");
         }
 
         var ctorCall = $"new {model.TypeFullName}({string.Join(", ", ctorArgs)})";

@@ -16,7 +16,7 @@ file static class EmployeeActivatorRegistration
   {
     values.TryGetValue("Id", out var arg0);
     values.TryGetValue("Name", out var arg1);
-    return new global::Employee((int)arg0!, (string)arg1!);
+    return new global::Employee((int)(arg0 ?? default(int)!)!, (string)(arg1 ?? default(string)!)!);
   }
 },
   EmployeeColumnAttributes.g.cs:

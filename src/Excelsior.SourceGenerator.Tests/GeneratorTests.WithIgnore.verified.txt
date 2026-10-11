@@ -17,7 +17,7 @@ file static class EmployeeActivatorRegistration
     values.TryGetValue("Email", out var arg0);
     values.TryGetValue("Age", out var arg1);
     values.TryGetValue("Name", out var arg2);
-    return new global::Employee((string)arg0!, (int)arg1!, (string)arg2!);
+    return new global::Employee((string)(arg0 ?? default(string)!)!, (int)(arg1 ?? default(int)!)!, (string)(arg2 ?? default(string)!)!);
   }
 },
   EmployeeRowReader.g.cs:
