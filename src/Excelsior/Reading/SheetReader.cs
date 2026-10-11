@@ -179,7 +179,7 @@ class SheetReader<TModel> :
         convertersBySlot = converters;
         slotToCtorArgIndex = ctorArgs;
         slotToSetter = setters;
-        rowReader = GeneratedRowReaders.TryGet<TModel>();
+        rowReader = GeneratedRowReaders.TryGet<TModel>(names);
         useGeneratedRowReader = rowReader != null && !anyConverter;
     }
 

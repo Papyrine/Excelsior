@@ -22,10 +22,16 @@ public class SheetBuilderGenerator :
         //
         // Safe on all five because each is a standalone type in the Excelsior namespace: none is a
         // partial of a consumer type, so the attribute can never reach the consumer's own members.
+        // Every model's name, so that each can tell whether another model shares its own.
+        var names = results
+            .Select((result, _) => result.Model?.TypeName)
+            .Collect();
+
         context.RegisterSourceOutput(
-            results,
-            (productionContext, result) =>
+            results.Combine(names),
+            (productionContext, pair) =>
             {
+                var (result, allNames) = pair;
                 if (result.Diagnostic is { } diagnostic)
                 {
                     productionContext.ReportDiagnostic(
@@ -39,6 +45,19 @@ public class SheetBuilderGenerator :
                 if (result.Model is not { } model)
                 {
                     return;
+                }
+
+                // TypeName names the generated files and the extension class, and it has no
+                // namespace in it. Two models called Order in different namespaces would ask for
+                // the same file twice, which Roslyn answers by failing the whole generator:
+                // nothing generated for any model. Only where names do meet is the namespace
+                // brought in, so every other model keeps the names it has always had.
+                if (allNames.Count(_ => _ == model.TypeName) > 1)
+                {
+                    model = model with
+                    {
+                        TypeName = GetQualifiedName(model.TypeFullName)
+                    };
                 }
 
                 var source = GenerateExtensions(model);
@@ -326,6 +345,31 @@ public class SheetBuilderGenerator :
         }
 
         return true;
+    }
+
+    // global::Sales.Order -> Sales_Order
+    static string GetQualifiedName(string typeFullName)
+    {
+        const string global = "global::";
+        if (typeFullName.StartsWith(global))
+        {
+            typeFullName = typeFullName.Substring(global.Length);
+        }
+
+        var builder = new StringBuilder(typeFullName.Length);
+        foreach (var character in typeFullName)
+        {
+            if (char.IsLetterOrDigit(character))
+            {
+                builder.Append(character);
+            }
+            else
+            {
+                builder.Append('_');
+            }
+        }
+
+        return builder.ToString();
     }
 
     static string GetFlattenedName(INamedTypeSymbol type)
@@ -922,7 +966,7 @@ public class SheetBuilderGenerator :
               {
                 [ModuleInitializer]
                 internal static void Register() =>
-                  GeneratedRowReaders.Register<{{model.TypeFullName}}>(ReadRow);
+                  GeneratedRowReaders.Register<{{model.TypeFullName}}>(ReadRow, new string[] { {{string.Join(", ", slots.Select(_ => Literal(_.Name)))}} });
 
                 static {{model.TypeFullName}} ReadRow(global::DocumentFormat.OpenXml.Spreadsheet.Cell?[] cells, string?[]? sharedStrings, global::System.Action<int, string> onError)
                 {

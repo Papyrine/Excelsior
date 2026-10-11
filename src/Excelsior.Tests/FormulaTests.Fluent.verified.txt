@@ -71,7 +71,22 @@
             },
             Width: 14.0,
             ContainsRichText: false,
-            RequiredHighlight: false
+            RequiredHighlight: false,
+            Validation: {
+              Type: date,
+              Operator: between,
+              Min: 1900-01-01,
+              Max: 9999-12-31,
+              AllowBlank: true,
+              ShowInputMessage: true,
+              InputMessage: Date as yyyy-MM-dd,
+              ShowErrorMessage: true,
+              ErrorTitle: Invalid value,
+              ErrorMessage:
+Must be a valid date.
+yyyy-MM-dd,
+              Range: 2-5
+            }
           },
           {
             Name: Annual Salary,
