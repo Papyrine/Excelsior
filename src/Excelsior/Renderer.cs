@@ -572,8 +572,18 @@ class Renderer<TModel>(
         return style;
     }
 
-    void CommitStyle(Cell cell, CellStyle style) =>
+    void CommitStyle(Cell cell, CellStyle style)
+    {
+        // With a global style every cell is restyled once the sheet is populated, and given its
+        // index then. Registering the style as it stands now would leave the stylesheet holding
+        // a format, and often a font and fill, that no cell ends up pointing at.
+        if (bookBuilder.GlobalStyle != null)
+        {
+            return;
+        }
+
         cell.StyleIndex = styleManager!.GetOrCreateStyleIndex(style);
+    }
 
     SheetContext BuildSheet(SpreadsheetDocument book)
     {
