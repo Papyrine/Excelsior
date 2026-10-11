@@ -48,6 +48,7 @@ class Renderer<TModel>(
     internal async Task AddSheet(SpreadsheetDocument book, Cancel cancel)
     {
         ValidateFormulaColumnWidths();
+        DropListsWithNoFormula();
         var sheet = BuildSheet(book);
         CreateBanner(sheet);
         CreateHeadings(sheet);
@@ -817,6 +818,62 @@ class Renderer<TModel>(
         return factor;
     }
 
+    // Excel's limit on a list typed into a data validation, quotes included.
+    const int maxListFormulaLength = 255;
+
+    /// <summary>
+    /// The inline list a dropdown is written as: <c>"a,b,c"</c>. Returns <c>null</c> for a list
+    /// that cannot be written that way.
+    /// </summary>
+    /// <remarks>
+    /// The comma is the separator and there is no escaping it, so a value with one in it would
+    /// be offered as two entries, neither of them the value in the cell. And Excel takes at most
+    /// 255 characters: given more it reports the workbook as damaged and drops the validation.
+    /// A quote is the one thing that can be escaped, by doubling it.
+    /// </remarks>
+    internal static string? BuildListFormula(IReadOnlyList<string> values)
+    {
+        var builder = new StringBuilder("\"");
+        for (var index = 0; index < values.Count; index++)
+        {
+            var value = values[index];
+            if (value.Contains(','))
+            {
+                return null;
+            }
+
+            if (index > 0)
+            {
+                builder.Append(',');
+            }
+
+            builder.Append(value.Replace("\"", "\"\""));
+            if (builder.Length >= maxListFormulaLength)
+            {
+                return null;
+            }
+        }
+
+        builder.Append('"');
+        return builder.ToString();
+    }
+
+    // A column whose values cannot be written as an inline list goes without the dropdown. Most
+    // such lists were never asked for - every enum column is given one - and a workbook without
+    // a dropdown is better than one Excel has to repair. Cleared before anything reads the list,
+    // so the messages and the other validations all see a column that has none.
+    void DropListsWithNoFormula()
+    {
+        foreach (var column in columns)
+        {
+            if (column.AllowedValues is { Count: > 0 } values &&
+                BuildListFormula(values) == null)
+            {
+                column.AllowedValues = null;
+            }
+        }
+    }
+
     void ValidateFormulaColumnWidths()
     {
         foreach (var column in columns)
@@ -1164,8 +1221,7 @@ class Renderer<TModel>(
         {
             hasValidation = true;
             validation.Type = DataValidationValues.List;
-            var list = string.Join(",", values);
-            validation.Formula1 = new($"\"{list}\"");
+            validation.Formula1 = new(BuildListFormula(values)!);
         }
         else if (column.NumericMin.HasValue ||
                  column.NumericMax.HasValue)
