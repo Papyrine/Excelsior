@@ -138,7 +138,8 @@ static class DocumentPropertiesWriter
             float f => new VTDouble(((double)f).ToString(CultureInfo.InvariantCulture)),
             decimal m => new VTDouble(m.ToString(CultureInfo.InvariantCulture)),
             DateTime time => new VTFileTime(time.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture)),
-            Date date => new VTFileTime($"{date:yyyy-MM-dd}T00:00:00Z"),
+            // Invariant, as the DateTime above is: the current culture would bring its calendar.
+            Date date => new VTFileTime(date.ToString("yyyy-MM-dd'T00:00:00Z'", CultureInfo.InvariantCulture)),
             // Written as text rather than the clsid variant: Excel's Advanced Properties dialog
             // only surfaces Text/Date/Number/Yes-No, so a string shows as an editable property
             // whereas clsid would not appear at all.
