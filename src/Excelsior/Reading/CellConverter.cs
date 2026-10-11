@@ -408,11 +408,21 @@ static class CellConverter
 
     static Dictionary<string, object> BuildHumanisedEnumMap(Type enumType)
     {
+        // The text of each member as the writer writes it, which is not always the global enum
+        // render: a render set for this one type (EnumRender<TEnum>.Set, as the source generator
+        // does) takes its place, and one registered through ValueRenderer.For<TEnum> wins over
+        // both.
+        var (_, typeRender) = ValueRenderer.GetRender(enumType);
+        var hasTypeRender = ValueRenderer.HasUserRender(enumType);
         var map = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
         foreach (var name in Enum.GetNames(enumType))
         {
             var member = (Enum)Enum.Parse(enumType, name);
-            map[ValueRenderer.RenderEnum(member)] = member;
+            map[EnumRender.Render(member)] = member;
+            if (hasTypeRender)
+            {
+                map[typeRender!(member)] = member;
+            }
         }
 
         return map;

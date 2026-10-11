@@ -869,7 +869,7 @@ static class WordTableRenderer<TModel>
         // renderer rather than column.Render, so handle them explicitly here.
         if (value is Enum enumValue)
         {
-            return ValueRenderer.RenderEnum(enumValue);
+            return EnumRender.Render(enumValue);
         }
 
         // Hyperlink fallback when the renderer wasn't given a MainDocumentPart: emit the display
