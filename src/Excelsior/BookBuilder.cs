@@ -238,9 +238,12 @@ public class BookBuilder
         return builder;
     }
 
-    public async Task<SpreadsheetDocument> Build(Cancel cancel = default)
+    public Task<SpreadsheetDocument> Build(Cancel cancel = default) =>
+        BuildOn(new MemoryStream(), cancel);
+
+    async Task<SpreadsheetDocument> BuildOn(Stream target, Cancel cancel)
     {
-        var document = SpreadsheetDocument.Create(new MemoryStream(), SpreadsheetDocumentType.Workbook);
+        var document = SpreadsheetDocument.Create(target, SpreadsheetDocumentType.Workbook);
         var workbookPart = document.AddWorkbookPart();
         var book = workbookPart.Workbook = new(new Sheets());
 
@@ -345,24 +348,34 @@ public class BookBuilder
         stylesPart.Stylesheet = StyleManager.BuildStylesheet();
     }
 
-    // Clone opens the copy it writes as a package of its own, and hands it back. Each is disposed
-    // straight away: left open, it still holds the stream, so a caller that goes on to edit the
-    // bytes - patching in a custom property, say - would be editing underneath a live package.
+    // A package is written to the stream it was created on when it is disposed, so that is all
+    // a save takes. These used to Clone the built document into a second package instead, which
+    // serialised every part once to build it and again to copy it.
+    //
+    // The package is disposed before the stream is handed on: left open it would still hold the
+    // stream, and a caller that goes on to edit the bytes - patching in a custom property, say -
+    // would be editing underneath a live package.
+    async Task<MemoryStream> BuildAndSave(Cancel cancel)
+    {
+        var memory = new MemoryStream();
+        var document = await BuildOn(memory, cancel);
+        document.Dispose();
+        memory.Position = 0;
+        return memory;
+    }
+
     public async Task ToStream(Stream stream, Cancel cancel = default)
     {
-        using var document = await Build(cancel);
+        using var memory = await BuildAndSave(cancel);
 
-        if (stream.CanRead)
+        // The workbook replaces what a stream holds, as it did when it was cloned into one. A
+        // stream that cannot be read was only ever written to from where it stood.
+        if (stream is { CanRead: true, CanSeek: true })
         {
-            document.Clone(stream).Dispose();
+            stream.SetLength(0);
         }
-        else
-        {
-            using var temp = new MemoryStream();
-            document.Clone(temp).Dispose();
-            temp.Position = 0;
-            await temp.CopyToAsync(stream, cancel);
-        }
+
+        await memory.CopyToAsync(stream, cancel);
     }
 
     public async Task ToFile(string path, Cancel cancel = default)
@@ -373,18 +386,10 @@ public class BookBuilder
 
     public async Task<byte[]> ToBytes(Cancel cancel = default)
     {
-        using var document = await Build(cancel);
-        using var stream = new MemoryStream();
-        document.Clone(stream).Dispose();
-        return stream.ToArray();
+        using var memory = await BuildAndSave(cancel);
+        return memory.ToArray();
     }
 
-    public async Task<MemoryStream> ToMemoryStream(Cancel cancel = default)
-    {
-        using var document = await Build(cancel);
-        var stream = new MemoryStream();
-        document.Clone(stream).Dispose();
-        stream.Position = 0;
-        return stream;
-    }
+    public Task<MemoryStream> ToMemoryStream(Cancel cancel = default) =>
+        BuildAndSave(cancel);
 }
