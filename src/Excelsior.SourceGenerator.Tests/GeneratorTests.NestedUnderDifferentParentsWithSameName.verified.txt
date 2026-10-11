@@ -30,7 +30,7 @@ file static class GroupARowRowReaderRegistration
 {
   [ModuleInitializer]
   internal static void Register() =>
-    GeneratedRowReaders.Register<global::GroupA.Row>(ReadRow);
+    GeneratedRowReaders.Register<global::GroupA.Row>(ReadRow, new string[] { "Name", "Age" });
 
   static global::GroupA.Row ReadRow(global::DocumentFormat.OpenXml.Spreadsheet.Cell?[] cells, string?[]? sharedStrings, global::System.Action<int, string> onError)
   {
@@ -183,7 +183,7 @@ file static class GroupBRowRowReaderRegistration
 {
   [ModuleInitializer]
   internal static void Register() =>
-    GeneratedRowReaders.Register<global::GroupB.Row>(ReadRow);
+    GeneratedRowReaders.Register<global::GroupB.Row>(ReadRow, new string[] { "Email", "Salary" });
 
   static global::GroupB.Row ReadRow(global::DocumentFormat.OpenXml.Spreadsheet.Cell?[] cells, string?[]? sharedStrings, global::System.Action<int, string> onError)
   {

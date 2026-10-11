@@ -880,7 +880,7 @@ public class SheetBuilderGenerator :
               {
                 [ModuleInitializer]
                 internal static void Register() =>
-                  GeneratedRowReaders.Register<{{model.TypeFullName}}>(ReadRow);
+                  GeneratedRowReaders.Register<{{model.TypeFullName}}>(ReadRow, new string[] { {{string.Join(", ", slots.Select(_ => Literal(_.Name)))}} });
 
                 static {{model.TypeFullName}} ReadRow(global::DocumentFormat.OpenXml.Spreadsheet.Cell?[] cells, string?[]? sharedStrings, global::System.Action<int, string> onError)
                 {
