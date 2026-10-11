@@ -119,56 +119,56 @@ static class CellConverter
 
             if (effective == typeof(byte))
             {
-                value = byte.Parse(raw, CultureInfo.InvariantCulture);
+                value = byte.Parse(raw, numberStyles, CultureInfo.InvariantCulture);
                 error = null;
                 return true;
             }
 
             if (effective == typeof(sbyte))
             {
-                value = sbyte.Parse(raw, CultureInfo.InvariantCulture);
+                value = sbyte.Parse(raw, numberStyles, CultureInfo.InvariantCulture);
                 error = null;
                 return true;
             }
 
             if (effective == typeof(short))
             {
-                value = short.Parse(raw, CultureInfo.InvariantCulture);
+                value = short.Parse(raw, numberStyles, CultureInfo.InvariantCulture);
                 error = null;
                 return true;
             }
 
             if (effective == typeof(ushort))
             {
-                value = ushort.Parse(raw, CultureInfo.InvariantCulture);
+                value = ushort.Parse(raw, numberStyles, CultureInfo.InvariantCulture);
                 error = null;
                 return true;
             }
 
             if (effective == typeof(int))
             {
-                value = int.Parse(raw, CultureInfo.InvariantCulture);
+                value = int.Parse(raw, numberStyles, CultureInfo.InvariantCulture);
                 error = null;
                 return true;
             }
 
             if (effective == typeof(uint))
             {
-                value = uint.Parse(raw, CultureInfo.InvariantCulture);
+                value = uint.Parse(raw, numberStyles, CultureInfo.InvariantCulture);
                 error = null;
                 return true;
             }
 
             if (effective == typeof(long))
             {
-                value = long.Parse(raw, CultureInfo.InvariantCulture);
+                value = long.Parse(raw, numberStyles, CultureInfo.InvariantCulture);
                 error = null;
                 return true;
             }
 
             if (effective == typeof(ulong))
             {
-                value = ulong.Parse(raw, CultureInfo.InvariantCulture);
+                value = ulong.Parse(raw, numberStyles, CultureInfo.InvariantCulture);
                 error = null;
                 return true;
             }
@@ -189,7 +189,7 @@ static class CellConverter
 
             if (effective == typeof(decimal))
             {
-                value = decimal.Parse(raw, CultureInfo.InvariantCulture);
+                value = decimal.Parse(raw, numberStyles, CultureInfo.InvariantCulture);
                 error = null;
                 return true;
             }
@@ -287,6 +287,12 @@ static class CellConverter
             return false;
         }
     }
+
+    // A numeric cell holds a double written out as text, and that text takes an exponent once the
+    // value is small or large enough: 0.00001 is "1E-05". The integer and decimal parsers refuse
+    // an exponent unless asked, so they are asked. A value that is not whole still fails for an
+    // integer target, as it should.
+    internal const NumberStyles numberStyles = NumberStyles.Float | NumberStyles.AllowThousands;
 
     static string Display(Type type)
     {

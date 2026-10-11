@@ -22,10 +22,16 @@ public class SheetBuilderGenerator :
         //
         // Safe on all five because each is a standalone type in the Excelsior namespace: none is a
         // partial of a consumer type, so the attribute can never reach the consumer's own members.
+        // Every model's name, so that each can tell whether another model shares its own.
+        var names = results
+            .Select((result, _) => result.Model?.TypeName)
+            .Collect();
+
         context.RegisterSourceOutput(
-            results,
-            (productionContext, result) =>
+            results.Combine(names),
+            (productionContext, pair) =>
             {
+                var (result, allNames) = pair;
                 if (result.Diagnostic is { } diagnostic)
                 {
                     productionContext.ReportDiagnostic(
@@ -39,6 +45,19 @@ public class SheetBuilderGenerator :
                 if (result.Model is not { } model)
                 {
                     return;
+                }
+
+                // TypeName names the generated files and the extension class, and it has no
+                // namespace in it. Two models called Order in different namespaces would ask for
+                // the same file twice, which Roslyn answers by failing the whole generator:
+                // nothing generated for any model. Only where names do meet is the namespace
+                // brought in, so every other model keeps the names it has always had.
+                if (allNames.Count(_ => _ == model.TypeName) > 1)
+                {
+                    model = model with
+                    {
+                        TypeName = GetQualifiedName(model.TypeFullName)
+                    };
                 }
 
                 var source = GenerateExtensions(model);
@@ -58,7 +77,7 @@ public class SheetBuilderGenerator :
 
                 if (model.RowReaderSlots is { } slots)
                 {
-                    var rowReaderSource = GenerateRowReader(model, slots);
+                    var rowReaderSource = GenerateRowReader(model, slots, model.Activator!.Value.CtorParams);
                     productionContext.AddSource($"{model.TypeName}RowReader.g.cs", rowReaderSource);
                 }
 
@@ -122,7 +141,7 @@ public class SheetBuilderGenerator :
             return null;
         }
 
-        var ctorParamSet = new HashSet<string>(plan.CtorParams.Select(_ => _.Name), StringComparer.Ordinal);
+        var ctorParamSet = new HashSet<string>(plan.CtorParams.Select(_ => _.MemberName), StringComparer.Ordinal);
         var initSet = new HashSet<string>(plan.InitProps.Select(_ => _.Name), StringComparer.Ordinal);
         var setSet = new HashSet<string>(plan.SetProps.Select(_ => _.Name), StringComparer.Ordinal);
 
@@ -247,14 +266,21 @@ public class SheetBuilderGenerator :
                 return null;
             }
 
+            // A parameter is matched to the member it fills ignoring case: `name` for `Name` is
+            // how a class that is not a record spells it.
+            var memberNames = type.EnumerateColumnMembers()
+                .Where(_ => !HasAttribute(_.Symbol, "IgnoreAttribute"))
+                .Select(_ => _.Name)
+                .ToList();
             ctorParams = chosen.Parameters
-                .Select(_ => new ActivatorParam(
-                    _.Name,
-                    _.Type.ToDisplayString(nullableQualified)))
+                .Select(parameter => new ActivatorParam(
+                    parameter.Name,
+                    parameter.Type.ToDisplayString(nullableQualified),
+                    memberNames.FirstOrDefault(_ => string.Equals(_, parameter.Name, StringComparison.OrdinalIgnoreCase)) ?? parameter.Name))
                 .ToImmutableArray();
         }
 
-        var ctorParamNames = new HashSet<string>(ctorParams.Select(_ => _.Name), StringComparer.Ordinal);
+        var ctorParamNames = new HashSet<string>(ctorParams.Select(_ => _.MemberName), StringComparer.Ordinal);
 
         var initBuilder = ImmutableArray.CreateBuilder<ActivatorAssign>();
         var setBuilder = ImmutableArray.CreateBuilder<ActivatorAssign>();
@@ -313,6 +339,31 @@ public class SheetBuilderGenerator :
         }
 
         return true;
+    }
+
+    // global::Sales.Order -> Sales_Order
+    static string GetQualifiedName(string typeFullName)
+    {
+        const string global = "global::";
+        if (typeFullName.StartsWith(global))
+        {
+            typeFullName = typeFullName.Substring(global.Length);
+        }
+
+        var builder = new StringBuilder(typeFullName.Length);
+        foreach (var character in typeFullName)
+        {
+            if (char.IsLetterOrDigit(character))
+            {
+                builder.Append(character);
+            }
+            else
+            {
+                builder.Append('_');
+            }
+        }
+
+        return builder.ToString();
     }
 
     static string GetFlattenedName(INamedTypeSymbol type)
@@ -817,7 +868,7 @@ public class SheetBuilderGenerator :
         {
             var param = plan.CtorParams[i];
             var argName = $"arg{i}";
-            builder.AppendLine($"    values.TryGetValue(\"{param.Name}\", out var {argName});");
+            builder.AppendLine($"    values.TryGetValue(\"{param.MemberName}\", out var {argName});");
             ctorArgs.Add($"({param.TypeFullName}){argName}!");
         }
 
@@ -866,7 +917,7 @@ public class SheetBuilderGenerator :
         return builder.ToString();
     }
 
-    static string GenerateRowReader(ModelInfo model, EquatableArray<RowReaderSlot> slots)
+    static string GenerateRowReader(ModelInfo model, EquatableArray<RowReaderSlot> slots, EquatableArray<ActivatorParam> ctorParams)
     {
         var builder = new StringBuilder(
             $$"""
@@ -891,14 +942,37 @@ public class SheetBuilderGenerator :
         var initSlots = new List<(int Slot, RowReaderSlot Info)>();
         var setterSlots = new List<(int Slot, RowReaderSlot Info)>();
 
+        // One argument per parameter, in the constructor's order: the slots are in member order,
+        // which need not be the same. A parameter with no slot - its member is [Ignore]d, or it
+        // has none - is passed its default, as the reflection path does.
+        foreach (var param in ctorParams)
+        {
+            var index = -1;
+            for (var i = 0; i < slots.Length; i++)
+            {
+                if (slots[i].Assignment == SlotAssignment.CtorArg &&
+                    slots[i].Name == param.MemberName)
+                {
+                    index = i;
+                    break;
+                }
+            }
+
+            if (index == -1)
+            {
+                ctorArgs.Add("default!");
+            }
+            else
+            {
+                ctorArgs.Add(EmitReader(slots[index], index));
+            }
+        }
+
         for (var i = 0; i < slots.Length; i++)
         {
             var slot = slots[i];
             switch (slot.Assignment)
             {
-                case SlotAssignment.CtorArg:
-                    ctorArgs.Add(EmitReader(slot, i));
-                    break;
                 case SlotAssignment.Init:
                     initSlots.Add((i, slot));
                     break;
