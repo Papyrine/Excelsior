@@ -61,9 +61,8 @@ class TemplateSheetBuilder :
             IsHtmlExplicit = false,
             Filter = config.Filter,
             Include = true,
-            IsNumber = type.IsNumericType() ||
-                       (Nullable.GetUnderlyingType(type)?.IsNumericType() ?? false),
-            Temporal = type.GetTemporalKind() ?? Nullable.GetUnderlyingType(type)?.GetTemporalKind(),
+            IsNumber = type.IsNumericType(),
+            Temporal = type.GetTemporalKind(),
             IsEnumerable = false,
             ItemRender = null,
             GetValue = _ => null,
@@ -151,8 +150,11 @@ class TemplateSheetBuilder :
         return null;
     }
 
-    internal List<ColumnConfig<TemplateRow>> OrderedColumns() =>
-        Columns
+    internal List<ColumnConfig<TemplateRow>> OrderedColumns()
+    {
+        ColumnWidths.Validate(Columns);
+
+        return Columns
             .OrderBy(_ =>
             {
                 if (_.Order.HasValue)
@@ -164,4 +166,5 @@ class TemplateSheetBuilder :
             })
             .ThenBy(_ => _.Order ?? _.DeclarationIndex)
             .ToList();
+    }
 }

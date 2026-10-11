@@ -19,9 +19,14 @@ record struct ActivatorPlan(
     EquatableArray<ActivatorAssign> InitProps,
     EquatableArray<ActivatorAssign> SetProps);
 
+/// <summary>
+/// A constructor parameter. <see cref="MemberName"/> is the column member it is filled from -
+/// the one of the same name, ignoring case - or the parameter's own name where there is none.
+/// </summary>
 record struct ActivatorParam(
     string Name,
-    string TypeFullName);
+    string TypeFullName,
+    string MemberName);
 
 record struct ActivatorAssign(
     string Name,
