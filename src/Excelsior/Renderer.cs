@@ -48,6 +48,7 @@ class Renderer<TModel>(
     internal async Task AddSheet(SpreadsheetDocument book, Cancel cancel)
     {
         ValidateFormulaColumnWidths();
+        DropListsWithNoFormula();
         var sheet = BuildSheet(book);
         CreateBanner(sheet);
         CreateHeadings(sheet);
@@ -571,8 +572,18 @@ class Renderer<TModel>(
         return style;
     }
 
-    void CommitStyle(Cell cell, CellStyle style) =>
+    void CommitStyle(Cell cell, CellStyle style)
+    {
+        // With a global style every cell is restyled once the sheet is populated, and given its
+        // index then. Registering the style as it stands now would leave the stylesheet holding
+        // a format, and often a font and fill, that no cell ends up pointing at.
+        if (bookBuilder.GlobalStyle != null)
+        {
+            return;
+        }
+
         cell.StyleIndex = styleManager!.GetOrCreateStyleIndex(style);
+    }
 
     SheetContext BuildSheet(SpreadsheetDocument book)
     {
@@ -699,7 +710,7 @@ class Renderer<TModel>(
         cell.DataType = CellValues.InlineString;
         cell.InlineString = new(BuildText(display));
 
-        var rel = sheet.WorksheetPart.AddHyperlinkRelationship(new(link.Url), true);
+        var rel = sheet.WorksheetPart.AddHyperlinkRelationship(new(link.Url, UriKind.RelativeOrAbsolute), true);
         var hyperlinks = sheet.Worksheet.GetFirstChild<Hyperlinks>();
         if (hyperlinks == null)
         {
@@ -752,7 +763,7 @@ class Renderer<TModel>(
             return;
         }
 
-        var rel = sheet.WorksheetPart.AddHyperlinkRelationship(new(hyperlinkUrl), true);
+        var rel = sheet.WorksheetPart.AddHyperlinkRelationship(new(hyperlinkUrl, UriKind.RelativeOrAbsolute), true);
         var hyperlinks = sheet.Worksheet.GetFirstChild<Hyperlinks>();
         if (hyperlinks == null)
         {
@@ -815,6 +826,62 @@ class Renderer<TModel>(
         }
 
         return factor;
+    }
+
+    // Excel's limit on a list typed into a data validation, quotes included.
+    const int maxListFormulaLength = 255;
+
+    /// <summary>
+    /// The inline list a dropdown is written as: <c>"a,b,c"</c>. Returns <c>null</c> for a list
+    /// that cannot be written that way.
+    /// </summary>
+    /// <remarks>
+    /// The comma is the separator and there is no escaping it, so a value with one in it would
+    /// be offered as two entries, neither of them the value in the cell. And Excel takes at most
+    /// 255 characters: given more it reports the workbook as damaged and drops the validation.
+    /// A quote is the one thing that can be escaped, by doubling it.
+    /// </remarks>
+    internal static string? BuildListFormula(IReadOnlyList<string> values)
+    {
+        var builder = new StringBuilder("\"");
+        for (var index = 0; index < values.Count; index++)
+        {
+            var value = values[index];
+            if (value.Contains(','))
+            {
+                return null;
+            }
+
+            if (index > 0)
+            {
+                builder.Append(',');
+            }
+
+            builder.Append(value.Replace("\"", "\"\""));
+            if (builder.Length >= maxListFormulaLength)
+            {
+                return null;
+            }
+        }
+
+        builder.Append('"');
+        return builder.ToString();
+    }
+
+    // A column whose values cannot be written as an inline list goes without the dropdown. Most
+    // such lists were never asked for - every enum column is given one - and a workbook without
+    // a dropdown is better than one Excel has to repair. Cleared before anything reads the list,
+    // so the messages and the other validations all see a column that has none.
+    void DropListsWithNoFormula()
+    {
+        foreach (var column in columns)
+        {
+            if (column.AllowedValues is { Count: > 0 } values &&
+                BuildListFormula(values) == null)
+            {
+                column.AllowedValues = null;
+            }
+        }
     }
 
     void ValidateFormulaColumnWidths()
@@ -1164,8 +1231,7 @@ class Renderer<TModel>(
         {
             hasValidation = true;
             validation.Type = DataValidationValues.List;
-            var list = string.Join(",", values);
-            validation.Formula1 = new($"\"{list}\"");
+            validation.Formula1 = new(BuildListFormula(values)!);
         }
         else if (column.NumericMin.HasValue ||
                  column.NumericMax.HasValue)
@@ -1545,17 +1611,63 @@ class Renderer<TModel>(
         }
     }
 
+    // Asked of every data cell when a max row height is set, so it reads the cell by walking its
+    // children and counts lines over a span. The typed accessors (cell.InlineString and the
+    // like) allocate on each call, and Split made an array and a string per line.
     static double EstimateVisualLines(Cell cell, double columnWidth)
     {
         var charsPerLine = Math.Max(1d, (columnWidth - 2) / 1.1);
+
+        InlineString? inline = null;
+        CellValue? cellValue = null;
+        for (var child = cell.FirstChild; child != null; child = child.NextSibling())
+        {
+            if (child is InlineString inlineChild)
+            {
+                inline ??= inlineChild;
+            }
+            else if (child is CellValue valueChild)
+            {
+                cellValue ??= valueChild;
+            }
+        }
+
         double lines = 0;
         var hasContent = false;
-        foreach (var text in EnumerateCellTexts(cell))
+        if (inline == null)
         {
-            hasContent = true;
-            foreach (var line in text.Split('\n'))
+            if (cellValue?.Text is { } valueText)
             {
-                lines += Math.Max(1d, Math.Ceiling(line.Length / charsPerLine));
+                hasContent = true;
+                lines = CountVisualLines(valueText, charsPerLine);
+            }
+        }
+        else
+        {
+            var hasRuns = false;
+            Text? text = null;
+            for (var child = inline.FirstChild; child != null; child = child.NextSibling())
+            {
+                if (child is Run run)
+                {
+                    hasRuns = true;
+                    if (GetRunText(run) is { } runText)
+                    {
+                        hasContent = true;
+                        lines += CountVisualLines(runText, charsPerLine);
+                    }
+                }
+                else if (child is Text textChild)
+                {
+                    text ??= textChild;
+                }
+            }
+
+            if (!hasRuns &&
+                text?.Text is { } inlineText)
+            {
+                hasContent = true;
+                lines = CountVisualLines(inlineText, charsPerLine);
             }
         }
 
@@ -1565,6 +1677,43 @@ class Renderer<TModel>(
         }
 
         return 1;
+    }
+
+    static string? GetRunText(Run run)
+    {
+        for (var child = run.FirstChild; child != null; child = child.NextSibling())
+        {
+            if (child is Text text)
+            {
+                return text.Text;
+            }
+        }
+
+        return null;
+    }
+
+    // Each line of the text takes at least one visual line, and one more for every
+    // charsPerLine it runs past.
+    static double CountVisualLines(ReadOnlySpan<char> text, double charsPerLine)
+    {
+        double lines = 0;
+        while (true)
+        {
+            var newline = text.IndexOf('\n');
+            var length = newline;
+            if (newline < 0)
+            {
+                length = text.Length;
+            }
+
+            lines += Math.Max(1d, Math.Ceiling(length / charsPerLine));
+            if (newline < 0)
+            {
+                return lines;
+            }
+
+            text = text[(newline + 1)..];
+        }
     }
 
     static IEnumerable<string> EnumerateCellTexts(Cell cell)
@@ -1594,6 +1743,18 @@ class Renderer<TModel>(
             yield return cellValueText;
         }
     }
+
+    // 2^53. Every integer up to it has a double of its own; past it they start to share.
+    const long maxExactInteger = 9007199254740992;
+
+    static bool IsBeyondDoublePrecision(object value) =>
+        value switch
+        {
+            long number => number is > maxExactInteger or < -maxExactInteger,
+            ulong number => number > maxExactInteger,
+            decimal number => number is > maxExactInteger or < -maxExactInteger,
+            _ => false
+        };
 
     void SetCellValue(
         Cell cell,
@@ -1776,6 +1937,15 @@ class Renderer<TModel>(
         if (column.IsNumber)
         {
             ThrowIfHtml();
+            if (IsBeyondDoublePrecision(value))
+            {
+                // A numeric cell is a double, and Excel shows 15 significant digits of it. An
+                // integer too big for that - a 64-bit id, typically - would be stored as its
+                // nearest double and read back as a different number. Text keeps every digit.
+                SetCellValue(cell, Convert.ToString(value, CultureInfo.InvariantCulture)!);
+                return;
+            }
+
             var asDouble = Convert.ToDouble(value);
             if (column.Format != null)
             {

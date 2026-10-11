@@ -60,7 +60,17 @@
             },
             Width: 9.0,
             ContainsRichText: false,
-            RequiredHighlight: false
+            RequiredHighlight: false,
+            Validation: {
+              Type: custom,
+              Min: ISNUMBER(D2),
+              AllowBlank: true,
+              ShowInputMessage: false,
+              ShowErrorMessage: true,
+              ErrorTitle: Invalid value,
+              ErrorMessage: Must be a number.,
+              Range: 2-7
+            }
           },
           {
             Name: Is Active,

@@ -11,7 +11,17 @@
             },
             Width: 15.0,
             ContainsRichText: false,
-            RequiredHighlight: false
+            RequiredHighlight: false,
+            Validation: {
+              Type: custom,
+              Min: ISNUMBER(A2),
+              AllowBlank: true,
+              ShowInputMessage: false,
+              ShowErrorMessage: true,
+              ErrorTitle: Invalid value,
+              ErrorMessage: Must be a number.,
+              Range: 2-4
+            }
           },
           {
             Name: String,
@@ -29,7 +39,22 @@
             },
             Width: 24.0,
             ContainsRichText: false,
-            RequiredHighlight: false
+            RequiredHighlight: false,
+            Validation: {
+              Type: date,
+              Operator: between,
+              Min: 1900-01-01,
+              Max: 9999-12-31,
+              AllowBlank: true,
+              ShowInputMessage: true,
+              InputMessage: Date and time as yyyy-MM-dd HH:mm:ss,
+              ShowErrorMessage: true,
+              ErrorTitle: Invalid value,
+              ErrorMessage:
+Must be a valid date and time.
+yyyy-MM-dd HH:mm:ss,
+              Range: 2-4
+            }
           },
           {
             Name: Date,
@@ -38,7 +63,22 @@
             },
             Width: 14.0,
             ContainsRichText: false,
-            RequiredHighlight: false
+            RequiredHighlight: false,
+            Validation: {
+              Type: date,
+              Operator: between,
+              Min: 1900-01-01,
+              Max: 9999-12-31,
+              AllowBlank: true,
+              ShowInputMessage: true,
+              InputMessage: Date as yyyy-MM-dd,
+              ShowErrorMessage: true,
+              ErrorTitle: Invalid value,
+              ErrorMessage:
+Must be a valid date.
+yyyy-MM-dd,
+              Range: 2-4
+            }
           },
           {
             Name: Enum,

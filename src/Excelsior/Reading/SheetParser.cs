@@ -2,9 +2,12 @@ static class SheetParser
 {
     public record SheetMetadata(Dictionary<int, string> ColumnMap, bool HasBanner);
 
-    public static Dictionary<string, SheetMetadata> ReadMetadata(WorkbookPart workbookPart, out string? userMetadataJson)
+    // written: the sheet names in the order the metadata lists them, which is the order the
+    // sheets were written in.
+    public static Dictionary<string, SheetMetadata> ReadMetadata(WorkbookPart workbookPart, out string? userMetadataJson, out List<string> written)
     {
         userMetadataJson = null;
+        written = [];
         var result = new Dictionary<string, SheetMetadata>(StringComparer.Ordinal);
         foreach (var part in workbookPart.GetPartsOfType<CustomXmlPart>())
         {
@@ -61,6 +64,7 @@ static class SheetParser
                 // swallowing a real data row.
                 var hasBanner = string.Equals(sheet.Attribute("banner")?.Value, "true", StringComparison.Ordinal);
                 result[sheetName] = new(map, hasBanner);
+                written.Add(sheetName);
             }
         }
 
@@ -92,6 +96,7 @@ static class SheetParser
         using var reader = OpenXmlReader.Create(worksheetPart);
 
         var headerSeen = false;
+        var skipBlankRows = CannotBeBlank(columns);
         var bannerSkipped = !hasBanner;
         Dictionary<int, int>? fileIndexToSlot = null;
         Cell?[]? cellsBySlot = null;
@@ -225,8 +230,50 @@ static class SheetParser
                 }
             }
 
+            if (skipBlankRows &&
+                IsBlank(cellsBySlot!, sharedStrings))
+            {
+                continue;
+            }
+
             sheet.ReceiveRow(cellsBySlot!, sharedStrings, onError!);
         }
+    }
+
+    // A row can be in the file and hold nothing: clear a row's contents in Excel and its cells
+    // stay behind, styled and empty, as do the rows a formatted range runs on into. Where the
+    // model has a column that cannot be empty, such a row could only ever be read as an error,
+    // so it is taken for what it is and passed over.
+    //
+    // Where every column can be empty the row is kept. A model of nothing but nulls is one the
+    // writer can produce, and dropping it would lose a row on the way back.
+    static bool CannotBeBlank(IReadOnlyList<ColumnReadInfo> columns)
+    {
+        foreach (var column in columns)
+        {
+            if (column.Convert == null &&
+                column.Type.IsValueType &&
+                Nullable.GetUnderlyingType(column.Type) == null)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    static bool IsBlank(Cell?[] cells, string?[]? sharedStrings)
+    {
+        foreach (var cell in cells)
+        {
+            if (cell != null &&
+                !string.IsNullOrWhiteSpace(CellConverter.ReadRaw(cell, sharedStrings)))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     enum DuplicateSource
