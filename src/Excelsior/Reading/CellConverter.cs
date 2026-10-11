@@ -390,7 +390,8 @@ static class CellConverter
 
     static bool TryParseEnum(Type enumType, string raw, out object? value)
     {
-        if (Enum.TryParse(enumType, raw, ignoreCase: true, out value))
+        if (Enum.TryParse(enumType, raw, ignoreCase: true, out value) &&
+            IsMember(enumType, value))
         {
             return true;
         }
@@ -405,6 +406,14 @@ static class CellConverter
         value = null;
         return false;
     }
+
+    // Enum.TryParse takes any number for any enum: "17" becomes (Mood)17 whether or not Mood has
+    // a 17. A cell holding one is a mistake to report, where it used to be a value nothing in the
+    // model accounts for. A [Flags] enum is let through, since a combination of its members is
+    // a value of it without being one that is defined.
+    static bool IsMember(Type enumType, object value) =>
+        Enum.IsDefined(enumType, value) ||
+        enumType.IsDefined(typeof(FlagsAttribute), false);
 
     static Dictionary<string, object> BuildHumanisedEnumMap(Type enumType)
     {
@@ -435,7 +444,8 @@ static class CellConverter
     public static bool TryParseEnumGeneric<T>(string raw, out T value)
         where T : struct, Enum
     {
-        if (Enum.TryParse(raw, ignoreCase: true, out value))
+        if (Enum.TryParse(raw, ignoreCase: true, out value) &&
+            IsMember(typeof(T), value))
         {
             return true;
         }
