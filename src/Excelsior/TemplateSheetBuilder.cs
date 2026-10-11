@@ -61,9 +61,8 @@ class TemplateSheetBuilder :
             IsHtmlExplicit = false,
             Filter = config.Filter,
             Include = true,
-            IsNumber = type.IsNumericType() ||
-                       (Nullable.GetUnderlyingType(type)?.IsNumericType() ?? false),
-            Temporal = type.GetTemporalKind() ?? Nullable.GetUnderlyingType(type)?.GetTemporalKind(),
+            IsNumber = type.IsNumericType(),
+            Temporal = type.GetTemporalKind(),
             IsEnumerable = false,
             ItemRender = null,
             GetValue = _ => null,
