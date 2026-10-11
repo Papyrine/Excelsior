@@ -699,7 +699,7 @@ class Renderer<TModel>(
         cell.DataType = CellValues.InlineString;
         cell.InlineString = new(BuildText(display));
 
-        var rel = sheet.WorksheetPart.AddHyperlinkRelationship(new(link.Url), true);
+        var rel = sheet.WorksheetPart.AddHyperlinkRelationship(new(link.Url, UriKind.RelativeOrAbsolute), true);
         var hyperlinks = sheet.Worksheet.GetFirstChild<Hyperlinks>();
         if (hyperlinks == null)
         {
@@ -752,7 +752,7 @@ class Renderer<TModel>(
             return;
         }
 
-        var rel = sheet.WorksheetPart.AddHyperlinkRelationship(new(hyperlinkUrl), true);
+        var rel = sheet.WorksheetPart.AddHyperlinkRelationship(new(hyperlinkUrl, UriKind.RelativeOrAbsolute), true);
         var hyperlinks = sheet.Worksheet.GetFirstChild<Hyperlinks>();
         if (hyperlinks == null)
         {
