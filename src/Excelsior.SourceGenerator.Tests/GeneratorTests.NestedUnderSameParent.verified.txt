@@ -16,7 +16,7 @@ file static class ModelsEmployeeActivatorRegistration
   {
     values.TryGetValue("Email", out var arg0);
     values.TryGetValue("Age", out var arg1);
-    return new global::Models.Employee((string)arg0!, (int)arg1!);
+    return new global::Models.Employee((string)(arg0 ?? default(string)!)!, (int)(arg1 ?? default(int)!)!);
   }
 },
   ModelsEmployeeRowReader.g.cs:
@@ -169,7 +169,7 @@ file static class ModelsProductActivatorRegistration
   {
     values.TryGetValue("Name", out var arg0);
     values.TryGetValue("Price", out var arg1);
-    return new global::Models.Product((string)arg0!, (decimal)arg1!);
+    return new global::Models.Product((string)(arg0 ?? default(string)!)!, (decimal)(arg1 ?? default(decimal)!)!);
   }
 },
   ModelsProductRowReader.g.cs:

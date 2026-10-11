@@ -17,7 +17,7 @@ file static class EmployeeActivatorRegistration
     values.TryGetValue("Name", out var arg0);
     values.TryGetValue("Status", out var arg1);
     values.TryGetValue("Backup", out var arg2);
-    return new global::Employee((string)arg0!, (global::Status)arg1!, (global::Status?)arg2!);
+    return new global::Employee((string)(arg0 ?? default(string)!)!, (global::Status)(arg1 ?? default(global::Status)!)!, (global::Status?)(arg2 ?? default(global::Status?)!)!);
   }
 },
   EmployeeEnumRenders.g.cs:

@@ -16,7 +16,7 @@ file static class GroupARowActivatorRegistration
   {
     values.TryGetValue("Name", out var arg0);
     values.TryGetValue("Age", out var arg1);
-    return new global::GroupA.Row((string)arg0!, (int)arg1!);
+    return new global::GroupA.Row((string)(arg0 ?? default(string)!)!, (int)(arg1 ?? default(int)!)!);
   }
 },
   GroupARowRowReader.g.cs:
@@ -169,7 +169,7 @@ file static class GroupBRowActivatorRegistration
   {
     values.TryGetValue("Email", out var arg0);
     values.TryGetValue("Salary", out var arg1);
-    return new global::GroupB.Row((string)arg0!, (decimal)arg1!);
+    return new global::GroupB.Row((string)(arg0 ?? default(string)!)!, (decimal)(arg1 ?? default(decimal)!)!);
   }
 },
   GroupBRowRowReader.g.cs:
