@@ -11,16 +11,15 @@
             },
             Width: 15.0,
             ContainsRichText: false,
-            RequiredHighlight: true,
+            RequiredHighlight: false,
             Validation: {
               Type: custom,
-              Min: LEN(TRIM(A2))>0,
-              AllowBlank: false,
-              ShowInputMessage: true,
-              InputMessage: Required field,
+              Min: ISNUMBER(A2),
+              AllowBlank: true,
+              ShowInputMessage: false,
               ShowErrorMessage: true,
               ErrorTitle: Invalid value,
-              ErrorMessage: This field is required.,
+              ErrorMessage: Must be a number.,
               Range: 2-4
             }
           },
@@ -31,18 +30,7 @@
             },
             Width: 15.0,
             ContainsRichText: false,
-            RequiredHighlight: true,
-            Validation: {
-              Type: custom,
-              Min: LEN(TRIM(B2))>0,
-              AllowBlank: false,
-              ShowInputMessage: true,
-              InputMessage: Required field,
-              ShowErrorMessage: true,
-              ErrorTitle: Invalid value,
-              ErrorMessage: This field is required.,
-              Range: 2-4
-            }
+            RequiredHighlight: false
           },
           {
             Name: Date Time,
@@ -51,16 +39,20 @@
             },
             Width: 24.0,
             ContainsRichText: false,
-            RequiredHighlight: true,
+            RequiredHighlight: false,
             Validation: {
-              Type: custom,
-              Min: LEN(TRIM(C2))>0,
-              AllowBlank: false,
+              Type: date,
+              Operator: between,
+              Min: 1900-01-01,
+              Max: 9999-12-31,
+              AllowBlank: true,
               ShowInputMessage: true,
-              InputMessage: Required field,
+              InputMessage: Date and time as yyyy-MM-dd HH:mm:ss,
               ShowErrorMessage: true,
               ErrorTitle: Invalid value,
-              ErrorMessage: This field is required.,
+              ErrorMessage:
+Must be a valid date and time.
+yyyy-MM-dd HH:mm:ss,
               Range: 2-4
             }
           },
@@ -71,16 +63,20 @@
             },
             Width: 14.0,
             ContainsRichText: false,
-            RequiredHighlight: true,
+            RequiredHighlight: false,
             Validation: {
-              Type: custom,
-              Min: LEN(TRIM(D2))>0,
-              AllowBlank: false,
+              Type: date,
+              Operator: between,
+              Min: 1900-01-01,
+              Max: 9999-12-31,
+              AllowBlank: true,
               ShowInputMessage: true,
-              InputMessage: Required field,
+              InputMessage: Date as yyyy-MM-dd,
               ShowErrorMessage: true,
               ErrorTitle: Invalid value,
-              ErrorMessage: This field is required.,
+              ErrorMessage:
+Must be a valid date.
+yyyy-MM-dd,
               Range: 2-4
             }
           },
@@ -91,13 +87,13 @@
             },
             Width: 13.0,
             ContainsRichText: false,
-            RequiredHighlight: true,
+            RequiredHighlight: false,
             Validation: {
               Type: list,
               AllowedValues: [
                 Value
               ],
-              AllowBlank: false,
+              AllowBlank: true,
               ShowInputMessage: true,
               InputMessage: Select one of: Value,
               ShowErrorMessage: true,
@@ -113,14 +109,14 @@
             },
             Width: 13.0,
             ContainsRichText: false,
-            RequiredHighlight: true,
+            RequiredHighlight: false,
             Validation: {
               Type: list,
               AllowedValues: [
                 TRUE,
                 FALSE
               ],
-              AllowBlank: false,
+              AllowBlank: true,
               ShowInputMessage: true,
               InputMessage: Select one of: TRUE, FALSE,
               ShowErrorMessage: true,

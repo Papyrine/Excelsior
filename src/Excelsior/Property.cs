@@ -46,7 +46,7 @@ class Property<T>
         IsNumber = Type.IsNumericType();
         Temporal = Type.GetTemporalKind();
         IsNonNullable = ResolveIsNonNullable(info);
-        IsRequired = ResolveIsRequired(info, constructorParameter);
+        IsRequired = ResolveIsRequired(info, constructorParameter, IsNonNullable);
     }
 
     static void ValidateExclusion(MemberInfo info, ColumnAttribute? column)
@@ -65,9 +65,14 @@ class Property<T>
         throw new($"Property '{info.DeclaringType!.Name}.{info.Name}': [Column(Include = false)] cannot be combined with other column settings ({string.Join(", ", conflicts)}) — an excluded column is never written, so those settings have no effect.");
     }
 
-    static bool ResolveIsRequired(MemberInfo info, ParameterInfo? constructorParameter)
+    static bool ResolveIsRequired(MemberInfo info, ParameterInfo? constructorParameter, bool isNonNullable)
     {
-        if (info.GetCustomAttribute<RequiredMemberAttribute>() != null)
+        // The `required` keyword says the member must be assigned when the object is made. On a
+        // member that can be null, null is one of the things it may be assigned, so the keyword
+        // alone does not make its cell one that must be filled in. [Required] does: that one is
+        // about the value.
+        if (isNonNullable &&
+            info.GetCustomAttribute<RequiredMemberAttribute>() != null)
         {
             return true;
         }

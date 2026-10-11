@@ -28,6 +28,22 @@ public static partial class ValueRenderer
         return FindBestMatch(type, nullDisplay);
     }
 
+    /// <summary>
+    /// Whether <paramref name="raw"/> is the text written in place of a null of
+    /// <paramref name="type"/> - what a reader takes back as null.
+    /// </summary>
+    internal static bool IsNullDisplay(Type type, string raw)
+    {
+        // Nothing registered is the usual case, and this is asked once per cell.
+        if (nullDisplay.Count == 0 &&
+            boolDisplay?.nullDisplay == null)
+        {
+            return false;
+        }
+
+        return GetNullDisplay(type) == raw;
+    }
+
     static string? BoolNullDisplayValue =>
         boolDisplay?.nullDisplay;
 }

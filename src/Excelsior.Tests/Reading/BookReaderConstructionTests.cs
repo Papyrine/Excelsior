@@ -165,7 +165,7 @@ public class BookReaderConstructionTests
     }
 
     [Test]
-    public async Task ConstructorParamMatchIsCaseSensitive()
+    public async Task ConstructorParamMatchIgnoresCase()
     {
         var stream = await Write(new CaseMismatch("Alice"));
 
@@ -173,9 +173,9 @@ public class BookReaderConstructionTests
         var sheet = reader.AddSheet<CaseMismatch>();
         reader.Convert(stream);
 
-        // Property is "Name"; ctor param is "name". Lookup is case-sensitive,
-        // so the ctor receives the default value (null).
-        await Assert.That(sheet.Rows[0].Name).IsNull();
+        // Property is "Name"; ctor param is "name". The usual shape for a class
+        // that is not a record, so the two are matched ignoring case.
+        await Assert.That(sheet.Rows[0].Name).IsEqualTo("Alice");
     }
 
     public class HasName

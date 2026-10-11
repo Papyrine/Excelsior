@@ -16,7 +16,7 @@ file static class ModelsEmployeeActivatorRegistration
   {
     values.TryGetValue("Email", out var arg0);
     values.TryGetValue("Age", out var arg1);
-    return new global::Models.Employee((string)arg0!, (int)arg1!);
+    return new global::Models.Employee((string)(arg0 ?? default(string)!)!, (int)(arg1 ?? default(int)!)!);
   }
 },
   ModelsEmployeeRowReader.g.cs:
@@ -30,7 +30,7 @@ file static class ModelsEmployeeRowReaderRegistration
 {
   [ModuleInitializer]
   internal static void Register() =>
-    GeneratedRowReaders.Register<global::Models.Employee>(ReadRow);
+    GeneratedRowReaders.Register<global::Models.Employee>(ReadRow, new string[] { "Email", "Age" });
 
   static global::Models.Employee ReadRow(global::DocumentFormat.OpenXml.Spreadsheet.Cell?[] cells, string?[]? sharedStrings, global::System.Action<int, string> onError)
   {
@@ -169,7 +169,7 @@ file static class ModelsProductActivatorRegistration
   {
     values.TryGetValue("Name", out var arg0);
     values.TryGetValue("Price", out var arg1);
-    return new global::Models.Product((string)arg0!, (decimal)arg1!);
+    return new global::Models.Product((string)(arg0 ?? default(string)!)!, (decimal)(arg1 ?? default(decimal)!)!);
   }
 },
   ModelsProductRowReader.g.cs:
@@ -183,7 +183,7 @@ file static class ModelsProductRowReaderRegistration
 {
   [ModuleInitializer]
   internal static void Register() =>
-    GeneratedRowReaders.Register<global::Models.Product>(ReadRow);
+    GeneratedRowReaders.Register<global::Models.Product>(ReadRow, new string[] { "Name", "Price" });
 
   static global::Models.Product ReadRow(global::DocumentFormat.OpenXml.Spreadsheet.Cell?[] cells, string?[]? sharedStrings, global::System.Action<int, string> onError)
   {
