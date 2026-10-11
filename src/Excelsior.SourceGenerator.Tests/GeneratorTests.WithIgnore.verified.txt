@@ -31,7 +31,7 @@ file static class EmployeeRowReaderRegistration
 {
   [ModuleInitializer]
   internal static void Register() =>
-    GeneratedRowReaders.Register<global::Employee>(ReadRow);
+    GeneratedRowReaders.Register<global::Employee>(ReadRow, new string[] { "Email", "Age", "Name" });
 
   static global::Employee ReadRow(global::DocumentFormat.OpenXml.Spreadsheet.Cell?[] cells, string?[]? sharedStrings, global::System.Action<int, string> onError)
   {

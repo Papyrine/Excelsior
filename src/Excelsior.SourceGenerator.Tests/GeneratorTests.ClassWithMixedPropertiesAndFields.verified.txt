@@ -18,8 +18,8 @@ file static class ProductActivatorRegistration
     {
       Id = values.TryGetValue("Id", out var v0) ? (int)v0! : default!,
     };
-    if (values.TryGetValue("Name", out var sv0)) instance.Name = (string)sv0!;
-    if (values.TryGetValue("Price", out var sv1)) instance.Price = (decimal)sv1!;
+    if (values.TryGetValue("Price", out var sv0)) instance.Price = (decimal)sv0!;
+    if (values.TryGetValue("Name", out var sv1)) instance.Name = (string)sv1!;
     if (values.TryGetValue("Sku", out var sv2)) instance.Sku = (string)sv2!;
     return instance;
   }
@@ -35,7 +35,7 @@ file static class ProductRowReaderRegistration
 {
   [ModuleInitializer]
   internal static void Register() =>
-    GeneratedRowReaders.Register<global::Product>(ReadRow);
+    GeneratedRowReaders.Register<global::Product>(ReadRow, new string[] { "Id", "Price", "Name", "Sku" });
 
   static global::Product ReadRow(global::DocumentFormat.OpenXml.Spreadsheet.Cell?[] cells, string?[]? sharedStrings, global::System.Action<int, string> onError)
   {
@@ -43,8 +43,8 @@ file static class ProductRowReaderRegistration
     {
       Id = global::Excelsior.ExcelsiorReaders.ReadInt(cells[0], sharedStrings, 0, onError)
     };
-    instance.Name = global::Excelsior.ExcelsiorReaders.ReadString(cells[1], sharedStrings);
-    instance.Price = global::Excelsior.ExcelsiorReaders.ReadDecimal(cells[2], sharedStrings, 2, onError);
+    instance.Price = global::Excelsior.ExcelsiorReaders.ReadDecimal(cells[1], sharedStrings, 1, onError);
+    instance.Name = global::Excelsior.ExcelsiorReaders.ReadString(cells[2], sharedStrings);
     instance.Sku = global::Excelsior.ExcelsiorReaders.ReadString(cells[3], sharedStrings);
     return instance;
   }
@@ -110,59 +110,6 @@ public static class ProductSheetBuilderExtensions
   public static void IdExclude(this ISheetBuilder<global::Product> builder)
     => builder.Exclude(_ => _.Id);
 
-  public static ISheetBuilder<global::Product> NameColumn(
-    this ISheetBuilder<global::Product> builder,
-    Action<ColumnConfig<global::Product, string>> configuration)
-    => builder.Column(_ => _.Name, configuration);
-
-  public static void NameHeadingText(this ISheetBuilder<global::Product> builder, string value)
-    => builder.HeadingText(_ => _.Name, value);
-
-  public static void NameOrder(this ISheetBuilder<global::Product> builder, int? value)
-    => builder.Order(_ => _.Name, value);
-
-  public static void NameWidth(this ISheetBuilder<global::Product> builder, int? value)
-    => builder.Width(_ => _.Name, value);
-
-  public static void NameMinWidth(this ISheetBuilder<global::Product> builder, int? value)
-    => builder.MinWidth(_ => _.Name, value);
-
-  public static void NameMaxWidth(this ISheetBuilder<global::Product> builder, int? value)
-    => builder.MaxWidth(_ => _.Name, value);
-
-  public static void NameHeadingStyle(this ISheetBuilder<global::Product> builder, Action<Excelsior.CellStyle> value)
-    => builder.HeadingStyle(_ => _.Name, value);
-
-  public static void NameCellStyle(this ISheetBuilder<global::Product> builder, Action<Excelsior.CellStyle, global::Product, string> value)
-    => builder.CellStyle(_ => _.Name, value);
-
-  public static void NameFormat(this ISheetBuilder<global::Product> builder, string value)
-    => builder.Format(_ => _.Name, value);
-
-  public static void NameNullDisplay(this ISheetBuilder<global::Product> builder, string value)
-    => builder.NullDisplay(_ => _.Name, value);
-
-  public static void NameIsHtml(this ISheetBuilder<global::Product> builder)
-    => builder.IsHtml(_ => _.Name);
-
-  public static void NameRender(this ISheetBuilder<global::Product> builder, Func<global::Product, string, string?> value)
-    => builder.Render(_ => _.Name, value);
-
-  public static void NameFormula(this ISheetBuilder<global::Product> builder, Func<global::Product, FormulaContext<global::Product>, string> value)
-    => builder.Formula(_ => _.Name, value);
-
-  public static void NameFormula(this ISheetBuilder<global::Product> builder, Func<FormulaContext<global::Product>, string> value)
-    => builder.Formula(_ => _.Name, value);
-
-  public static void NameFilter(this ISheetBuilder<global::Product> builder)
-    => builder.Filter(_ => _.Name);
-
-  public static void NameInclude(this ISheetBuilder<global::Product> builder, bool value)
-    => builder.Include(_ => _.Name, value);
-
-  public static void NameExclude(this ISheetBuilder<global::Product> builder)
-    => builder.Exclude(_ => _.Name);
-
   public static ISheetBuilder<global::Product> PriceColumn(
     this ISheetBuilder<global::Product> builder,
     Action<ColumnConfig<global::Product, decimal>> configuration)
@@ -215,6 +162,59 @@ public static class ProductSheetBuilderExtensions
 
   public static void PriceExclude(this ISheetBuilder<global::Product> builder)
     => builder.Exclude(_ => _.Price);
+
+  public static ISheetBuilder<global::Product> NameColumn(
+    this ISheetBuilder<global::Product> builder,
+    Action<ColumnConfig<global::Product, string>> configuration)
+    => builder.Column(_ => _.Name, configuration);
+
+  public static void NameHeadingText(this ISheetBuilder<global::Product> builder, string value)
+    => builder.HeadingText(_ => _.Name, value);
+
+  public static void NameOrder(this ISheetBuilder<global::Product> builder, int? value)
+    => builder.Order(_ => _.Name, value);
+
+  public static void NameWidth(this ISheetBuilder<global::Product> builder, int? value)
+    => builder.Width(_ => _.Name, value);
+
+  public static void NameMinWidth(this ISheetBuilder<global::Product> builder, int? value)
+    => builder.MinWidth(_ => _.Name, value);
+
+  public static void NameMaxWidth(this ISheetBuilder<global::Product> builder, int? value)
+    => builder.MaxWidth(_ => _.Name, value);
+
+  public static void NameHeadingStyle(this ISheetBuilder<global::Product> builder, Action<Excelsior.CellStyle> value)
+    => builder.HeadingStyle(_ => _.Name, value);
+
+  public static void NameCellStyle(this ISheetBuilder<global::Product> builder, Action<Excelsior.CellStyle, global::Product, string> value)
+    => builder.CellStyle(_ => _.Name, value);
+
+  public static void NameFormat(this ISheetBuilder<global::Product> builder, string value)
+    => builder.Format(_ => _.Name, value);
+
+  public static void NameNullDisplay(this ISheetBuilder<global::Product> builder, string value)
+    => builder.NullDisplay(_ => _.Name, value);
+
+  public static void NameIsHtml(this ISheetBuilder<global::Product> builder)
+    => builder.IsHtml(_ => _.Name);
+
+  public static void NameRender(this ISheetBuilder<global::Product> builder, Func<global::Product, string, string?> value)
+    => builder.Render(_ => _.Name, value);
+
+  public static void NameFormula(this ISheetBuilder<global::Product> builder, Func<global::Product, FormulaContext<global::Product>, string> value)
+    => builder.Formula(_ => _.Name, value);
+
+  public static void NameFormula(this ISheetBuilder<global::Product> builder, Func<FormulaContext<global::Product>, string> value)
+    => builder.Formula(_ => _.Name, value);
+
+  public static void NameFilter(this ISheetBuilder<global::Product> builder)
+    => builder.Filter(_ => _.Name);
+
+  public static void NameInclude(this ISheetBuilder<global::Product> builder, bool value)
+    => builder.Include(_ => _.Name, value);
+
+  public static void NameExclude(this ISheetBuilder<global::Product> builder)
+    => builder.Exclude(_ => _.Name);
 
   public static ISheetBuilder<global::Product> SkuColumn(
     this ISheetBuilder<global::Product> builder,
