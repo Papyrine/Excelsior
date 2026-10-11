@@ -1,8 +1,8 @@
 class StyleManager
 {
-    record FontKey(bool Bold, bool Underline, string? Color, double? Size, string? Name);
+    readonly record struct FontKey(bool Bold, bool Underline, string? Color, double? Size, string? Name);
 
-    record CellFormatKey(
+    readonly record struct CellFormatKey(
         uint FontId,
         uint FillId,
         uint? NumberFormatId,

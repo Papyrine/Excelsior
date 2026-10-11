@@ -98,6 +98,46 @@ public class BookBuilder
     public void SetProperties(BookProperties properties) =>
         documentProperties = properties;
 
+    const int maxSheetNameLength = 31;
+    static readonly System.Buffers.SearchValues<char> invalidSheetNameChars = System.Buffers.SearchValues.Create(@"/\?*[]:");
+    HashSet<string> sheetNames = new(StringComparer.OrdinalIgnoreCase);
+
+    // Excel holds a sheet name to rules of its own, and offers to repair - or will not open - a
+    // workbook that breaks them. Checked here, where the name is given, since at that point the
+    // caller can still be told which name and why.
+    string ResolveSheetName(string? name)
+    {
+        name ??= $"Sheet{actions.Count + 1}";
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException("Sheet name must not be empty.", nameof(name));
+        }
+
+        if (name.Length > maxSheetNameLength)
+        {
+            throw new ArgumentException($"Sheet name '{name}' is {name.Length} characters. Excel allows at most {maxSheetNameLength}.", nameof(name));
+        }
+
+        if (name.AsSpan().ContainsAny(invalidSheetNameChars))
+        {
+            throw new ArgumentException($"Sheet name '{name}' contains a character Excel does not allow in one. The characters are / \\ ? * [ ] and :", nameof(name));
+        }
+
+        if (name.StartsWith('\'') ||
+            name.EndsWith('\''))
+        {
+            throw new ArgumentException($"Sheet name '{name}' must not begin or end with an apostrophe.", nameof(name));
+        }
+
+        if (!sheetNames.Add(name))
+        {
+            throw new ArgumentException($"The book already has a sheet named '{name}'. Excel compares sheet names ignoring case.", nameof(name));
+        }
+
+        return name;
+    }
+
     public ISheetBuilder<TModel> AddSheet<TModel>(
         IEnumerable<TModel> data,
         string? name = null,
@@ -117,7 +157,7 @@ public class BookBuilder
         int templateRowCount = 0,
         bool inferValidationFromTypes = false)
     {
-        name ??= $"Sheet{actions.Count + 1}";
+        name = ResolveSheetName(name);
         var columns = new Columns<TModel>(inferValidationFromTypes);
         var builder = new SheetBuilder<TModel>(columns);
 
@@ -166,7 +206,7 @@ public class BookBuilder
         int? defaultMaxColumnWidth = null,
         int? maxRowHeight = null)
     {
-        name ??= $"Sheet{actions.Count + 1}";
+        name = ResolveSheetName(name);
         var builder = new DictionarySheetBuilder();
 
         actions.Add((book, cancel) =>
@@ -211,7 +251,7 @@ public class BookBuilder
             throw new ArgumentOutOfRangeException(nameof(templateRowCount), templateRowCount, "Must be non-negative.");
         }
 
-        name ??= $"Sheet{actions.Count + 1}";
+        name = ResolveSheetName(name);
         var builder = new TemplateSheetBuilder(inferValidationFromTypes);
 
         actions.Add((book, cancel) =>
