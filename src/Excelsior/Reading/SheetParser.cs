@@ -2,9 +2,12 @@ static class SheetParser
 {
     public record SheetMetadata(Dictionary<int, string> ColumnMap, bool HasBanner);
 
-    public static Dictionary<string, SheetMetadata> ReadMetadata(WorkbookPart workbookPart, out string? userMetadataJson)
+    // written: the sheet names in the order the metadata lists them, which is the order the
+    // sheets were written in.
+    public static Dictionary<string, SheetMetadata> ReadMetadata(WorkbookPart workbookPart, out string? userMetadataJson, out List<string> written)
     {
         userMetadataJson = null;
+        written = [];
         var result = new Dictionary<string, SheetMetadata>(StringComparer.Ordinal);
         foreach (var part in workbookPart.GetPartsOfType<CustomXmlPart>())
         {
@@ -61,6 +64,7 @@ static class SheetParser
                 // swallowing a real data row.
                 var hasBanner = string.Equals(sheet.Attribute("banner")?.Value, "true", StringComparison.Ordinal);
                 result[sheetName] = new(map, hasBanner);
+                written.Add(sheetName);
             }
         }
 
