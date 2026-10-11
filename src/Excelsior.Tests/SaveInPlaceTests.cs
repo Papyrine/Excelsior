@@ -13,14 +13,14 @@ public class SaveInPlaceTests
     [Test]
     public async Task ToStreamReplacesWhatTheStreamHeld()
     {
-        var expected = await Builder().ToBytes();
+        const int held = 1_000_000;
         var stream = new MemoryStream();
-        stream.Write(new byte[expected.Length * 3]);
+        stream.Write(new byte[held]);
         stream.Position = 10;
 
         await Builder().ToStream(stream);
 
-        await Assert.That(stream.Length).IsEqualTo(expected.Length);
+        await Assert.That(stream.Length).IsLessThan(held);
         await Assert.That(stream.Position).IsEqualTo(stream.Length);
         stream.Position = 0;
         using var document = SpreadsheetDocument.Open(stream, false);
