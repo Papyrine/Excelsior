@@ -21,6 +21,11 @@ public static class ExcelsiorReaders
     static string? Raw(Cell? cell, string?[]? sharedStrings) =>
         CellConverter.ReadRaw(cell, sharedStrings);
 
+    // Empty, or the text ValueRenderer writes for a null of this type.
+    static bool IsNull<T>([NotNullWhen(false)] string? raw) =>
+        string.IsNullOrEmpty(raw) ||
+        ValueRenderer.IsNullDisplay(typeof(T), raw);
+
     public static string ReadString(Cell? cell, string?[]? sharedStrings)
     {
         var raw = Raw(cell, sharedStrings) ?? "";
@@ -65,7 +70,7 @@ public static class ExcelsiorReaders
         where T : struct, IParsable<T>
     {
         var raw = Raw(cell, sharedStrings);
-        if (string.IsNullOrEmpty(raw))
+        if (IsNull<T?>(raw))
         {
             return null;
         }
@@ -125,7 +130,7 @@ public static class ExcelsiorReaders
     public static bool? ReadBoolNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError)
     {
         var raw = Raw(cell, ss);
-        if (string.IsNullOrEmpty(raw))
+        if (IsNull<bool?>(raw))
         {
             return null;
         }
@@ -183,7 +188,7 @@ public static class ExcelsiorReaders
     public static char? ReadCharNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError)
     {
         var raw = Raw(cell, ss);
-        if (string.IsNullOrEmpty(raw))
+        if (IsNull<char?>(raw))
         {
             return null;
         }
@@ -218,7 +223,7 @@ public static class ExcelsiorReaders
     public static DateTime? ReadDateTimeNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError)
     {
         var raw = Raw(cell, ss);
-        if (string.IsNullOrEmpty(raw))
+        if (IsNull<DateTime?>(raw))
         {
             return null;
         }
@@ -253,7 +258,7 @@ public static class ExcelsiorReaders
     public static Date? ReadDateNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError)
     {
         var raw = Raw(cell, ss);
-        if (string.IsNullOrEmpty(raw))
+        if (IsNull<Date?>(raw))
         {
             return null;
         }
@@ -288,7 +293,7 @@ public static class ExcelsiorReaders
     public static Time? ReadTimeNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError)
     {
         var raw = Raw(cell, ss);
-        if (string.IsNullOrEmpty(raw))
+        if (IsNull<Time?>(raw))
         {
             return null;
         }
@@ -342,7 +347,7 @@ public static class ExcelsiorReaders
     public static DateTimeOffset? ReadDateTimeOffsetNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError)
     {
         var raw = Raw(cell, ss);
-        if (string.IsNullOrEmpty(raw))
+        if (IsNull<DateTimeOffset?>(raw))
         {
             return null;
         }
@@ -382,7 +387,7 @@ public static class ExcelsiorReaders
     public static TimeSpan? ReadTimeSpanNullable(Cell? cell, string?[]? ss, int slot, Action<int, string> onError)
     {
         var raw = Raw(cell, ss);
-        if (string.IsNullOrEmpty(raw))
+        if (IsNull<TimeSpan?>(raw))
         {
             return null;
         }
@@ -424,7 +429,7 @@ public static class ExcelsiorReaders
         where T : struct, Enum
     {
         var raw = Raw(cell, ss);
-        if (string.IsNullOrEmpty(raw))
+        if (IsNull<T?>(raw))
         {
             return null;
         }

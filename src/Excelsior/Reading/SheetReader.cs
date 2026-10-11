@@ -8,6 +8,7 @@ class SheetReader<TModel> :
     string[]? namesBySlot;
     Type[]? typesBySlot;
     Func<Cell, object?>?[]? convertersBySlot;
+    string?[]? nullDisplaysBySlot;
     int[]? slotToCtorArgIndex;
     Action<TModel, object?>?[]? slotToSetter;
     bool useGeneratedRowReader;
@@ -27,7 +28,8 @@ class SheetReader<TModel> :
                 Name = info.Name,
                 Heading = ResolveHeading(info),
                 Type = info.MemberValueType,
-                Convert = null
+                Convert = null,
+                NullDisplay = ResolveNullDisplay(info)
             };
         }
     }
@@ -41,6 +43,16 @@ class SheetReader<TModel> :
             .Concat(type.GetFields(flags))
             .DistinctByMostDerived()
             .Where(_ => _.Attribute<IgnoreAttribute>() == null);
+    }
+
+    static string? ResolveNullDisplay(MemberInfo info)
+    {
+        if (GeneratedColumnAttributes.TryGet(info.DeclaringType!, info.Name) is { } generated)
+        {
+            return generated.NullDisplay;
+        }
+
+        return info.Attribute<ColumnAttribute>()?.NullDisplay;
     }
 
     static string ResolveHeading(MemberInfo info)
@@ -89,6 +101,11 @@ class SheetReader<TModel> :
             column.Convert = cell => config.Convert(cell);
         }
 
+        if (config.NullDisplay != null)
+        {
+            column.NullDisplay = config.NullDisplay;
+        }
+
         // Per-column configuration may have changed: drop the cached dispatch tables.
         InvalidateDispatchTables();
 
@@ -106,7 +123,7 @@ class SheetReader<TModel> :
         var result = new List<ColumnReadInfo>(columns.Count);
         foreach (var column in columns.Values)
         {
-            result.Add(new(column.Name, column.Heading, column.Type, column.Convert));
+            result.Add(new(column.Name, column.Heading, column.Type, column.Convert, column.NullDisplay));
         }
 
         return result;
@@ -117,6 +134,7 @@ class SheetReader<TModel> :
         namesBySlot = null;
         typesBySlot = null;
         convertersBySlot = null;
+        nullDisplaysBySlot = null;
         slotToCtorArgIndex = null;
         slotToSetter = null;
         rowReader = null;
@@ -134,6 +152,7 @@ class SheetReader<TModel> :
         var names = new string[ordered.Length];
         var types = new Type[ordered.Length];
         var converters = new Func<Cell, object?>?[ordered.Length];
+        var nullDisplays = new string?[ordered.Length];
         var ctorArgs = new int[ordered.Length];
         var setters = new Action<TModel, object?>?[ordered.Length];
         var anyConverter = false;
@@ -143,9 +162,13 @@ class SheetReader<TModel> :
             names[i] = col.Name;
             types[i] = col.Type;
             converters[i] = col.Convert;
+            nullDisplays[i] = col.NullDisplay;
             ctorArgs[i] = ModelActivator<TModel>.FindCtorArgIndex(col.Name);
             setters[i] = ModelActivator<TModel>.FindSetter(col.Name);
-            if (col.Convert != null)
+            // A generated row reader knows the type of a member and nothing else about its
+            // column, so a column with a converter or null text of its own takes the sheet off it.
+            if (col.Convert != null ||
+                col.NullDisplay != null)
             {
                 anyConverter = true;
             }
@@ -154,6 +177,7 @@ class SheetReader<TModel> :
         namesBySlot = names;
         typesBySlot = types;
         convertersBySlot = converters;
+        nullDisplaysBySlot = nullDisplays;
         slotToCtorArgIndex = ctorArgs;
         slotToSetter = setters;
         rowReader = GeneratedRowReaders.TryGet<TModel>();
@@ -181,7 +205,8 @@ class SheetReader<TModel> :
                     sharedStrings,
                     slot,
                     onError,
-                    out var value))
+                    out var value,
+                    nullDisplaysBySlot![slot]))
             {
                 values[slot] = value;
                 hasValue[slot] = true;
