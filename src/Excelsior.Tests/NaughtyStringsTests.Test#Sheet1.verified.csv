@@ -467,8 +467,8 @@ DEF"
 "<IMG SRC=""javascript:alert('222')""",
 <iframe src=http://ha.ckers.org/scriptlet.html <,
 "\"";alert('223');//","\"";alert('223');//"
-<u oncopy=alert()> Copy me</u>, Copy me
-<i onwheel=alert(224)> Scroll over me </i>, Scroll over me 
+<u oncopy=alert()> Copy me</u>,Copy me
+<i onwheel=alert(224)> Scroll over me </i>,Scroll over me
 <plaintext>,</body>
 http://a/%%30%30,http://a/%%30%30
 </textarea><script>alert(225)</script>,
