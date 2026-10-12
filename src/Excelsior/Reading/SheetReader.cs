@@ -12,6 +12,12 @@ class SheetReader<TModel> :
     int[]? slotToCtorArgIndex;
     Action<TModel, object?>?[]? slotToSetter;
     bool useGeneratedRowReader;
+
+    // One row's converted values, and which slots have one. Filled for a row, handed to the
+    // activator, which copies out what it wants, and then used again for the next: a pair of
+    // arrays was being made for every row.
+    object?[] values = [];
+    bool[] hasValue = [];
     RowReader<TModel>? rowReader;
 
     public string? Name { get; }
@@ -217,8 +223,14 @@ class SheetReader<TModel> :
             return;
         }
 
-        var values = new object?[cellsBySlot.Length];
-        var hasValue = new bool[cellsBySlot.Length];
+        if (values.Length != cellsBySlot.Length)
+        {
+            values = new object?[cellsBySlot.Length];
+            hasValue = new bool[cellsBySlot.Length];
+        }
+
+        Array.Clear(values);
+        Array.Clear(hasValue);
         for (var slot = 0; slot < cellsBySlot.Length; slot++)
         {
             if (CellConverter.TryConvertSlot(
