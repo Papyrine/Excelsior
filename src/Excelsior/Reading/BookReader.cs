@@ -212,7 +212,7 @@ public class BookReader
         var errors = new List<ReadError>();
         using var document = SpreadsheetDocument.Open(stream, false);
         var workbookPart = document.WorkbookPart!;
-        var sharedStrings = CellConverter.BuildSharedStrings(workbookPart.SharedStringTablePart?.SharedStringTable);
+        var sharedStrings = CellConverter.BuildSharedStrings(workbookPart.SharedStringTablePart);
         var metadata = SheetParser.ReadMetadata(workbookPart, out userMetadataJson, out var written);
         // Read while the package is still open; the values are needed after it is disposed.
         customProperties = DocumentPropertiesReader.ReadCustom(document);

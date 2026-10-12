@@ -465,21 +465,32 @@ static class CellConverter
     /// Materializes the shared-string table once per workbook so per-cell
     /// lookups stay O(1) instead of walking the OpenXml linked list.
     /// </summary>
-    public static string?[]? BuildSharedStrings(SharedStringTable? table)
+    /// <remarks>
+    /// The part is read as a stream, one item at a time. Asking it for its
+    /// <c>SharedStringTable</c> would load every item into memory as elements, only for each to
+    /// be turned into a string and dropped.
+    /// </remarks>
+    public static string?[]? BuildSharedStrings(SharedStringTablePart? part)
     {
-        if (table == null)
+        if (part == null)
         {
             return null;
         }
 
-        var items = table.Elements<SharedStringItem>().ToArray();
-        var values = new string?[items.Length];
-        for (var i = 0; i < items.Length; i++)
+        var values = new List<string?>();
+        using var reader = OpenXmlReader.Create(part);
+        while (reader.Read())
         {
-            values[i] = ReadInlineText(items[i]);
+            if (reader.ElementType != typeof(SharedStringItem) ||
+                !reader.IsStartElement)
+            {
+                continue;
+            }
+
+            values.Add(ReadInlineText(reader.LoadCurrentElement()));
         }
 
-        return values;
+        return values.ToArray();
     }
 
     /// <summary>
