@@ -1,4 +1,3 @@
-using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 
 // A dropdown is written as an inline list: "a,b,c". The values were joined into one as they

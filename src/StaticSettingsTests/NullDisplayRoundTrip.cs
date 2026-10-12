@@ -5,14 +5,14 @@ using DocumentFormat.OpenXml.Spreadsheet;
 [NotInParallel]
 public class NullDisplayRoundTrip
 {
-    [Before(HookType.Test)]
+    [Before(Test)]
     public void Setup()
     {
         ValueRenderer.BoolDisplay("Yes", "No", "Unknown");
         ValueRenderer.NullDisplayFor<int>("none");
     }
 
-    [After(HookType.Test)]
+    [After(Test)]
     public void Teardown() =>
         ValueRenderer.Reset();
 

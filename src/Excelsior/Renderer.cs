@@ -269,10 +269,15 @@ class Renderer<TModel>(
 
         var cell = sheet.GetCell(0, 0);
         bannerCell = cell;
-        var style = new CellStyle();
-        style.Alignment.Horizontal = HorizontalAlignmentValues.Left;
-        style.Alignment.Vertical = VerticalAlignmentValues.Top;
-        style.Alignment.WrapText = true;
+        var style = new CellStyle
+        {
+            Alignment =
+            {
+                Horizontal = HorizontalAlignmentValues.Left,
+                Vertical = VerticalAlignmentValues.Top,
+                WrapText = true
+            }
+        };
         if (bookBuilder.IsProtected)
         {
             // A protected sheet leaves the banner read-only — instructions are not meant to be
@@ -475,10 +480,15 @@ class Renderer<TModel>(
             {
                 var column = columns[columnIndex];
                 var cell = sheet.GetCell(rowIndex, columnIndex);
-                var style = new CellStyle();
-                style.Alignment.Horizontal = HorizontalAlignmentValues.Left;
-                style.Alignment.Vertical = VerticalAlignmentValues.Top;
-                style.Alignment.WrapText = true;
+                var style = new CellStyle
+                {
+                    Alignment =
+                    {
+                        Horizontal = HorizontalAlignmentValues.Left,
+                        Vertical = VerticalAlignmentValues.Top,
+                        WrapText = true
+                    }
+                };
                 if (bookBuilder.IsProtected)
                 {
                     style.Locked = column.Locked ?? false;
@@ -1207,8 +1217,8 @@ class Renderer<TModel>(
 
     // Excel's representable date range. Used as the implicit bounds for a date column that has no
     // author-supplied range, turning the validation into a plain "must be a valid date" check.
-    static readonly DateTime ExcelMinDate = new(1900, 1, 1);
-    static readonly DateTime ExcelMaxDate = new(9999, 12, 31);
+    static readonly DateTime excelMinDate = new(1900, 1, 1);
+    static readonly DateTime excelMaxDate = new(9999, 12, 31);
 
     static DataValidation? BuildDataValidation(ColumnConfig<TModel> column, string sqref, string firstCell, bool autoInputMessages)
     {
@@ -1254,8 +1264,8 @@ class Renderer<TModel>(
             validation.Type = DataValidationValues.Date;
             ApplyRangeOperator(
                 validation,
-                (decimal)ExcelMinDate.ToOADate(),
-                (decimal)ExcelMaxDate.ToOADate());
+                (decimal)excelMinDate.ToOADate(),
+                (decimal)excelMaxDate.ToOADate());
         }
         else if (column.HasNumericValidation)
         {
