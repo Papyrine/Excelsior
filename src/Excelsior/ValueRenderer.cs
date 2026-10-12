@@ -83,20 +83,12 @@ public static partial class ValueRenderer
         ThrowIfBookBuilderUsed();
 
         boolDisplay = (trueDisplay, falseDisplay, nullDisplay);
+        BoolFormat = $"[=1]\"{trueDisplay}\";[=0]\"{falseDisplay}\"";
     }
 
-    internal static string? BoolFormat
-    {
-        get
-        {
-            if (boolDisplay is not { } d)
-            {
-                return null;
-            }
-
-            return $"[=1]\"{d.trueDisplay}\";[=0]\"{d.falseDisplay}\"";
-        }
-    }
+    // Built once, when the display is set. It is asked for by every bool cell, and building it
+    // there made a new string per cell for the style lookup to hash.
+    internal static string? BoolFormat { get; private set; }
 
     internal static (string trueDisplay, string falseDisplay) GetBoolDisplayValues()
     {
@@ -230,6 +222,7 @@ public static partial class ValueRenderer
         renderCache = [];
         nullDisplay = [];
         boolDisplay = null;
+        BoolFormat = null;
         DefaultDateFormat = "yyyy-MM-dd";
         DefaultDateTimeFormat = "yyyy-MM-dd HH:mm:ss";
         DefaultDateTimeOffsetFormat = "yyyy-MM-dd HH:mm:ss zzz";
