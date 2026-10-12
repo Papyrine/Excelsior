@@ -17,25 +17,54 @@ static class WordTableRenderer<TModel>
         RemainderMerge<TModel>? merge,
         MainDocumentPart? mainPart)
     {
-        // Materialised so column widths can be measured (a pass over the data) before the rows are
-        // rendered. The measuring pass only runs when a column declares a Width/MinWidth/MaxWidth.
-        var rows = data as IReadOnlyList<TModel> ?? data.ToList();
         // Resolved against the final column order, so the boundary a caller anchored to a property
         // stays on that property whatever Order the columns end up in.
         var keep = merge?.ResolveKeep(columns) ?? columns.Count;
-        var columnWidths = ResolveColumnWidths(columns, rows, merge, keep);
 
+        // The widest cell text in each column, in Excel character units, gathered as the rows are
+        // built. Only wanted when a column declares a Width/MinWidth/MaxWidth. Measuring used to
+        // be a pass of its own over the data ahead of the rows, which rendered every cell's text
+        // twice and, with a merge, asked which rows merge once more for each column past it.
+        double[]? contentChars = null;
+        if (HasWidthHint(columns))
+        {
+            contentChars = new double[columns.Count];
+        }
+
+        var rows = new List<W.TableRow>();
+        foreach (var item in data)
+        {
+            rows.Add(BuildDataRow(columns, item, tableBodyStyle, bodyParagraphStyle, merge, keep, mainPart, contentChars));
+        }
+
+        var columnWidths = ResolveColumnWidths(columns, contentChars);
+
+        // The widths lead the table, so it is put together once the rows have been measured.
         var table = new W.Table();
         table.Append(BuildTableProperties(mainPart, columnWidths, tableStyle));
         table.Append(BuildGrid(columns.Count, columnWidths));
         table.Append(BuildHeaderRow(columns, tableHeadingStyle, headingParagraphStyle));
-
-        foreach (var item in rows)
+        foreach (var row in rows)
         {
-            table.Append(BuildDataRow(columns, item, tableBodyStyle, bodyParagraphStyle, merge, keep, mainPart));
+            table.Append(row);
         }
 
         return table;
+    }
+
+    static bool HasWidthHint(List<ColumnConfig<TModel>> columns)
+    {
+        foreach (var column in columns)
+        {
+            if (column.Width.HasValue ||
+                column.MinWidth.HasValue ||
+                column.MaxWidth.HasValue)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -43,21 +72,9 @@ static class WordTableRenderer<TModel>
     /// <c>MinWidth</c>, or <c>MaxWidth</c>. Returns <c>null</c> when no column sets a width hint, so
     /// the table keeps its default 100%-page-width auto-layout and existing output is unchanged.
     /// </summary>
-    static int[]? ResolveColumnWidths(List<ColumnConfig<TModel>> columns, IReadOnlyList<TModel> rows, RemainderMerge<TModel>? merge, int keep)
+    static int[]? ResolveColumnWidths(List<ColumnConfig<TModel>> columns, double[]? contentChars)
     {
-        var anyHint = false;
-        foreach (var column in columns)
-        {
-            if (column.Width.HasValue ||
-                column.MinWidth.HasValue ||
-                column.MaxWidth.HasValue)
-            {
-                anyHint = true;
-                break;
-            }
-        }
-
-        if (!anyHint)
+        if (contentChars == null)
         {
             return null;
         }
@@ -65,13 +82,7 @@ static class WordTableRenderer<TModel>
         var widths = new int[columns.Count];
         for (var index = 0; index < columns.Count; index++)
         {
-            // Columns past the merge boundary are only measured over the rows that show text in
-            // them: a merged row's cell spans these columns rather than sitting in one, so what it
-            // says cannot widen them.
-            var measured = index < keep || merge == null
-                ? rows
-                : rows.Where(_ => !merge.When(_)).ToList();
-            widths[index] = CharsToTwips(ResolveColumnChars(columns[index], measured));
+            widths[index] = CharsToTwips(ResolveColumnChars(columns[index], contentChars[index]));
         }
 
         return widths;
@@ -82,14 +93,14 @@ static class WordTableRenderer<TModel>
     /// (<c>Renderer.ResizeColumn</c>): an explicit <c>Width</c> wins; otherwise the content is
     /// auto-measured and clamped by <c>MinWidth</c> (lower) and <c>MaxWidth</c> (upper).
     /// </summary>
-    static double ResolveColumnChars(ColumnConfig<TModel> column, IReadOnlyList<TModel> rows)
+    static double ResolveColumnChars(ColumnConfig<TModel> column, double contentChars)
     {
         if (column.Width is { } width)
         {
             return width;
         }
 
-        var measured = (int)Math.Round(MeasureAutoChars(column, rows)) + 1;
+        var measured = (int)Math.Round(MeasureAutoChars(column, contentChars)) + 1;
         if (column.IsEnumerable)
         {
             measured += 5;
@@ -110,15 +121,16 @@ static class WordTableRenderer<TModel>
         return measured;
     }
 
+    const double charFactor = 1.1;
+
     /// <summary>
-    /// Estimates the natural width (Excel character units) of a column from its heading and cell
-    /// text, mirroring <c>Renderer.AdjustColumnWidth</c>/<c>CharWidthFactor</c>: a floor of 8,
-    /// ~1.1 chars per glyph for the default font, +2 padding. The heading uses the bold factor
-    /// since header cells are bold. HTML cells are measured from their tag-stripped text.
+    /// Estimates the natural width (Excel character units) of a column from its heading and the
+    /// widest of its cells, mirroring <c>Renderer.AdjustColumnWidth</c>/<c>CharWidthFactor</c>: a
+    /// floor of 8, ~1.1 chars per glyph for the default font, +2 padding. The heading uses the
+    /// bold factor since header cells are bold.
     /// </summary>
-    static double MeasureAutoChars(ColumnConfig<TModel> column, IReadOnlyList<TModel> rows)
+    static double MeasureAutoChars(ColumnConfig<TModel> column, double contentChars)
     {
-        const double charFactor = 1.1;
         const double boldFactor = 1.05;
 
         var max = 8d;
@@ -129,23 +141,26 @@ static class WordTableRenderer<TModel>
             max = headingChars;
         }
 
-        foreach (var row in rows)
+        if (contentChars > max)
         {
-            var value = column.GetValue(row);
-            var text = ToText(column, row, value);
-            if (column.IsHtml)
-            {
-                text = StripTags(text);
-            }
-
-            var chars = text.Length * charFactor + 2;
-            if (chars > max)
-            {
-                max = chars;
-            }
+            max = contentChars;
         }
 
         return max;
+    }
+
+    /// <summary>
+    /// The width one cell asks of its column. HTML cells are measured from their tag-stripped
+    /// text.
+    /// </summary>
+    static double MeasureCell(ColumnConfig<TModel> column, string text)
+    {
+        if (column.IsHtml)
+        {
+            text = StripTags(text);
+        }
+
+        return text.Length * charFactor + 2;
     }
 
     /// <summary>
@@ -627,13 +642,44 @@ static class WordTableRenderer<TModel>
         string? bodyParagraphStyle,
         RemainderMerge<TModel>? merge,
         int keep,
-        MainDocumentPart? mainPart)
+        MainDocumentPart? mainPart,
+        double[]? contentChars)
     {
         var merged = merge != null && merge.When(item);
         var row = new W.TableRow();
-        foreach (var column in merged ? columns.Take(keep) : columns)
+        // A merged row has a cell of its own only up to the boundary. Past it one cell spans the
+        // rest, sitting in none of those columns, so what it says does not widen them.
+        var count = columns.Count;
+        if (merged)
         {
+            count = keep;
+        }
+
+        for (var index = 0; index < count; index++)
+        {
+            var column = columns[index];
             var value = column.GetValue(item);
+
+            // Rendered once, for the measuring and the cell both. A link drawn as a real
+            // hyperlink is the one cell that has no use for it.
+            string? text = null;
+            if (contentChars != null ||
+                value is not Link ||
+                mainPart == null)
+            {
+                text = ToText(column, item, value);
+            }
+
+            if (contentChars != null)
+            {
+                var chars = MeasureCell(column, text!);
+                if (chars > contentChars[index])
+                {
+                    contentChars[index] = chars;
+                }
+            }
+
+
             var style = ResolveBodyStyle(column, item, value, tableBodyStyle);
             var cell = new W.TableCell();
 
@@ -645,7 +691,7 @@ static class WordTableRenderer<TModel>
                 cell.Append(cellProperties);
             }
 
-            foreach (var paragraph in BuildCellParagraphs(column, item, value, style, mainPart))
+            foreach (var paragraph in BuildCellParagraphs(column, value, style, mainPart, text))
             {
                 // A named paragraph style applies to every paragraph — including those produced by
                 // the HTML and hyperlink paths — so the style's font/size/spacing reaches all cells.
@@ -774,10 +820,10 @@ static class WordTableRenderer<TModel>
 
     static IReadOnlyList<W.Paragraph> BuildCellParagraphs(
         ColumnConfig<TModel> column,
-        TModel item,
         object? value,
         CellStyle? style,
-        MainDocumentPart? mainPart)
+        MainDocumentPart? mainPart,
+        string? text)
     {
         // Excel formulas (=A2*B2 etc.) have no equivalent in Word tables. Fail loudly so the
         // caller knows the column must be restructured rather than silently dropping the formula.
@@ -793,13 +839,11 @@ static class WordTableRenderer<TModel>
             return [BuildHyperlinkParagraph(link, mainPart)];
         }
 
-        var text = ToText(column, item, value);
-
         // IsHtml columns route through WordHtmlConverter so inline tags (<i>, <b>, <a>, etc.) and
         // block elements (<p>, <ul>, ...) become proper runs/paragraphs instead of literal text.
         if (column.IsHtml)
         {
-            return WordHtmlConverter.ToParagraphs(text, mainPart);
+            return WordHtmlConverter.ToParagraphs(text!, mainPart);
         }
 
         var run = new W.Run();
@@ -812,7 +856,7 @@ static class WordTableRenderer<TModel>
             }
         }
 
-        AppendTextWithLineBreaks(run, text);
+        AppendTextWithLineBreaks(run, text!);
 
         var paragraph = new W.Paragraph();
         if (style != null)
