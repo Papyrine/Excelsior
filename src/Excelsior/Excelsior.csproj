@@ -15,6 +15,9 @@
     <PackageReference Include="System.ComponentModel.Annotations" />
     <ProjectReference Include="..\Excelsior.SourceGenerator\Excelsior.SourceGenerator.csproj"
                       OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <!-- A roslynX.Y folder name promises that the build inside references a compiler no newer than
+         X.Y, and the generator project pins each target framework to match: read the note on its
+         Microsoft.CodeAnalysis.CSharp references before renaming a folder here. -->
     <None Include="..\Excelsior.SourceGenerator\bin\$(Configuration)\netstandard2.0\Excelsior.SourceGenerator.dll"
           Pack="true" PackagePath="analyzers/dotnet/roslyn5.0/cs" Visible="false" />
     <None Include="..\Excelsior.SourceGenerator\bin\$(Configuration)\net10.0\Excelsior.SourceGenerator.dll"
