@@ -6,6 +6,10 @@ using W = DocumentFormat.OpenXml.Wordprocessing;
 /// </summary>
 static class WordTableRenderer<TModel>
 {
+    // The most columns Word holds in one table. It does not open a document with a wider one, and
+    // nothing short of Word says so: the schema allows the table and the validator passes it.
+    const int maxColumns = 63;
+
     public static W.Table Build(
         IEnumerable<TModel> data,
         List<ColumnConfig<TModel>> columns,
@@ -17,6 +21,16 @@ static class WordTableRenderer<TModel>
         RemainderMerge<TModel>? merge,
         MainDocumentPart? mainPart)
     {
+        // Before the data is read, so nothing of a table that cannot be kept is rendered. Every
+        // row covers exactly this many grid columns - a merged row does it in fewer cells, with a
+        // gridSpan over the rest - so the column count is the whole of the check.
+        if (columns.Count > maxColumns)
+        {
+            throw new(
+                $"The Word table for '{typeof(TModel).Name}' has {columns.Count} columns, and a Word table holds at most {maxColumns}. " +
+                "Word does not open a document that holds a wider one, so exclude columns or split the table.");
+        }
+
         // Resolved against the final column order, so the boundary a caller anchored to a property
         // stays on that property whatever Order the columns end up in.
         var keep = merge?.ResolveKeep(columns) ?? columns.Count;
