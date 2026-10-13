@@ -67,7 +67,7 @@ public class Saving
         using var stream = new MemoryStream();
         await builder.ToStream(stream);
 
-        using (var zip = new ZipArchive(stream, ZipArchiveMode.Update, leaveOpen: true))
+        await using (var zip = new ZipArchive(stream, ZipArchiveMode.Update, leaveOpen: true))
         {
             var entry = zip.CreateEntry("extra.txt");
             await using var writer = new StreamWriter(await entry.OpenAsync());
