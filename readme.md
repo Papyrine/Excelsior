@@ -3401,6 +3401,8 @@ Word tables only. `BookBuilder` has nothing like it, because a spreadsheet cell 
 
 Formula columns are not supported in Word tables. Word has no equivalent of Excel cell formulas, so configuring a `Formula` on a column used with `WordTableBuilder` will throw when `Build()` is called. Use `Render` or a computed property instead.
 
+Word holds at most 63 columns in a table and does not open a document with a wider one, so `Build()` throws when the model has more than 63 included columns, naming the model and its column count. Columns left out with `Include = false` or `[Ignore]` do not count, and a row merged with `MergeRemainder` covers the same columns as any other. Spreadsheets built with `BookBuilder` are not limited.
+
 
 ## Icon
 

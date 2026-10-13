@@ -143,6 +143,10 @@ public class WordTableBuilder<TModel>(
     /// values produce real <c>&lt;w:hyperlink&gt;</c> elements with relationships registered on
     /// the host part. When omitted, link cells fall back to their display text only.
     /// </summary>
+    /// <remarks>
+    /// Throws when the table would have more than 63 columns: Word holds no more than that in a
+    /// table and does not open a document with a wider one.
+    /// </remarks>
     public DocumentFormat.OpenXml.Wordprocessing.Table Build(MainDocumentPart? mainPart = null) =>
         WordTableRenderer<TModel>.Build(
             data,
