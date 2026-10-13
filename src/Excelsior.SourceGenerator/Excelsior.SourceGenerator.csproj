@@ -24,8 +24,8 @@
          folder to match, which drops every compiler older than the new name; roslyn5.0 is the
          compiler of the first .NET 10 SDK. AnalyzerPackagingTests in IntegrationTests reads the
          references of the packed assemblies and fails when one is newer than its folder. -->
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="5.0.0" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="5.3.0" Condition="'$(TargetFramework)' == 'net10.0'" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="5.0.0" Condition="'$(TargetFramework)' == 'netstandard2.0'" Pinned="true" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="5.3.0" Condition="'$(TargetFramework)' == 'net10.0'" Pinned="true" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
     <Compile Include="..\Excelsior\CamelCase.cs" Link="CamelCase.cs" />
   </ItemGroup>
