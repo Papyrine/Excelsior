@@ -573,7 +573,7 @@ class Renderer<TModel>(
         styleManager = bookBuilder.StyleManager;
 
         var workbookPart = book.WorkbookPart!;
-        var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+        var worksheetPart = workbookPart.AddNewPart<WorksheetPart>(RelationshipIds.Next(workbookPart, "rIdSheet"));
         worksheetPart.Worksheet = new(new SheetData());
 
         var sheets = workbookPart.Workbook!.GetFirstChild<Sheets>()!;
@@ -693,7 +693,7 @@ class Renderer<TModel>(
         cell.DataType = CellValues.InlineString;
         cell.InlineString = new(BuildText(display));
 
-        var rel = sheet.WorksheetPart.AddHyperlinkRelationship(new(link.Url, UriKind.RelativeOrAbsolute), true);
+        var rel = sheet.WorksheetPart.AddHyperlinkRelationship(new(link.Url, UriKind.RelativeOrAbsolute), true, sheet.RelationshipIds.Next("rIdLink"));
         var hyperlinks = sheet.Worksheet.GetFirstChild<Hyperlinks>();
         if (hyperlinks == null)
         {
@@ -746,7 +746,7 @@ class Renderer<TModel>(
             return;
         }
 
-        var rel = sheet.WorksheetPart.AddHyperlinkRelationship(new(hyperlinkUrl, UriKind.RelativeOrAbsolute), true);
+        var rel = sheet.WorksheetPart.AddHyperlinkRelationship(new(hyperlinkUrl, UriKind.RelativeOrAbsolute), true, sheet.RelationshipIds.Next("rIdLink"));
         var hyperlinks = sheet.Worksheet.GetFirstChild<Hyperlinks>();
         if (hyperlinks == null)
         {
@@ -1164,12 +1164,12 @@ class Renderer<TModel>(
             commentList.Append(comment);
         }
 
-        var commentsPart = worksheetPart.AddNewPart<WorksheetCommentsPart>();
+        var commentsPart = worksheetPart.AddNewPart<WorksheetCommentsPart>(sheet.RelationshipIds.Named("rIdComments"));
         // A single empty author keeps the note body clean — Excel shows just the text, with no
         // "Author:" prefix — while still satisfying the schema's required authors list.
         commentsPart.Comments = new(new Authors(new Author("")), commentList);
 
-        var vmlPart = worksheetPart.AddNewPart<VmlDrawingPart>();
+        var vmlPart = worksheetPart.AddNewPart<VmlDrawingPart>(sheet.RelationshipIds.Named("rIdVml"));
         WriteCommentVml(vmlPart, notes, BannerRows);
 
         sheet.Worksheet.Append(

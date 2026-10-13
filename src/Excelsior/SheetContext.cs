@@ -18,6 +18,10 @@ public class SheetContext
     internal SheetData SheetData { get; }
     internal int RowCount { get; private set; }
 
+    // One for the sheet rather than one for each link, so a column of links reads the ids the
+    // worksheet part holds once.
+    internal RelationshipIds RelationshipIds { get; }
+
     /// <summary>
     /// The sheet's 0-based position in the workbook, which is also the <c>localSheetId</c> a
     /// sheet-scoped defined name refers to it by.
@@ -27,6 +31,7 @@ public class SheetContext
     internal SheetContext(WorksheetPart worksheetPart, int index)
     {
         WorksheetPart = worksheetPart;
+        RelationshipIds = new(worksheetPart);
         Index = index;
         SheetData = worksheetPart.Worksheet!.GetFirstChild<SheetData>()!;
     }
