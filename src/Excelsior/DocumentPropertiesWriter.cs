@@ -142,7 +142,7 @@ static class DocumentPropertiesWriter
             double d => new VTDouble(d.ToString(CultureInfo.InvariantCulture)),
             float f => new VTDouble(((double)f).ToString(CultureInfo.InvariantCulture)),
             decimal m => new VTDouble(m.ToString(CultureInfo.InvariantCulture)),
-            DateTime time => new VTFileTime(time.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture)),
+            DateTime time => new VTFileTime(ToFileTime(time, TimeZoneInfo.Local)),
             // Invariant, as the DateTime above is: the current culture would bring its calendar.
             Date date => new VTFileTime(date.ToString("yyyy-MM-dd'T00:00:00Z'", CultureInfo.InvariantCulture)),
             // Written as text rather than the clsid variant: Excel's Advanced Properties dialog
@@ -155,4 +155,22 @@ static class DocumentPropertiesWriter
             _ => throw new ArgumentException(
                 $"Custom document property '{name}' has unsupported value type '{value.GetType()}'. Supported types are string, bool, integral and floating-point numbers, DateTime, DateOnly and Guid. Convert the value to one of these before adding it.")
         };
+
+    // A Utc and an Unspecified value are written with the clock reading they carry. An Unspecified
+    // value names no zone, so DateTime.ToUniversalTime treating it as local shifted it by the
+    // machine's offset and gave a different document on every machine. Only a Local value, which
+    // is by definition a reading of this machine's clock, is converted to the instant it names.
+    // The zone is a parameter so a test can pin it; production passes TimeZoneInfo.Local.
+    internal static string ToFileTime(DateTime time, TimeZoneInfo zone)
+    {
+        if (time.Kind == DateTimeKind.Local)
+        {
+            // Asked as an Unspecified reading: GetUtcOffset would first convert a Local value from
+            // the machine's zone to the one passed in.
+            var reading = DateTime.SpecifyKind(time, DateTimeKind.Unspecified);
+            time = reading - zone.GetUtcOffset(reading);
+        }
+
+        return time.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture);
+    }
 }
