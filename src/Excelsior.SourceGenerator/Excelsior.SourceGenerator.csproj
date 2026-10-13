@@ -14,7 +14,18 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <!-- Each build is compiled against the compiler its package folder names, not the central
+         version: Excelsior.csproj packs netstandard2.0 into analyzers/dotnet/roslyn5.0 and net10.0
+         into roslyn5.3, and the SDK hands a compiler the newest folder that is not newer than
+         itself. A compiler refuses an analyzer that references a newer Microsoft.CodeAnalysis than
+         its own, with a warning (CS9057) rather than an error: the generator is skipped, and the
+         generated column methods are missing from the consumer's build. Do NOT bump either
+         version along with the rest of Directory.Packages.props. Raising one means renaming its
+         folder to match, which drops every compiler older than the new name; roslyn5.0 is the
+         compiler of the first .NET 10 SDK. AnalyzerPackagingTests in IntegrationTests reads the
+         references of the packed assemblies and fails when one is newer than its folder. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="5.0.0" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="5.3.0" Condition="'$(TargetFramework)' == 'net10.0'" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
     <Compile Include="..\Excelsior\CamelCase.cs" Link="CamelCase.cs" />
   </ItemGroup>

@@ -30,6 +30,9 @@
     <PackageVersion Include="DiffEngine" Version="20.8.1" />
     <PackageVersion Include="EmptyFiles" Version="8.20.1" />
     <PackageVersion Include="SimpleInfoName" Version="3.2.1" />
+    <!-- The compiler the generator tests host the generator in, so free to follow the SDK. The
+         generator itself overrides this with the older versions its package folders name, and
+         those must stay put: see the note in Excelsior.SourceGenerator.csproj. -->
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="5.9.0" />
     <PackageVersion Include="Verify.SourceGenerators" Version="2.5.0" />

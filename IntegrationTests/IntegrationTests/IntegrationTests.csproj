@@ -8,5 +8,9 @@
   <ItemGroup>
     <PackageReference Include="Excelsior" />
     <PackageReference Include="TUnit" />
+    <!-- The nupkg the local feed in nuget.config serves this project, which is also the file that
+         gets published. AnalyzerPackagingTests reads the analyzer builds inside it. -->
+    <AssemblyMetadata Include="ExcelsiorPackage"
+                      Value="$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)/../../nugets/Excelsior.$(Version).nupkg'))" />
   </ItemGroup>
 </Project>

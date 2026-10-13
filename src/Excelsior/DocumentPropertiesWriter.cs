@@ -68,7 +68,7 @@ static class DocumentPropertiesWriter
         Add(cp + "category", properties.Category);
         Add(cp + "contentStatus", properties.Status);
 
-        var part = document.AddCoreFilePropertiesPart();
+        var part = document.AddNewPart<CoreFilePropertiesPart>(RelationshipIds.Named(document, "rIdCore"));
         using var stream = part.GetStream(FileMode.Create);
         new XDocument(root).Save(stream);
     }
@@ -81,7 +81,7 @@ static class DocumentPropertiesWriter
             return;
         }
 
-        var part = document.AddExtendedFilePropertiesPart();
+        var part = document.AddNewPart<ExtendedFilePropertiesPart>(RelationshipIds.Named(document, "rIdExtended"));
         var extended = new ExtendedProps.Properties();
         if (properties.Company != null)
         {
@@ -103,7 +103,7 @@ static class DocumentPropertiesWriter
             return;
         }
 
-        var part = document.AddCustomFilePropertiesPart();
+        var part = document.AddNewPart<CustomFilePropertiesPart>(RelationshipIds.Named(document, "rIdCustom"));
         var custom = new CustomProps.Properties();
         // PropertyId is 1-based and 1 is reserved, so user-defined properties start at 2
         // and increment by one each.
