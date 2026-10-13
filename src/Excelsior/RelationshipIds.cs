@@ -49,10 +49,7 @@ class RelationshipIds(OpenXmlPartContainer owner)
     {
         var ids = Taken();
         last ??= new(StringComparer.Ordinal);
-        if (!last.TryGetValue(prefix, out var number))
-        {
-            number = after;
-        }
+        var number = last.GetValueOrDefault(prefix, after);
 
         string id;
         do
