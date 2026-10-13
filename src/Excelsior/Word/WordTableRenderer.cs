@@ -31,17 +31,24 @@ static class WordTableRenderer<TModel>
             contentChars = new double[columns.Count];
         }
 
+        // One for the table, shared by its links and the styles part. See RelationshipIds.
+        RelationshipIds? relationshipIds = null;
+        if (mainPart != null)
+        {
+            relationshipIds = new(mainPart);
+        }
+
         var rows = new List<W.TableRow>();
         foreach (var item in data)
         {
-            rows.Add(BuildDataRow(columns, item, tableBodyStyle, bodyParagraphStyle, merge, keep, mainPart, contentChars));
+            rows.Add(BuildDataRow(columns, item, tableBodyStyle, bodyParagraphStyle, merge, keep, mainPart, relationshipIds, contentChars));
         }
 
         var columnWidths = ResolveColumnWidths(columns, contentChars);
 
         // The widths lead the table, so it is put together once the rows have been measured.
         var table = new W.Table();
-        table.Append(BuildTableProperties(mainPart, columnWidths, tableStyle));
+        table.Append(BuildTableProperties(mainPart, relationshipIds, columnWidths, tableStyle));
         table.Append(BuildGrid(columns.Count, columnWidths));
         table.Append(BuildHeaderRow(columns, tableHeadingStyle, headingParagraphStyle));
         foreach (var row in rows)
@@ -233,7 +240,7 @@ static class WordTableRenderer<TModel>
     /// the supported way to rebrand Excelsior tables. The standalone path (no host) emits inline
     /// borders instead, since there's no styles part to add to.
     /// </summary>
-    static W.TableProperties BuildTableProperties(MainDocumentPart? mainPart, int[]? columnWidths, string? tableStyle)
+    static W.TableProperties BuildTableProperties(MainDocumentPart? mainPart, RelationshipIds? relationshipIds, int[]? columnWidths, string? tableStyle)
     {
         W.TableWidth tblW;
         W.TableLayout? layout;
@@ -287,7 +294,7 @@ static class WordTableRenderer<TModel>
             // than what the template says.
             if (tableStyle == null)
             {
-                TableGridStyle.EnsurePresent(mainPart);
+                TableGridStyle.EnsurePresent(mainPart, relationshipIds!);
             }
 
             var properties = new W.TableProperties(
@@ -643,6 +650,7 @@ static class WordTableRenderer<TModel>
         RemainderMerge<TModel>? merge,
         int keep,
         MainDocumentPart? mainPart,
+        RelationshipIds? relationshipIds,
         double[]? contentChars)
     {
         var merged = merge != null && merge.When(item);
@@ -691,7 +699,7 @@ static class WordTableRenderer<TModel>
                 cell.Append(cellProperties);
             }
 
-            foreach (var paragraph in BuildCellParagraphs(column, value, style, mainPart, text))
+            foreach (var paragraph in BuildCellParagraphs(column, value, style, mainPart, relationshipIds, text))
             {
                 // A named paragraph style applies to every paragraph — including those produced by
                 // the HTML and hyperlink paths — so the style's font/size/spacing reaches all cells.
@@ -823,6 +831,7 @@ static class WordTableRenderer<TModel>
         object? value,
         CellStyle? style,
         MainDocumentPart? mainPart,
+        RelationshipIds? relationshipIds,
         string? text)
     {
         // Excel formulas (=A2*B2 etc.) have no equivalent in Word tables. Fail loudly so the
@@ -836,7 +845,7 @@ static class WordTableRenderer<TModel>
         // fall through to the plain-text path which renders link.Text ?? link.Url.
         if (value is Link link && mainPart != null)
         {
-            return [BuildHyperlinkParagraph(link, mainPart)];
+            return [BuildHyperlinkParagraph(link, mainPart, relationshipIds!)];
         }
 
         // IsHtml columns route through WordHtmlConverter so inline tags (<i>, <b>, <a>, etc.) and
@@ -868,10 +877,10 @@ static class WordTableRenderer<TModel>
         return [paragraph];
     }
 
-    static W.Paragraph BuildHyperlinkParagraph(Link link, MainDocumentPart mainPart)
+    static W.Paragraph BuildHyperlinkParagraph(Link link, MainDocumentPart mainPart, RelationshipIds relationshipIds)
     {
         var display = XmlChars.Strip(link.Text ?? link.Url);
-        var relId = mainPart.AddHyperlinkRelationship(new(link.Url, UriKind.RelativeOrAbsolute), true).Id;
+        var relId = mainPart.AddHyperlinkRelationship(new(link.Url, UriKind.RelativeOrAbsolute), true, relationshipIds.Next("rIdLink")).Id;
 
         // Color and underline mirror Excelsior's spreadsheet hyperlink styling (#0563C1, underline)
         // and avoid depending on a "Hyperlink" character style that may not exist in the host doc.

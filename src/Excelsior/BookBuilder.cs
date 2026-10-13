@@ -285,6 +285,8 @@ public class BookBuilder
     {
         var document = SpreadsheetDocument.Create(target, SpreadsheetDocumentType.Workbook);
         var workbookPart = document.AddWorkbookPart();
+        // AddWorkbookPart takes no id, and the one the SDK picks is random. See RelationshipIds.
+        document.ChangeIdOfPart(workbookPart, "rIdWorkbook");
         var book = workbookPart.Workbook = new(new Sheets());
 
         foreach (var action in actions)
@@ -322,7 +324,7 @@ public class BookBuilder
         var doc = new XDocument(
             new XElement(ns + "userMetadata", new XCData(userMetadataJson)));
 
-        var customPart = book.AddCustomXmlPart(CustomXmlPartType.CustomXml);
+        var customPart = book.AddCustomXmlPart(CustomXmlPartType.CustomXml, RelationshipIds.Next(book, "rIdCustomXml"));
         using var stream = customPart.GetStream(FileMode.Create);
         doc.Save(stream);
     }
@@ -359,7 +361,7 @@ public class BookBuilder
                     return element;
                 })));
 
-        var customPart = book.AddCustomXmlPart(CustomXmlPartType.CustomXml);
+        var customPart = book.AddCustomXmlPart(CustomXmlPartType.CustomXml, RelationshipIds.Next(book, "rIdCustomXml"));
         using var stream = customPart.GetStream(FileMode.Create);
         doc.Save(stream);
     }
@@ -384,7 +386,7 @@ public class BookBuilder
     void ApplyStylesheet(WorkbookPart book)
     {
         var stylesPart = book.GetPartsOfType<WorkbookStylesPart>().FirstOrDefault()
-                         ?? book.AddNewPart<WorkbookStylesPart>();
+                         ?? book.AddNewPart<WorkbookStylesPart>(RelationshipIds.Named(book, "rIdStyles"));
         stylesPart.Stylesheet = StyleManager.BuildStylesheet();
     }
 

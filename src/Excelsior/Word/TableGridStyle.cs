@@ -23,9 +23,9 @@ static class TableGridStyle
     static readonly W.Style tableNormalPrototype = BuildTableNormalStyle();
     static readonly W.Style tableGridPrototype = BuildTableGridStyle();
 
-    public static void EnsurePresent(MainDocumentPart mainPart)
+    public static void EnsurePresent(MainDocumentPart mainPart, RelationshipIds relationshipIds)
     {
-        var stylesPart = mainPart.StyleDefinitionsPart ?? mainPart.AddNewPart<StyleDefinitionsPart>();
+        var stylesPart = mainPart.StyleDefinitionsPart ?? mainPart.AddNewPart<StyleDefinitionsPart>(relationshipIds.Named("rIdStyles"));
         stylesPart.Styles ??= new();
 
         EnsureStyle(stylesPart.Styles, tableNormalId, tableNormalPrototype);
