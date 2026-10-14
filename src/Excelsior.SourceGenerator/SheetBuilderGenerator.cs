@@ -129,6 +129,16 @@ public class SheetBuilderGenerator :
         return new(model, null);
     }
 
+    static bool IsRequiredMember(ISymbol symbol)
+    {
+        if (symbol is IPropertySymbol property)
+        {
+            return property.IsRequired;
+        }
+
+        return symbol is IFieldSymbol { IsRequired: true };
+    }
+
     /// <summary>
     /// Enumerate top-level public readable members (properties and fields) in
     /// declaration order, the same set the runtime <c>SheetReader&lt;T&gt;</c>
@@ -156,6 +166,14 @@ public class SheetBuilderGenerator :
             // A column the writer leaves out is one the runtime reader has no slot for.
             if (GetColumnData(member.Symbol) is { Include: false })
             {
+                // An excluded member that must be supplied at construction can't be filled
+                // from the sheet, so no reader can build the type: fall back to the runtime path.
+                if (ctorParamSet.Contains(member.Name) ||
+                    IsRequiredMember(member.Symbol))
+                {
+                    return null;
+                }
+
                 continue;
             }
 
