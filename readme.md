@@ -1232,6 +1232,8 @@ The standard fields map onto the workbook's core and extended (app) property par
 
 Custom values may be a `string`, `bool`, an integral or floating-point number, `DateTime`, `DateOnly` (`Date`), or `Guid`. Any other value type throws an `ArgumentException` when the workbook is built, so convert it to a supported type first. A `null` value is written as empty text.
 
+A `DateTime` is stored as a UTC date and time. A value whose `Kind` is `Utc` or `Unspecified` is written with the clock reading it carries; a `Local` value is converted to UTC using the time zone of the machine building the workbook. `Local` is therefore the only input whose stored value depends on the machine, so pass a `Utc` or `Unspecified` value where the output has to be identical everywhere. A `DateOnly` is written as midnight of that date.
+
 The last call to `SetProperties` wins; pass a fresh `BookProperties` to replace previously set values.
 
 #### Reading custom properties
