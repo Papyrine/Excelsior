@@ -66,6 +66,21 @@ public class BookReaderExclusionTests
         await Assert.That(rows[0].City).IsEqualTo("Perth");
     }
 
+    // A required member the sheet never holds left the generated reader unable to construct the
+    // type (CS9035), so the generator must skip it and leave reading to the runtime path.
+    [Test]
+    public async Task IncludeFalseRequiredSourceGenerated()
+    {
+        var rows = await RoundTrip(
+            new ExclusionSourceGenExcludedRequired
+            {
+                Name = "Ann",
+                Hidden = "x"
+            });
+
+        await Assert.That(rows[0].Name).IsEqualTo("Ann");
+    }
+
     record IgnoredParameter(string Name, [Ignore] string Secret);
 
     class Excluded
@@ -79,6 +94,15 @@ public class BookReaderExclusionTests
 
 [SheetModel]
 public record ExclusionSourceGenIgnored(string Name, [Ignore] int Age, string City);
+
+[SheetModel]
+public record ExclusionSourceGenExcludedRequired
+{
+    public string Name { get; set; } = "";
+
+    [Column(Include = false)]
+    public required string Hidden;
+}
 
 [SheetModel]
 public class ExclusionSourceGenExcluded
