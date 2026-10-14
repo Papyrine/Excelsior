@@ -14,7 +14,7 @@
     <PackageVersion Include="Humanizer.Core" Version="3.0.10" />
     <PackageVersion Include="Verify.OpenXML" Version="2.0.0" />
     <PackageVersion Include="Morph.Skia" Version="1.22.0" />
-    <PackageVersion Include="MarkdownSnippets.MsBuild" Version="28.5.0" />
+    <PackageVersion Include="MarkdownSnippets.MsBuild" Version="28.5.1" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Office.Interop.Excel" Version="16.0.18925.20022" Pinned="true" />
     <PackageVersion Include="Polyfill" Version="11.4.5" />
