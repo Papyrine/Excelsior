@@ -15,7 +15,7 @@
     <PackageVersion Include="Verify.OpenXML" Version="2.0.0" />
     <PackageVersion Include="Morph.Skia" Version="1.22.0" />
     <PackageVersion Include="MarkdownSnippets.MsBuild" Version="28.5.0" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Office.Interop.Excel" Version="16.0.18925.20022" Pinned="true" />
     <PackageVersion Include="Polyfill" Version="11.4.5" />
     <PackageVersion Include="ProjectDefaults" Version="1.0.184" />
@@ -23,8 +23,8 @@
     <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageVersion Include="Verify" Version="33.3.3" />
     <PackageVersion Include="Verify.TUnit" Version="33.3.3" />
-    <PackageVersion Include="OpenXmlHtml" Version="1.7.4" />
-    <PackageVersion Include="TUnit" Version="1.74.0" />
+    <PackageVersion Include="OpenXmlHtml" Version="1.7.5" />
+    <PackageVersion Include="TUnit" Version="1.75.0" />
     <PackageVersion Include="Argon" Version="0.38.2" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="DiffEngine" Version="20.8.1" />
