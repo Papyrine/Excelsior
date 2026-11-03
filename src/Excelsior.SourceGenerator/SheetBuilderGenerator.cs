@@ -434,7 +434,7 @@ public class SheetBuilderGenerator :
                     .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier));
             var accessPath = parentPath.IsEmpty
                 ? member.Name
-                : string.Join('.', parentPath.Add(member.Name));
+                : string.Join(".", parentPath.Add(member.Name));
 
             var column = GetColumnData(member.Symbol);
             var declaringType = member.Symbol.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
