@@ -20,7 +20,6 @@
     <PackageVersion Include="Polyfill" Version="11.4.5" />
     <PackageVersion Include="ProjectDefaults" Version="1.0.190" />
     <PackageVersion Include="ProjectFiles" Version="1.6.0" />
-    <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageVersion Include="Verify" Version="33.5.0" />
     <PackageVersion Include="Verify.TUnit" Version="33.5.0" />
     <PackageVersion Include="OpenXmlHtml" Version="1.7.5" />

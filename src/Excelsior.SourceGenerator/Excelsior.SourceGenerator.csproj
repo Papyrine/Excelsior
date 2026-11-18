@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net10.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net11.0</TargetFrameworks>
     <IsRoslynComponent>true</IsRoslynComponent>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IsPackable>false</IsPackable>
@@ -15,7 +15,7 @@
   <ItemGroup>
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
     <!-- Each build is compiled against the compiler its package folder names, not the central
-         version: Excelsior.csproj packs netstandard2.0 into analyzers/dotnet/roslyn5.0 and net10.0
+         version: Excelsior.csproj packs netstandard2.0 into analyzers/dotnet/roslyn5.0 and net11.0
          into roslyn5.3, and the SDK hands a compiler the newest folder that is not newer than
          itself. A compiler refuses an analyzer that references a newer Microsoft.CodeAnalysis than
          its own, with a warning (CS9057) rather than an error: the generator is skipped, and the
@@ -25,7 +25,7 @@
          compiler of the first .NET 10 SDK. AnalyzerPackagingTests in IntegrationTests reads the
          references of the packed assemblies and fails when one is newer than its folder. -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="5.0.0" Condition="'$(TargetFramework)' == 'netstandard2.0'" Pinned="true" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="5.3.0" Condition="'$(TargetFramework)' == 'net10.0'" Pinned="true" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="5.3.0" Condition="'$(TargetFramework)' == 'net11.0'" Pinned="true" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
     <Compile Include="..\Excelsior\CamelCase.cs" Link="CamelCase.cs" />
   </ItemGroup>

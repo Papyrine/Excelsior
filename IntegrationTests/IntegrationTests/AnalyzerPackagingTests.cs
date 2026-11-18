@@ -18,8 +18,9 @@ using System.Reflection.PortableExecutable;
 /// </remarks>
 public class AnalyzerPackagingTests
 {
-    // Excelsior targets net10.0 only, and the first .NET 10 SDK ships Roslyn 5.0, so no consumer
-    // has an older compiler than this. Raising it drops SDK feature bands that worked before.
+    // Excelsior targets net11.0 only, so every consumer builds with a .NET 11 SDK, and none of
+    // those ships a compiler older than Roslyn 5.0 (the first .NET 10 SDK's). Raising it drops SDK
+    // feature bands that worked before.
     static readonly Version oldestCompiler = new(5, 0);
 
     record CompilerReference(string Assembly, Version Folder, string Name, Version Version);
