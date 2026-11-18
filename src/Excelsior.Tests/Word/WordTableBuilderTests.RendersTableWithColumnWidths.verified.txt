@@ -5,7 +5,7 @@
       Number: 1,
       Text:
 A	B	C
-Alpha	United Kingdo m, France , Japan, United Arab Emirat es, Canad a	x
+Alpha	United Kingd om, Franc e, Japan, United Arab Emirat es, Canad a	x
 Beta	Japan	y
     }
   ]
