@@ -5,7 +5,7 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="TUnit" Version="1.86.6" />
+    <PackageVersion Include="TUnit" Version="1.87.12" />
     <PackageVersion Include="Excelsior" Version="$(Version)" />
   </ItemGroup>
 </Project>
