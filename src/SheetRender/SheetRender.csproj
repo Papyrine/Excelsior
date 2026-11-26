@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <OutputType>Exe</OutputType>
-    <TestingPlatformCommandLineArguments>--minimum-expected-tests 0</TestingPlatformCommandLineArguments>
+    <IsTestProject>false</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Office.Interop.Excel" />
